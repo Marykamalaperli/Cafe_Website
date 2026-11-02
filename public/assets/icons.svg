@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24"><path d="M5 7h14l1 14H4L5 7Z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></symbol>
+  <symbol id="heart" viewBox="0 0 24 24"><path d="M20.7 4.6a5.5 5.5 0 0 0-7.8 0l-.9.9-.9-.9a5.5 5.5 0 0 0-7.8 7.8L12 21l8.7-8.6a5.5 5.5 0 0 0 0-7.8Z"/></symbol>
+  <symbol id="menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+  <symbol id="leaf" viewBox="0 0 24 24"><path d="M20 3c-12-2-19 6-13 13 7 6 15-1 13-13ZM4 21 16 9M8 17l-1-6m3 3 6 1"/></symbol>
+  <symbol id="cup" viewBox="0 0 48 48"><path d="M8 19h28v13a11 11 0 0 1-11 11h-6A11 11 0 0 1 8 32ZM36 21h3a6 6 0 0 1 0 12h-3M7 47h31M17 12c-4-5 4-6 0-11m11 11c-4-5 4-6 0-11"/></symbol>
+  <symbol id="sun-cup" viewBox="0 0 64 64"><path d="M14 31h32v11a13 13 0 0 1-13 13h-6a13 13 0 0 1-13-13ZM46 34h4a6 6 0 0 1 0 12h-5M12 61h37M23 24a9 9 0 1 1 16 0M31 2v5M12 11l4 4M50 11l-4 4M7 27h6M50 27h6"/></symbol>
+  <symbol id="sun" viewBox="0 0 64 64"><circle cx="32" cy="32" r="14"/><path d="M32 2v10m0 40v10M2 32h10m40 0h10M11 11l7 7m28 28 7 7m0-42-7 7M18 46l-7 7"/></symbol>
+  <symbol id="spark" viewBox="0 0 64 64"><path d="m32 2 5 22L54 10 40 28l22 4-22 5 14 17-17-14-5 22-5-22-17 14 14-17L2 32l22-4L10 10l17 14z"/></symbol>
+  <symbol id="croissant" viewBox="0 0 48 48"><path d="M4 31c2-15 14-22 20-22s18 7 20 22c-4 5-7 6-11 0-6 3-12 3-18 0-4 6-7 5-11 0ZM14 14l1 17M22 10l-3 22M27 10l2 22m5-18-1 17M4 31l6-8m34 8-6-8"/></symbol>
+  <symbol id="people" viewBox="0 0 48 48"><circle cx="24" cy="13" r="7"/><path d="M12 42V31a12 12 0 0 1 24 0v11M8 19a6 6 0 0 1 0-12m32 12a6 6 0 0 0 0-12M3 39v-9a7 7 0 0 1 6-7m36 16v-9a7 7 0 0 0-6-7"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></symbol>
+  <symbol id="pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="wifi" viewBox="0 0 24 24"><path d="M2 8a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0m-11 4a6 6 0 0 1 8 0"/><circle cx="12" cy="20" r=".5"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M12 5C8 2 4 2 2 3v16c4-1 7 0 10 2 3-2 6-3 10-2V3c-2-1-6-1-10 2Zm0 0v16"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+</svg>

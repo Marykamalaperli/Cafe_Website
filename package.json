@@ -1,0 +1,21 @@
+{
+  "name": "bitesbro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "BitesBro — a thoughtfully brewed café website with a Node.js API and SQLite database.",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "dev": "node --env-file-if-exists=.env --watch server/index.js",
+    "test": "node --test tests/*.test.js",
+    "check": "node --check server/index.js && node --check server/app.js && node --check server/database.js && node --check public/app.js",
+    "test:browser": "playwright test",
+    "test:all": "npm run check && npm test && npm run test:browser"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}
