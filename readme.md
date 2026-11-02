@@ -75,6 +75,8 @@ Personal data is intentionally not readable through public GET routes. For autho
 
 ## Deploy
 
+The repository includes a **Render Blueprint** with persistent SQLite storage, a production **Dockerfile**, and **Compose** configuration. Follow the [deployment guide](docs/deployment.md) for account setup, launch, custom domains, and validation. The Render Starter service and disk are paid; review the displayed price before applying the Blueprint.
+
 Run `npm ci --omit=dev` and `npm start` on a Node.js 24+ host with a **persistent writable volume**. Set `DATABASE_PATH` to a path on that volume and `SITE_URL` to the real HTTPS origin. A reverse proxy or managed hosting service should terminate HTTPS. Port `3000` is the default; `HOST` and `PORT` are configurable.
 
 Use a single application instance with this SQLite setup. Ephemeral serverless filesystems do not preserve the database. The in-process limiter does not trust forwarded IP headers: behind a reverse proxy, set per-client limits at the proxy and tune `RATE_LIMIT_MAX` for the shared upstream IP. Database operations are parameterised, writes are transactional, JSON bodies are limited to 16KB, foreign-origin submissions are rejected, and security headers limit resources to this origin.

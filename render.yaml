@@ -1,0 +1,32 @@
+# Render Blueprint: Node.js hosting + a persistent SQLite disk.
+# The starter instance and disk are paid resources. Review Render's displayed
+# price before applying this Blueprint. Saving this file does not deploy it.
+services:
+  - type: web
+    name: bitesbro
+    runtime: node
+    repo: https://github.com/Marykamalaperli/Cafe_Website
+    branch: main
+    region: singapore
+    plan: starter
+    numInstances: 1
+    buildCommand: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+    startCommand: SITE_URL="$RENDER_EXTERNAL_URL" npm start
+    healthCheckPath: /api/health
+    disk:
+      name: bitesbro-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_PATH
+        value: /var/data/bitesbro.sqlite
+      - key: CAFE_TIMEZONE
+        value: Asia/Kolkata
+      - key: RATE_LIMIT_MAX
+        value: "300"
