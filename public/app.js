@@ -1,6 +1,9 @@
 import {mealRecommendations} from './recommendations.js';
+import {connectDemoStore,clearDamagedDemo} from './shared/demo-store.js?v=three-roles-2';
+import {priceDemoBag,DEMO_BUSINESS} from './shared/demo-model.js?v=three-roles-2';
+import {mountRoleNavigation,siteURL} from './shared/ui.js?v=three-roles-2';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n/100);
+const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:n%100?2:0}).format(n/100);
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const asset=path=>new URL(path.replace(/^\//,''),document.baseURI).href;
 const icon=name=>`<svg class="icon" aria-hidden="true"><use href="${asset('assets/icons.svg')}#${name}"/></svg>`;
@@ -9,6 +12,8 @@ const photoAlt=item=>item.photo?'Representative photograph: '+item.photo.title:i
 const photoReference=item=>item.photo?.reference?`<span class="photo-reference">${escape(item.photo.reference)}</span>`:'';
 const CART_KEY='bitesbro.food-bag.v2';
 let toastTimer, selectedDish, recommendationClock;
+let demoMode=new URL(location.href).searchParams.get('demo')==='1',demoStore;
+mountRoleNavigation('customer',demoMode);
 async function request(path,options={}){
  const response=await fetch(path,{...options,signal:options.signal||AbortSignal.timeout(12000),headers:{...(options.body?{'Content-Type':'application/json'}:{}),...options.headers}});
  let data;try{data=await response.json();}catch{const e=new Error('The ordering server is not available.');e.status=response.status;throw e;}
@@ -37,14 +42,14 @@ function readCart(){
  }catch{return [];}
 }
 function subtotal(){return state.cart.reduce((sum,line)=>sum+unitPrice(line)*line.quantity,0);}
-function deliveryFee(){return $('#fulfilment').value==='delivery'&&subtotal()<(state.cafe?.freeDeliveryFrom??49900)?(state.cafe?.deliveryFee??4000):0;}
+function deliveryFee(){const fulfilment=demoMode?$('#demo-fulfilment').value:$('#fulfilment').value;return fulfilment==='delivery'&&subtotal()<(demoMode?DEMO_BUSINESS.freeDeliveryFrom:state.cafe?.freeDeliveryFrom??49900)?(demoMode?DEMO_BUSINESS.deliveryFee:state.cafe?.deliveryFee??4000):0;}
 function saveCart(){
  try{localStorage.setItem(CART_KEY,JSON.stringify(state.cart));localStorage.removeItem('bitesbro.bag.v1');}catch{}
  const count=state.cart.reduce((sum,line)=>sum+line.quantity,0);
  $('#bag-count').textContent=count;$('#open-cart').setAttribute('aria-label',`Open bag, ${count} ${count===1?'item':'items'}`);
  $('#mobile-bag').hidden=!count;$('#mobile-bag-count').textContent=`${count} ${count===1?'dish':'dishes'}`;$('#mobile-bag-total').textContent=money(subtotal());document.body.classList.toggle('has-items',count>0);
 }
-function renderSignature(){const item=state.menu.find(i=>i.id==='masala-dosa');$('#signature').hidden=!item;if(!item)return;$('#signature-name').textContent=item.name;$('#signature-description').textContent=item.description;$('#signature-price').textContent=money(item.price);$('#signature-add').disabled=false;$('#signature-add').setAttribute('aria-label','Customise Bangalore Masala Dosa');}
+function renderSignature(){const item=state.menu.find(i=>i.id==='masala-dosa');$('#signature').hidden=!item;if(!item)return;$('#signature-name').textContent=item.name;$('#signature-description').textContent=item.description;$('#signature-price').textContent=money(item.price);$('#signature-add').disabled=false;$('#signature-add').setAttribute('aria-label','Customise '+item.name);}
 function renderMenu(){
  let filtered=state.menu.filter(item=>(state.category==='all'||item.category===state.category)&&(state.diet==='all'||(state.diet==='veg'?item.diet!=='non-veg':item.diet===state.diet))&&(`${item.name} ${item.description} ${item.cuisine} ${item.ingredients.join(' ')}`.toLowerCase().includes(state.search)));
  if(state.sort!=='recommended')filtered.sort((a,b)=>state.sort==='price-low'?a.price-b.price:b.price-a.price);
@@ -83,7 +88,7 @@ function renderCart(){
  $('#cart-content').innerHTML=state.cart.map(line=>{const {item,variant,addons}=optionsFor(line);const summary=[variant.label,...(line.spice==='none'?[]:[line.spice+' spice']),...addons.map(a=>a.label)].join(' · ');return `<div class="cart-item"><img class="cart-item-image" src="${escape(asset(item.image))}" alt="" width="72" height="72"><div><h3>${escape(item.name)}</h3><p class="cart-options">${escape(summary)}</p><p class="cart-item-price">${money(unitPrice(line)*line.quantity)}</p><div class="quantity-control"><button data-quantity="${escape(line.key)}" data-delta="-1" aria-label="Remove one ${escape(item.name)}">−</button><span>${line.quantity}</span><button data-quantity="${escape(line.key)}" data-delta="1" aria-label="Add one ${escape(item.name)}">+</button></div></div><button class="remove-item" data-remove="${escape(line.key)}" aria-label="Remove ${escape(item.name)} from bag">×</button></div>`;}).join('');
  updateTotals();
 }
-function updateTotals(){const fee=deliveryFee();$('#cart-subtotal').textContent=money(subtotal());$('#cart-delivery').textContent=$('#fulfilment').value==='pickup'?'Pickup · free':fee?money(fee):'Free';$('#cart-total').textContent=money(subtotal()+fee);}
+function updateTotals(){const fee=deliveryFee();$('#cart-subtotal').textContent=money(subtotal());$('#cart-delivery').textContent=(demoMode?$('#demo-fulfilment').value:$('#fulfilment').value)==='pickup'?'Pickup · free':fee?money(fee):'Free';$('#cart-total').textContent=money(subtotal()+fee);}
 function showCart(){renderCart();openDialog($('#cart-dialog'));}
 $('#open-cart').addEventListener('click',showCart);$('#mobile-bag').addEventListener('click',showCart);
 $('#cart-content').addEventListener('click',event=>{
@@ -150,7 +155,7 @@ function connectForm(id, path, transform = value => value, onSuccess) {
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (form.dataset.submitting === 'true') return;
-    if(state.browseOnly||!state.cafe){const result=$('.form-result',form);result.className='form-result error';result.textContent='This is the sample menu view. Connect the Node.js ordering server to submit real requests.';return;}
+    if(demoMode||state.browseOnly||!state.cafe){const result=$('.form-result',form);result.className='form-result error';result.textContent=demoMode?'Use Demo checkout for a fictional order. Leave demo mode to use connected forms.':'This is the sample menu view. Connect the Node.js ordering server to submit real requests.';return;}
     const submit = $('button[type=submit]', form);
     const result = $('.form-result', form);
     result.textContent = '';
@@ -222,11 +227,12 @@ $('#motion-toggle').addEventListener('click', event => {
 
 $('#year').textContent=new Date().getFullYear();
 async function boot(){
+ if(demoMode){try{await activateDemo();}catch(error){$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML=`<div class="empty-state"><h3>The demo couldn’t open.</h3><p>${escape(error.message)}</p><button class="button button-outline" id="recover-customer-demo">Reset fictional demo data</button></div>`;}return;}
  let catalog;
  state.browseOnly=false;
  try{catalog=await request('/api/menu');}
  catch(error){
-  try{const r=await fetch(new URL('menu.json?v=photo-meals-4',document.baseURI),{cache:'no-cache',signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error();catalog=await r.json();state.browseOnly=true;}
+  try{const r=await fetch(new URL('menu.json?v=three-roles-1',document.baseURI),{cache:'no-cache',signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error();catalog=await r.json();state.browseOnly=true;}
   catch{$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML='<div class="empty-state"><h3>The kitchen menu couldn’t load.</h3><p>Check your connection and try again.</p><button class="button button-outline" id="retry-menu">Try again</button></div>';return;}
  }
  state.menu=catalog.items;state.categories=catalog.categories;state.cart=readCart();renderMenu();renderSignature();saveCart();
@@ -263,3 +269,68 @@ function renderRecommendations(){
 $('#recommendation-grid').addEventListener('click',event=>{const button=event.target.closest('[data-recommend-add]');if(button)openDish(button.dataset.recommendAdd);});
 setInterval(()=>{if(!document.hidden)renderRecommendations();},60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderRecommendations();});
+
+function configureDemo() {
+ document.body.dataset.demoMode='true';
+ $('#order-form').hidden=true;
+ $('.cart-payment').textContent='Demo Mode — No real orders or payments.';
+ $('#connection-note').hidden=false;
+ $('#connection-note').textContent='Demo Mode — No real orders or payments. Menu edits and fictional tickets sync between tabs in this browser only.';
+ $('#demo-checkout-note').textContent='Your fictional ticket will appear in the Kitchen Display and Administrator views. No personal details are collected.';
+ for(const form of [$('#reservation-form'),$('#newsletter-form'),$('#contact-form')]) {
+  $('button[type=submit]',form).disabled=true;
+  $('.form-result',form).textContent='Demonstration mode: these connected forms are disabled. Leave demo mode to use the Node.js server.';
+  const note=$('.form-note',form);if(note)note.textContent='Preview only in browser Demo Mode. No booking, message or signup is submitted here.';
+ }
+}
+function refreshDemo() {
+ const snapshot=demoStore.read(),previousCount=state.cart.reduce((sum,line)=>sum+line.quantity,0);
+ state.menu=snapshot.menu.filter(item=>item.available&&!item.archived);state.categories=snapshot.categories;
+ state.cart=readCart();renderMenu();renderSignature();renderRecommendations();saveCart();configureDemo();
+ if($('#cart-dialog').open)renderCart();
+ if($('#dish-dialog').open&&selectedDish){
+  const item=state.menu.find(item=>item.id===selectedDish.id);
+  if(!item){$('#dish-dialog').close();notify('That dish is unavailable in the demo menu.',true);}
+  else{const choice=selectedLine();openDish(item.id);$('#dish-variant').value=choice.variant;$('#dish-spice').value=choice.spice;$$('#addon-choices input').forEach(input=>{input.checked=choice.addons.includes(input.value);});updateDishPrice();}
+ }
+ if($('#demo-checkout-dialog').open)updateDemoCheckout();
+ if(state.cart.reduce((sum,line)=>sum+line.quantity,0)<previousCount)notify('Unavailable demo dishes were removed from your bag.',true);
+}
+async function activateDemo() {
+ if(!demoStore){
+  const connection=await connectDemoStore();
+  demoStore=connection;demoMode=true;state.browseOnly=true;state.cafe=null;recommendationClock=undefined;
+  const url=new URL(location.href);url.searchParams.set('demo','1');history.replaceState(null,'',url);
+  mountRoleNavigation('customer',true);demoStore.subscribe(refreshDemo);
+ }
+ refreshDemo();
+}
+function updateDemoCheckout() {
+ if(!demoStore)return;
+ const snapshot=demoStore.read(),button=$('#place-demo-order');
+ $('#demo-checkout-result').textContent='';
+ try{
+  const bill=priceDemoBag(snapshot,{items:state.cart,fulfilment:$('#demo-fulfilment').value});
+  $('#demo-checkout-summary').innerHTML=bill.items.map(item=>`<div><span>${item.quantity} × ${escape(item.name)}</span><span>${money(item.unitPrice*item.quantity)}</span></div>`).join('')+`<div><span>Demo delivery fee</span><span>${money(bill.deliveryFee)}</span></div><div><span>Demonstration total</span><span id="demo-total">${money(bill.total)}</span></div><p class="demo-route-note">~${snapshot.settings.prepMinutes} minutes simulated preparation. No real pickup or delivery is arranged.</p>`;
+  button.disabled=!snapshot.settings.acceptingOrders;
+  if(!snapshot.settings.acceptingOrders)$('#demo-checkout-result').textContent='The demonstration kitchen is paused. Resume it in Administrator settings.';
+ }catch(error){$('#demo-checkout-summary').textContent='';$('#demo-checkout-result').textContent=error.message;button.disabled=true;}
+ updateTotals();
+}
+$('#open-demo-checkout').addEventListener('click',async event=>{
+ const button=event.currentTarget;button.disabled=true;
+ try{await activateDemo();updateDemoCheckout();openDialog($('#demo-checkout-dialog'));}catch(error){notify(error.message,true);}finally{button.disabled=false;}
+});
+$('#demo-checkout-form').addEventListener('change',updateDemoCheckout);
+$('#demo-checkout-form').addEventListener('submit',async event=>{
+ event.preventDefault();const form=event.currentTarget;if(form.dataset.submitting||!demoStore)return;
+ form.dataset.submitting='true';$('#place-demo-order').disabled=true;$('#demo-checkout-result').textContent='';
+ try{
+  const order=await demoStore.dispatch({type:'order.place',items:state.cart.map(({id,quantity,variant,spice,addons})=>({id,quantity,variant,spice,addons})),fulfilment:$('#demo-fulfilment').value,instruction:$('#demo-instruction').value});
+  state.cart=[];saveCart();$('#demo-checkout-dialog').close();$('#cart-checkout').hidden=true;
+  $('#cart-content').innerHTML=`<div class="demo-confirmation"><p class="eyebrow">A LITTLE GOOD, SIMULATED.</p><h3>Your demo ticket is in.</h3><p><strong>${escape(order.reference)}</strong><br>${money(order.total)} · Received<br>Fictional order saved in this browser only.</p><a class="button button-orange" id="track-new-demo-order" href="${escape(siteURL('orders/?order='+encodeURIComponent(order.reference)))}">Track demo order ${icon('arrow')}</a><p><a class="text-link" href="${escape(siteURL('kitchen/'))}" target="_blank" rel="noopener">Open the Kitchen Display in another tab ${icon('arrow')}</a></p></div>`;
+  $('#track-new-demo-order').focus();
+ }catch(error){$('#demo-checkout-result').textContent=error.message;$('#place-demo-order').disabled=false;}
+ finally{delete form.dataset.submitting;}
+});
+$('#menu-grid').addEventListener('click',event=>{if(event.target.closest('#recover-customer-demo')){try{clearDamagedDemo();location.reload();}catch{notify('Enable browser site storage and reload to start the demo.',true);}}});

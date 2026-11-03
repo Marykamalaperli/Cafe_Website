@@ -176,6 +176,19 @@ test('public files have security headers and canonical SEO URLs are rendered', a
   for (const path of ['/.env', '/server/schema.sql', '/data/bitesbro.sqlite', '/%2e%2e%2fserver%2fapp.js']) assert.equal((await fetch(base + path)).status, 404);
 });
 
+test('demo role pages open directly without exposing operational APIs', async () => {
+ for(const path of ['/kitchen/','/admin/','/orders/']) {
+  const response=await fetch(base+path);assert.equal(response.status,200);
+  assert.match(response.headers.get('Content-Type'),/text\/html/);
+  assert.match(await response.text(),/BitesBro Demo/);
+  assert.match(response.headers.get('Content-Security-Policy'),/script-src 'self'/);
+ }
+ const redirect=await fetch(base+'/kitchen?view=active',{redirect:'manual'});
+ assert.equal(redirect.status,308);assert.equal(redirect.headers.get('Location'),'/kitchen/?view=active');
+ for(const path of ['/api/admin/orders','/api/kitchen/orders','/api/orders'])assert.equal((await fetch(base+path)).status,404);
+ const head=await fetch(base+'/admin/',{method:'HEAD'});assert.equal(head.status,200);assert.equal(await head.text(),'');
+});
+
 test('abuse limiter returns 429 and Retry-After without a second write', async () => {
   const limited = createServer(createApp({ db, now: fixedNow, rateLimitMax: 1 }));
   await new Promise(resolve => limited.listen(0, '127.0.0.1', resolve));

@@ -18,7 +18,12 @@ Cafe_Website/
 ├── public/                   Only directory exposed by HTTP
 │   ├── index.html            Semantic page, forms, native dialogs
 │   ├── styles.css            Tokens, responsive components, reduced motion
-│   ├── app.js                API client, menu, bag, forms, enhancements
+│   ├── app.js                Customer API flow and separate demo checkout
+│   ├── operations.css        Shared brand extension for operational views
+│   ├── shared/               Fictional model/store and shared UI/controllers
+│   ├── kitchen/              KDS index.html and app.js
+│   ├── admin/                Administrator index.html and app.js
+│   ├── orders/               Tracking/history index.html and app.js
 │   ├── recommendations.js   Pure timezone-aware meal selection
 │   ├── photo-credits.json    Licensed photo manifest and dish mapping
 │   ├── photo-credits.html    Generated visible photo attribution
@@ -42,6 +47,8 @@ Cafe_Website/
 │   └── migrations/           002_food_ordering.sql
 ├── tests/
 │   ├── api.test.js           HTTP + SQLite integration tests
+│   ├── demo-model.test.js    Pure fictional state/calculation/persistence tests
+│   ├── demo.spec.js          Three-role, cross-tab and nested Pages journeys
 │   └── browser.spec.js       Chromium user journeys + responsive checks
 └── data/                     Generated and ignored; mount persistently
     └── bitesbro.sqlite       Plus SQLite WAL/SHM files during operation
@@ -140,3 +147,13 @@ Email sending, online payments, real map directions, staff authentication, cance
 `public/recommendations.js` is a deterministic module shared by the browser and unit tests. It selects curated available IDs for breakfast, lunch, evening, dinner or after-hours inspiration in the café timezone. The connected API returns `serverTime` and `openingPeriods`; the browser advances that clock using elapsed monotonic time, updates each minute and on visibility changes, and applies the current diet preference. Pages falls back to the device instant formatted in Bangalore time. Suggestions never change availability or kitchen hours.
 
 `public/photo-credits.json` records every photograph's individual author, licence, source, pinned mirror and SHA-256, plus dish mappings and reference captions. `scripts/build-photo-credits.js` generates an accessible static credits page. The Pages build prefixes its stylesheet and image URLs for repository hosting. `server/menu-photos.js` performs an idempotent version-3 transaction updating only known original illustration paths. An existing version-2 database receives a SQLite-aware pre-photo backup; combined version-1 upgrades are protected by their existing pre-food backup. Owner-uploaded images and all other data remain intact. `readMenu` attaches photo attribution only when an image matches the manifest; custom images do not inherit unrelated stock credits.
+
+## Connected three-role frontend demonstration
+
+The customer site, `public/kitchen/index.html`, `public/admin/index.html` and `public/orders/index.html` share `public/shared/demo-model.js` (pure state/calculations), `demo-store.js` (fictional persistence/tab synchronization), `ui.js` and `operations.js` (presentation and interaction). Each role has its own entry module; `public/operations.css` extends the existing design system. Demo mode is explicit, has no real staff privileges and never reads private restaurant records.
+
+The `bitesbro.demo.v1` namespace contains a full sample menu, fictional order snapshots and status timelines, settings and bounded activity. It contains no customer contacts, addresses or payment details. Customer demo checkout calculates from the current sample/demo menu, kitchen transitions are validated, and administrator counts/reports use the same dataset. Web Locks serialize mutations where supported; `storage` events refresh other tabs. This shares no state across devices.
+
+Default customer Node/API ordering remains separate. Explicit browser-demo mode disables server-write forms and uses only preset fictional inputs. No operational server endpoints or database migrations were introduced. The only server change serves nested public directory index files while retaining realpath checks and security headers. The Pages builder recursively handles nested HTML/CSS and still outputs `_site/` using the existing workflow.
+
+[Detailed three-role architecture, workflow, privacy and secure backend roadmap](three-role-demo.md).

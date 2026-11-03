@@ -25,12 +25,13 @@
 - `public/recommendations.js` owns suggestions based on the restaurant timezone and server clock (device instant on Pages). Keep suggestions separate from kitchen hours and availability; preserve full-menu browsing and diet filters.
 - Photo licences, sources, authors, pinned mirror files and hashes live in `public/photo-credits.json`. Keep required attribution visible through `photo-credits.html`, regenerate it with `npm run photos:credits`, and label cuisine reference images. Do not call all photographs copyright-free or imply stock images show actual BitesBro servings.
 - Serve fonts, scripts, images, and styles locally. Update CSP deliberately if an authorised integration truly needs another origin.
-- GitHub Pages is browse-only: build it with `npm run build:pages`, retain the sample catalogue fallback and disable forms when no ordering server is connected. Test the repository-subpath asset URLs.
-- Keep every visible control useful. Forms must call real APIs, surface validation/network failures, prevent double clicks, and honestly describe what was saved.
+- GitHub Pages supports a separate browser-only three-role demo: build with `npm run build:pages`, retain the sample catalogue fallback, and keep real server forms disabled without an API. Demo Checkout is explicitly fictional. Test nested role pages and the repository subpath.
+- `public/shared/demo-model.js` owns fictional order/menu state and calculations; `demo-store.js` adds versioned local storage, optional Web Locks and same-origin tab updates. No contact/address/payment data belongs in that store. Keep demo role switching separate from authentication; no public staff APIs are authorised.
+- Keep every visible control useful. Connected forms must call real APIs; browser-demo forms use only the fictional adapter. Surface validation/network/storage failures, prevent double clicks, and honestly describe what was saved.
 - Preserve semantic HTML, native dialog focus handling, labels, keyboard navigation, live status messages, and reduced-motion styles.
 - Keep content readable without reveal animations. The HTML is visible without JavaScript; `.motion-ready` activates progressive enhancements.
 - Avoid dummy links, fake maps/ratings/contact details, or claiming emails/payments are connected. Address/email/phone are pending the user's details. Preserve clear demo status until live operations are intentionally configured.
-- `localStorage` holds only dish IDs, quantities and selected option IDs/spice, never contact information. Server-side totals must include validated portion/add-on prices and delivery fees.
+- Bag storage holds only dish IDs, quantities and selected option IDs/spice. The separate demo namespace holds fictional order snapshots, demo menu/preferences and activity, never customer contact information or delivery addresses. Server-side totals must include validated portion/add-on prices and delivery fees.
 
 ## Verify changes
 

@@ -15,6 +15,21 @@ npm run dev
 
 Run these commands from `/workspace/Cafe_Website` in this cloud workspace, or from the cloned repository root on another machine. The server listens on port 3000 by default. `npm start` runs without the file watcher. Copy `.env.example` to an ignored `.env` file to override `PORT`, `HOST`, `SITE_URL`, `DATABASE_PATH`, `CAFE_TIMEZONE`, or `RATE_LIMIT_MAX`.
 
+## Three-role browser demonstration
+
+The existing customer website now connects to a **fictional Kitchen Display System and Administrator dashboard** without backend hosting:
+
+- Customer demo: `/?demo=1` — the full menu, existing customiser/bag, separate Demo Checkout and tracking.
+- Kitchen: `/kitchen/` — incoming/preparing/ready tickets, allowed preparation actions, history and menu availability.
+- Administrator: `/admin/` — overview, orders, demo menu editing/add/archive, simulated reports, kitchen preferences and reset.
+- Tracking: `/orders/` — fictional history, option/price snapshots and the Received → Preparing → Ready → Collected timeline.
+
+Use **Explore BitesBro Demo** to switch roles. Changes sync between tabs in the same browser/origin; they do not sync across devices. All operational data is fictional and labelled **Demo Mode — No real orders or payments.** The role selector is not staff authentication.
+
+The separate `bitesbro.demo.v1` store contains only fictional tickets, demo menu edits and preferences. Checkout uses a fixed Demo guest and preset preparation notes; it never copies names, contact details, addresses or payment information from connected forms. Menu edits never modify SQLite. New tickets use the current demonstration prices in integer paise, while historical tickets retain snapshots.
+
+Opening `./` without `?demo=1` preserves the existing connected Node.js customer flow. In explicit browser-demo mode, server-write forms are disabled. [Workflow, architecture, security boundaries and future authenticated backend](docs/three-role-demo.md).
+
 ## Food ordering
 
 - South Indian: masala/Mysore/ghee/rava/set/cheese dosas, podi idli, idli sambar, medu vada, pongal, uttapam, appam and stew, puttu and kadala, bisi bele bath, thali and Chettinad chicken dosa.
@@ -62,14 +77,14 @@ Changing seed data does not overwrite existing production menu records. For live
 
 ## GitHub Pages and full-stack hosting
 
-GitHub Pages can show the redesigned food website, sample menu, customiser and bag. It **cannot run Node.js or SQLite**. When the API is unavailable, the site loads the committed `public/menu.json` sample catalogue, displays a sample-view notice and disables submission forms. It does not pretend to save orders in a static deployment.
+GitHub Pages runs the complete three-role **browser demonstration**, sample menu, customiser and bag. It **cannot run Node.js or SQLite**. Connected server forms stay disabled when no API is available. The explicitly separate Demo Checkout stores only fictional orders in this browser and connects the customer, kitchen and administrator views. It never claims to save a real restaurant order.
 
 ```sh
 npm run menu:export    # Export only the sample catalogue, using an in-memory DB
 npm run build:pages   # Build _site/ with correct repository paths and SEO URLs
 ```
 
-`.github/workflows/deploy.yml` builds this food frontend on pushes to `main` and deploys it to GitHub Pages. Root and repository-subpath asset handling is tested. `public/menu.json` contains sample menu data only, never customer records or production database contents.
+`.github/workflows/deploy.yml` builds this food frontend on pushes to `main` and deploys it to GitHub Pages. Root, nested-page and repository-subpath asset handling is tested, including directly opening and refreshing role pages. `public/menu.json` contains sample menu data only, never customer records or production database contents.
 
 To accept database-backed requests, deploy the **whole application** to a Node.js host with a persistent disk using the provided Render Blueprint or Docker configuration. Set `SITE_URL` to the real HTTPS origin and `DATABASE_PATH` to the persistent mount. See [deployment instructions](docs/deployment.md). Render's Starter service and disk are paid resources; applying a Blueprint requires a hosting account and review of its price.
 
@@ -77,9 +92,9 @@ To accept database-backed requests, deploy the **whole application** to a Node.j
 
 ```sh
 npm run check
-npm test               # 31 API/database, photo-provenance and meal recommendation tests
+npm test               # 47 API/database, photo, recommendation and shared demo-model tests
 npm run build:pages
-npm run test:browser   # 14 Chromium end-to-end tests, including the actual Pages build
+npm run test:browser   # 21 Chromium journeys, including three-role workflows on the Pages build
 ```
 
 Browser tests use `/usr/bin/chromium`, `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`, or a Playwright-installed Chromium. They run against a separate temporary database on port 3100. API tests use in-memory and temporary files. Screenshots/traces go to ignored `test-results/`. Tests do not submit customer data to the development or production database.
@@ -104,6 +119,6 @@ An order line is `{ "id": "masala-dosa", "quantity": 2, "variant": "ghee-roast",
 
 ## Project documentation
 
-[Architecture](docs/architecture.md) · [Design system](design_system.md) · [Agent instructions](agents.md) · [Credits](docs/credits.md) · [Deployment](docs/deployment.md)
+[Three-role demonstration](docs/three-role-demo.md) · [Implementation report](docs/redesign-report.md) · [Architecture](docs/architecture.md) · [Design system](design_system.md) · [Agent instructions](agents.md) · [Credits](docs/credits.md) · [Deployment](docs/deployment.md)
 
 Use a single Node instance with persistent local disk. Terminate HTTPS at the hosting provider/reverse proxy; configure per-client abuse limits there because the application does not trust forwarded IP headers. Keep SQLite-aware backups and never delete `data/` to refresh a menu. Email, payments, authenticated staff tools, request fulfilment and a final privacy/retention policy remain explicit live-service integrations.

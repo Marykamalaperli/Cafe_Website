@@ -62,6 +62,12 @@ Normal hosting builds do not need this secret. TLS verification remains enabled.
 
 Keep backups through a SQLite-aware backup operation. Do not copy only the main database file while WAL writes are active, and never commit customer data or database files to GitHub.
 
-## GitHub Pages food frontend
+## GitHub Pages three-role frontend
 
-The repository workflow now builds with `npm run build:pages` using Node.js 24. It exports the 50-dish sample catalogue and fixes static paths for `/Cafe_Website/`. Menu browsing and bag customisation work on Pages; submission forms clearly indicate that a Node ordering server is needed. GitHub Pages does not store food orders. Deploy the whole repository with Render/Docker to enable the API and persistent database. The version-2 startup migration automatically creates a consistent backup of an existing database before upgrading it; retain sufficient disk space and keep its backup private.
+The existing workflow builds with `npm run build:pages` on Node.js 24 and deploys `_site/`. The builder exports the full sample catalogue, retains photograph credits, includes nested customer tracking/kitchen/admin pages and fixes absolute HTML/CSS asset paths for `/Cafe_Website/`. JavaScript modules resolve shared URLs from their own location.
+
+Public demonstration routes are `/Cafe_Website/?demo=1`, `/Cafe_Website/kitchen/`, `/Cafe_Website/admin/` and `/Cafe_Website/orders/`. Direct links and refreshes work without a client-router fallback. All three roles share fictional browser data; the role selector is not authentication. Real server forms stay disabled on static hosting. No production credentials or backend host are needed for Demo Checkout.
+
+The Node host continues to provide the existing API and SQLite persistence separately. It serves nested public demo pages with the same security headers and realpath protections. Existing database migrations and backups remain intact; this redesign adds no schema change or operational backend endpoint.
+
+See [the three-role guide](three-role-demo.md) for the demonstration scenario and the authenticated backend work required before real kitchen/admin access. Changes for this milestone are left on a feature branch for review; no commit, push or deployment is automatic.

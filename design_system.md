@@ -55,7 +55,7 @@ A four-card recommendation section sits before the full menu. It uses Bangalore 
 
 Four cuisine shortcuts lead to South Indian, biryani, global dishes and desserts. The 50-dish sample catalogue spans eight categories. Cards label vegetarian/non-vegetarian/plant-based dishes with both text and markers; red marks non-vegetarian items. Portion, spice preference, price and estimated preparation time support decisions. Filters include diet, cuisine, ingredient search and price order, with progressive loading for the large catalogue.
 
-The customiser uses a native dialog with portion choices, spice levels, add-ons, ingredients and allergen information. The forest-green signature panel now features Bangalore Masala Dosa. Its details and price come from the catalogue. The cart shows food subtotal, delivery fee and total, with conditional delivery-address fields. A mobile bag bar remains clear of toasts, safe areas and dialogs. Form submission is visibly unavailable in the static Pages sample view.
+The customiser uses a native dialog with portion choices, spice levels, add-ons, ingredients and allergen information. The forest-green signature panel now features Bangalore Masala Dosa. Its details and price come from the catalogue. The cart shows food subtotal, delivery fee and total, with conditional delivery-address fields. A mobile bag bar remains clear of toasts, safe areas and dialogs. Connected server forms are unavailable in the static Pages view; a separate, clearly labelled browser Demo Checkout supports fictional ordering without contact or payment details.
 
 ## Motion
 
@@ -68,3 +68,13 @@ Use `cubic-bezier(.22, 1, .36, 1)` for entrance and interaction easing. Hover ch
 Write like a friendly neighbourhood host: “Save me a seat,” “Say a little hello,” and “A little room for a treat.” Keep operational instructions direct. Never trade clarity for personality when explaining errors, payment, email delivery, privacy, or booking status.
 
 Business facts supplied so far: **BitesBro**, **Bangalore**, **10am–3pm and 6pm–11pm**. Daily opening is an assumption. Street address, contact information, final menu/recipes and physical-space images are pending. Vegetarian and non-vegetarian choices are both requested; sample delivery rules remain editable. Keep these editable and do not invent ratings, reviews, or a street address.
+
+## Three-role operational extension
+
+`public/operations.css` extends the same brand tokens and self-hosted fonts. The customer site retains its editorial hero, real photographs, recommendations, full catalogue, customiser and bag. A restrained role strip and three-step workflow invitation introduce the connected demonstration. Demo Checkout has its own dialog and fixed fictional guest; it never disguises a static request as a database order.
+
+The Kitchen Display uses a forest header, light sage workspace, large cream tickets and 44–48px actions. Received/Preparing/Ready columns, quantity emphasis, explicit option notes and textual status chips support quick reading. The queue collapses to one column on small phones. History and an availability panel remain separate from active preparation.
+
+Administrator uses a responsive sidebar, calm metric cards, explicit order/menu tables, derived reports and practical settings. Mobile navigation scrolls within its region; tables scroll within their own containers. Reports use a single restrained sales chart backed by an exact daily table and a textual status breakdown. All performance data is labelled simulated.
+
+Tracking combines fictional order history and a four-step timeline, with clear cancellation and missing-ticket states. Native dialogs preserve Escape/focus behaviour; feedback uses status regions. Colour is never the only status cue. Dashboard views have no continuous animation and respect reduced motion. Original SVG icons are reused; licensed food photographs retain their credits and reference labels.

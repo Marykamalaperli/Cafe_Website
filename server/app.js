@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { readFile, realpath } from 'node:fs/promises';
+import { readFile, realpath, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, extname, sep } from 'node:path';
 import { cafe, bookingSlots, foodSlots, openingHours } from './cafe.js';
@@ -221,6 +221,14 @@ export function createApp({ db, siteUrl = 'http://localhost:3000', timezone = 'A
       let actual;
       try { actual = await realpath(target); } catch { throw new HttpError(404, 'Page not found.'); }
       if (!actual.startsWith(publicRoot + sep)) throw new HttpError(404, 'Page not found.');
+      if ((await stat(actual)).isDirectory()) {
+        if (!path.endsWith('/')) {
+          res.writeHead(308, { Location: path.replace(/^\/+/, '/') + '/' + url.search, 'Cache-Control': 'no-cache' });
+          return res.end();
+        }
+        try { actual = await realpath(resolve(actual, 'index.html')); } catch { throw new HttpError(404, 'Page not found.'); }
+        if (!actual.startsWith(publicRoot + sep)) throw new HttpError(404, 'Page not found.');
+      }
       let content;
       try { content = await readFile(actual); } catch { throw new HttpError(404, 'Page not found.'); }
       const extension = extname(actual);
