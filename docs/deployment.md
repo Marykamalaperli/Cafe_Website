@@ -5,7 +5,7 @@
 GitHub Pages serves the frontend. Supabase supplies Auth, Postgres functions/RLS and file storage, so this configuration supports ordering and staff dashboards without a Node host or Docker.
 
 1. Complete [Supabase setup](supabase.md): run `supabase/setup.sql`, configure email/redirect URLs, create/confirm `admin@bitesbro.com`, and run the admin bootstrap SQL.
-2. In GitHub **Settings → Secrets and variables → Actions → Variables**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Use the publishable key only. Keep `.env.local` ignored; do not add service-role/management keys.
+2. In GitHub **Settings → Secrets and variables → Actions → Variables or Secrets**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Use the publishable key only. Keep `.env.local` ignored; do not add service-role/management keys.
 3. Enable Pages with **GitHub Actions** as the source. The existing `.github/workflows/deploy.yml` installs locked dependencies, builds `_site/` on Node 24 and deploys it on pushes to `main` or a manual workflow run. It stops before publishing if the public Supabase settings are missing. It never runs SQL migrations or uploads private data.
 4. Confirm the Supabase allowed callback is `https://marykamalaperli.github.io/Cafe_Website/auth/` and the Site URL is `https://marykamalaperli.github.io/Cafe_Website/` (or the actual custom-domain equivalents).
 5. Sign in as administrator → **Settings → Upload menu photographs**. This stores/links 40 credited JPEGs in `menu-images/files/`. Assign confirmed chef accounts through **Staff access**.

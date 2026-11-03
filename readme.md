@@ -24,7 +24,7 @@ Email/password signup, confirmation, sign-in, recovery and sign-out are implemen
 1. Run [supabase/setup.sql](supabase/setup.sql) in **Bites_Bro_Website → SQL Editor**. It creates the protected tables, functions, 50-dish catalogue, photo credits and `menu-images` bucket.
 2. Configure Supabase email authentication and the website's `/auth/` callback URL.
 3. Create and confirm **admin@bitesbro.com**, then run [supabase/bootstrap-admin.sql](supabase/bootstrap-admin.sql). Choose the password in Auth, never in SQL or Git.
-4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to ignored `.env.local` locally, and to GitHub Actions **Variables** for Pages builds.
+4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to ignored `.env.local` locally, and to GitHub Actions **Variables or Secrets** for Pages builds.
 5. Sign in as administrator → **Settings → Upload menu photographs**. All 40 licensed images upload to **Storage → menu-images → Files → files/** and become the menu's image URLs. Use **Staff access** to assign confirmed chef accounts.
 6. Run `npm run supabase:verify` for read-only Cloud readiness checks.
 

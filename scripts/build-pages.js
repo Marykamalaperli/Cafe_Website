@@ -8,7 +8,7 @@ execFileSync(process.execPath,['scripts/export-menu.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/build-photo-credits.js'],{stdio:'inherit'});
 rmSync('_site',{recursive:true,force:true});mkdirSync('_site');cpSync('public','_site',{recursive:true});
 const config=buildClient('_site');
-if(process.env.REQUIRE_SUPABASE==='true'&&!config.enabled)throw new Error('Configure VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in GitHub Actions Variables before deployment.');
+if(process.env.REQUIRE_SUPABASE==='true'&&!config.enabled)throw new Error('Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY under GitHub repository Settings > Secrets and variables > Actions (Variables or Secrets), then rerun this workflow.');
 for(const name of readdirSync('_site',{recursive:true}).filter(name=>/\.(html|css)$/.test(name)||['robots.txt','sitemap.xml'].includes(name))){
  let content=readFileSync('_site/'+name,'utf8').replaceAll('{{SITE_URL}}',origin);
  if(name.endsWith('.css')) content=content.replaceAll('/assets/',base+'/assets/');
