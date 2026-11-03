@@ -103,7 +103,7 @@ export function createApp({ db, siteUrl = 'http://localhost:3000', timezone = 'A
         return json(res, 200, { status: 'ok', database: 'connected' });
       }
       if (req.method === 'GET' && path === '/api/cafe') {
-        return json(res, 200, { name: cafe.name, currency: cafe.currency, timezone, today: clock.date, currentTime: clock.time, slots: SLOTS, foodSlots, deliveryFee: cafe.deliveryFee, freeDeliveryFrom: cafe.freeDeliveryFrom, maxAdvanceDays: cafe.maxAdvanceDays, maxGuests: cafe.maxGuests, demo: cafe.demo, city: cafe.city, hours: openingHours, address: cafe.address, email: cafe.email, phone: cafe.phone });
+        return json(res, 200, { name: cafe.name, currency: cafe.currency, timezone, serverTime: now().toISOString(), openingPeriods: cafe.openingPeriods, today: clock.date, currentTime: clock.time, slots: SLOTS, foodSlots, deliveryFee: cafe.deliveryFee, freeDeliveryFrom: cafe.freeDeliveryFrom, maxAdvanceDays: cafe.maxAdvanceDays, maxGuests: cafe.maxGuests, demo: cafe.demo, city: cafe.city, hours: openingHours, address: cafe.address, email: cafe.email, phone: cafe.phone });
       }
       if (req.method === 'GET' && path === '/api/menu') {
         const category = url.searchParams.get('category') || 'all';

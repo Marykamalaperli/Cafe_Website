@@ -19,6 +19,9 @@ Cafe_Website/
 │   ├── index.html            Semantic page, forms, native dialogs
 │   ├── styles.css            Tokens, responsive components, reduced motion
 │   ├── app.js                API client, menu, bag, forms, enhancements
+│   ├── recommendations.js   Pure timezone-aware meal selection
+│   ├── photo-credits.json    Licensed photo manifest and dish mapping
+│   ├── photo-credits.html    Generated visible photo attribution
 │   ├── robots.txt
 │   ├── sitemap.xml
 │   └── assets/
@@ -34,6 +37,7 @@ Cafe_Website/
 │   ├── schema.sql            Tables, constraints, indexes, schema version
 │   ├── menu.js               Legacy eight-product baseline
 │   ├── food-menu.js          Food catalogue, categories and public read model
+│   ├── menu-photos.js        Version-3 image migration and credit lookup
 │   ├── migrations.js         Versioned upgrade runner and consistent backup
 │   └── migrations/           002_food_ordering.sql
 ├── tests/
@@ -53,7 +57,7 @@ flowchart LR
   Operations -->|parameterised SQL + transactions| SQLite[(Persistent SQLite)]
 ```
 
-Static paths are resolved and checked against the public directory, including realpath checks so symlinks cannot escape it. The server injects the configured site origin into canonical/social metadata, `robots.txt`, and `sitemap.xml`. The single-page sitemap lists the canonical document once; fragment sections are not separate pages.
+Static paths are resolved and checked against the public directory, including realpath checks so symlinks cannot escape it. The server injects the configured site origin into canonical/social metadata, `robots.txt`, and `sitemap.xml`. The sitemap lists the canonical document once; fragment sections are not separate pages. The photo-credits document is marked noindex and is linked from the menu and footer.
 
 The browser loads the menu and café clock from the API. The browser reads the live catalogue once; cuisine/diet/search/price filters and pagination operate on it. The API also supports category, diet and query filters. The bag stores dish IDs, quantities, variant/add-on IDs and spice preferences in local storage. At checkout, the server rereads prices and availability rather than trusting client values.
 
@@ -130,3 +134,9 @@ Email sending, online payments, real map directions, staff authentication, cance
 `menu_items.details` contains the sample recipe/ingredients, diet, allergens, cuisine, portion, preparation estimate, spice preference, variants and add-ons. Base prices and availability remain ordinary columns. `order_items.options` stores the selected variant, spice and add-on price/name snapshots. Orders include fulfilment, optional delivery address/postcode, instructions, food subtotal and delivery fee. There are no public customer-list routes.
 
 `public/menu.json` is exported from a fresh in-memory sample database, never a live customer database. If the API is unavailable, the browser explicitly enters sample/browse-only mode, renders this catalogue and disables order/contact/reservation/newsletter submission. `scripts/build-pages.js` creates `_site/`, substitutes the public Pages origin and prefixes static HTML/CSS assets for the repository path. JavaScript resolves dynamic images relative to the document. The GitHub Actions workflow uses Node.js 24 to build these files. Full database-backed functionality runs on the Node host; GitHub Pages provides a food-catalogue preview.
+
+## Meal suggestions and licensed images
+
+`public/recommendations.js` is a deterministic module shared by the browser and unit tests. It selects curated available IDs for breakfast, lunch, evening, dinner or after-hours inspiration in the café timezone. The connected API returns `serverTime` and `openingPeriods`; the browser advances that clock using elapsed monotonic time, updates each minute and on visibility changes, and applies the current diet preference. Pages falls back to the device instant formatted in Bangalore time. Suggestions never change availability or kitchen hours.
+
+`public/photo-credits.json` records every photograph's individual author, licence, source, pinned mirror and SHA-256, plus dish mappings and reference captions. `scripts/build-photo-credits.js` generates an accessible static credits page. The Pages build prefixes its stylesheet and image URLs for repository hosting. `server/menu-photos.js` performs an idempotent version-3 transaction updating only known original illustration paths. An existing version-2 database receives a SQLite-aware pre-photo backup; combined version-1 upgrades are protected by their existing pre-food backup. Owner-uploaded images and all other data remain intact. `readMenu` attaches photo attribution only when an image matches the manifest; custom images do not inherit unrelated stock credits.

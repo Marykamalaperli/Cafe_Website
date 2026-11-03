@@ -1,4 +1,5 @@
 // Editable sample food catalogue. All prices and option surcharges use paise.
+import { photoByImage, dishPhotoReferences } from './menu-photos.js';
 export const categories = [
   ['south-indian','South Indian'],['north-indian','North Indian'],['biryani','Biryani & rice'],
   ['chinese','Indo-Chinese'],['global','Pizza, burgers & pasta'],['snacks','Street bites'],
@@ -61,5 +62,8 @@ export const foodMenu=rows.map(([id,name,category,price,description,diet,art,all
 }));
 export function readMenu(db,category='all') {
  const order=categories.map((c,i)=>"WHEN '"+c.id+"' THEN "+i).join(' ');
- return db.prepare("SELECT * FROM menu_items WHERE available=1 AND (?='all' OR category=?) ORDER BY CASE category "+order+" ELSE 99 END,rowid").all(category,category).map(({details,dietary,available,...item})=>({...item,dietary:JSON.parse(dietary),...JSON.parse(details)}));
+ return db.prepare("SELECT * FROM menu_items WHERE available=1 AND (?='all' OR category=?) ORDER BY CASE category "+order+" ELSE 99 END,rowid").all(category,category).map(({details,dietary,available,...item})=>{
+  const photo=photoByImage.get(item.image);
+  return {...item,dietary:JSON.parse(dietary),...JSON.parse(details),...(photo?{photo:{id:photo.id,title:photo.title,author:photo.author,license:photo.license,source:photo.source,licenseUrl:photo.licenseUrl,reference:dishPhotoReferences[item.id]||null}}:{})};
+ });
 }

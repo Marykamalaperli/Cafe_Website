@@ -1,6 +1,6 @@
 # BitesBro design system
 
-**Good food. Great moods.** Warm, grounded, a little playful. The visual language combines café-editorial typography, a food-led photographic composition, hand-drawn line icons, and original illustrated menu items. Real café photography should replace the representative stock images when available.
+**Good food. Great moods.** Warm, grounded, a little playful. The visual language combines café-editorial typography, a food-led photographic composition, hand-drawn line icons, and real freely licensed food photographs. Real café photography should replace the representative stock images when available.
 
 ## Brand foundations
 
@@ -40,16 +40,18 @@ The content container is capped at 1280px, with responsive 56/36/24/20px side sp
 | Primary button | Terracotta fill, cream text, 6px corners, directional icon |
 | Secondary button | Forest outline or forest fill; maintain consistent height |
 | Menu tab | Rounded pill, forest active state, `aria-pressed` |
-| Menu card | Original product artwork, dietary marker, stored price, named Add button |
+| Menu card | Food photograph, labelled cuisine reference where applicable, dietary marker, stored price, named Add button |
 | Cart | Native dialog, right-aligned drawer, item quantities, visible total, honest pickup status |
 | Form | Explicit label, appropriate autocomplete/type, consent, errors and success references |
-| Photographs | Arch-shaped South Indian feast hero and rotated food story image |
+| Photographs | Arch-shaped dosa hero and rotated South Indian thali story image |
 | Stamp | Terracotta flavour stamp with italic display emphasis |
 | Location | Clearly illustrative neighbourhood, never presented as a real street map |
 
-The menu art is deliberately illustrative and labelled as such in alt text and allergen guidance. Photography crops use `object-fit: cover`; explicit dimensions reserve layout space. Lower-page images load lazily. All assets are local; there are no third-party tracking pixels or font requests.
+The hero and signature panel use real dosa photography, and the story uses a South Indian vegetarian thali. Menu images, recommendations, customisers and bag thumbnails share the same locally served photographs. Photos illustrate serving styles; some have a visible cuisine reference caption. The menu and footer link to the generated public photo-credits page, with individual author, source and licence links. Keep these credits when reusing the photographs.
 
-The hero now leads with an original generated South Indian feast: a crisp dosa, idli, vada, sambar and chutneys, with biryani and a cooler in the background. It is concept imagery, not a photo of a physical restaurant. A terracotta flavour stamp and plate/cutlery identity replace the coffee-led branding. Supporting story imagery uses the food composition, not a barista image.
+Photography crops use `object-fit: cover`; explicit dimensions reserve layout space. Lower-page images load lazily. All assets are local; there are no third-party tracking pixels or font requests. The active food imagery contains no generated concept photographs or SVG dish illustrations. Original icons and decorative line art remain.
+
+A four-card recommendation section sits before the full menu. It uses Bangalore time: breakfast/tiffin 5am–noon, lunch noon–4pm, evening bites 4pm–7pm and dinner 7pm–11pm. Overnight copy suggests a future breakfast and clearly says the kitchen is closed. A clock and separate kitchen-status pill show the current local time and actual opening period. The layout moves from four columns to two on phones. Recommendations respect dietary preferences and open the dish customiser; they do not restrict the catalogue.
 
 Four cuisine shortcuts lead to South Indian, biryani, global dishes and desserts. The 50-dish sample catalogue spans eight categories. Cards label vegetarian/non-vegetarian/plant-based dishes with both text and markers; red marks non-vegetarian items. Portion, spice preference, price and estimated preparation time support decisions. Filters include diet, cuisine, ingredient search and price order, with progressive loading for the large catalogue.
 

@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { menuSeed } from './menu.js';
 import { migrateFood } from './migrations.js';
+import { migratePhotos } from './menu-photos.js';
 
 export function openDatabase(path = './data/bitesbro.sqlite') {
   const existingFile = path !== ':memory:' && existsSync(path);
@@ -25,6 +26,11 @@ export function openDatabase(path = './data/bitesbro.sqlite') {
       throw error;
     }
   }
-  try { migrateFood(db, existingFile ? path : null); } catch (error) { db.close(); throw error; }
+  const alreadyFood = Boolean(db.prepare('SELECT 1 FROM schema_migrations WHERE version=2').get());
+  try {
+    migrateFood(db, existingFile ? path : null);
+    // A version-1 upgrade already creates a complete pre-upgrade backup.
+    migratePhotos(db, existingFile && alreadyFood ? path : null);
+  } catch (error) { db.close(); throw error; }
   return db;
 }

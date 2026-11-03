@@ -15,6 +15,7 @@
     "test:browser": "playwright test",
     "test:all": "npm run check && npm test && npm run test:browser",
     "menu:export": "node scripts/export-menu.js",
+    "photos:credits": "node scripts/build-photo-credits.js",
     "build:pages": "node scripts/build-pages.js"
   },
   "devDependencies": {

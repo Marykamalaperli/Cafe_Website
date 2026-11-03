@@ -12,7 +12,7 @@
 - `public/` is the only web-served directory. Keep server code, database files, and secrets outside it.
 - `server/cafe.js` owns business details and opening periods. `/api/cafe` drives visit details and the booking clock. The user supplied **BitesBro, Bangalore, 10am–3pm and 6pm–11pm**, and explicitly requested **both vegetarian and non-vegetarian food with South Indian dishes leading the menu**. Daily opening, sample menu/prices, and capacity remain editable assumptions.
 - `server/food-menu.js` supplies the 42 new food dishes and option metadata; `server/menu.js` retains eight legacy products for the version-1 baseline. Never drop or reseed an existing database merely to update the menu; use parameterised database updates or a versioned migration.
-- `server/schema.sql` applies the version-1 baseline. `server/migrations.js` then runs the version-2 food upgrade atomically, backs up existing database files, and preserves old menu edits and order history. Add forward migrations when changing an existing schema; `CREATE TABLE IF NOT EXISTS` alone cannot modify tables.
+- `server/schema.sql` applies the version-1 baseline. `server/migrations.js` then runs the version-2 food upgrade atomically, backs up existing database files, and preserves old menu edits and order history. `server/menu-photos.js` applies the version-3 photo update, replacing only known bundled illustration paths and preserving owner-uploaded images. Existing version-2 files receive a pre-photo backup; the version-1 backup covers a combined upgrade. Add forward migrations when changing an existing schema; `CREATE TABLE IF NOT EXISTS` alone cannot modify tables.
 - Store money as integer paise. Recompute totals from database prices on the server, and preserve order-line price/name snapshots.
 - Keep capacity checks and inserts in one transaction. Booking sittings must not overlap or span the afternoon closure.
 - Use the café timezone for booking dates, not the visitor's or server's local timezone.
@@ -21,7 +21,9 @@
 
 ## Interface
 
-- Maintain the ivory/forest/terracotta palette, Fraunces + DM Sans pairing, food-led hero photography, and custom dish artwork. The identity is now a food-ordering restaurant, with coffee as one drinks category.
+- Maintain the ivory/forest/terracotta palette, Fraunces + DM Sans pairing, food-led hero photography, and locally served licensed dish photographs. The identity is now a food-ordering restaurant, with coffee as one drinks category.
+- `public/recommendations.js` owns suggestions based on the restaurant timezone and server clock (device instant on Pages). Keep suggestions separate from kitchen hours and availability; preserve full-menu browsing and diet filters.
+- Photo licences, sources, authors, pinned mirror files and hashes live in `public/photo-credits.json`. Keep required attribution visible through `photo-credits.html`, regenerate it with `npm run photos:credits`, and label cuisine reference images. Do not call all photographs copyright-free or imply stock images show actual BitesBro servings.
 - Serve fonts, scripts, images, and styles locally. Update CSP deliberately if an authorised integration truly needs another origin.
 - GitHub Pages is browse-only: build it with `npm run build:pages`, retain the sample catalogue fallback and disable forms when no ordering server is connected. Test the repository-subpath asset URLs.
 - Keep every visible control useful. Forms must call real APIs, surface validation/network failures, prevent double clicks, and honestly describe what was saved.

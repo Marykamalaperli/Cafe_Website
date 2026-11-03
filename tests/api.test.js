@@ -36,6 +36,8 @@ test('health proves database connectivity; café clock uses Bangalore time', asy
   assert.equal(data.city, 'Bangalore');
   assert.equal(data.currentTime, '09:00');
   assert.equal(data.today, '2030-01-10');
+  assert.equal(data.serverTime, fixedNow().toISOString());
+  assert.deepEqual(data.openingPeriods,[{open:'10:00',close:'15:00'},{open:'18:00',close:'23:00'}]);
   assert.match(data.hours, /10am–3pm & 6pm–11pm/);
   assert.deepEqual(cafeClock(new Date('2030-01-10T20:00:00Z')), { date: '2030-01-11', time: '01:30' });
 });
@@ -267,7 +269,30 @@ test('version-1 database upgrades preserve menu edits, customers and order histo
   upgraded.close();
   const backups=readdirSync(folder).filter(n=>n.endsWith('.bak'));assert.equal(backups.length,1);
   const backup=new DatabaseSync(join(folder,backups[0]),{readOnly:true});assert.equal(backup.prepare('SELECT COUNT(*) n FROM orders').get().n,1);backup.close();
-  const reopened=openDatabase(path);assert.equal(reopened.prepare('SELECT COUNT(*) n FROM schema_migrations').get().n,2);reopened.close();
+  const reopened=openDatabase(path);assert.equal(reopened.prepare('SELECT COUNT(*) n FROM schema_migrations').get().n,3);reopened.close();
   assert.equal(readdirSync(folder).filter(n=>n.endsWith('.bak')).length,1);
  }finally{rmSync(folder,{recursive:true,force:true});}
+});
+
+test('photo upgrade preserves edited menu data, custom images and a recoverable version-2 backup',()=>{
+ const folder=mkdtempSync(join(tmpdir(),'bitesbro-photos-'));
+ try {
+  const path=join(folder,'v2.sqlite'),legacy=openDatabase(path);
+  legacy.exec('DELETE FROM schema_migrations WHERE version=3');
+  legacy.prepare('UPDATE menu_items SET image=?,price=?,description=? WHERE id=?').run('/assets/images/latte.svg',27500,'Owner recipe','velvet-latte');
+  legacy.prepare('UPDATE menu_items SET image=? WHERE id=?').run('/assets/images/owner-dosa.jpg','masala-dosa');
+  legacy.prepare('UPDATE menu_items SET image=?,available=0 WHERE id=?').run('/assets/images/food/idli.svg','idli-sambar');
+  legacy.prepare('INSERT INTO subscribers(email,consent) VALUES(?,1)').run('photo-migration@example.com');legacy.close();
+  const updated=openDatabase(path),latte=updated.prepare('SELECT * FROM menu_items WHERE id=?').get('velvet-latte');
+  assert.equal(latte.image,'/assets/images/photos/latte.jpg');assert.equal(latte.price,27500);assert.equal(latte.description,'Owner recipe');
+  assert.equal(updated.prepare('SELECT image FROM menu_items WHERE id=?').get('masala-dosa').image,'/assets/images/owner-dosa.jpg');
+  assert.equal(updated.prepare('SELECT available FROM menu_items WHERE id=?').get('idli-sambar').available,0);
+  assert.equal(updated.prepare('SELECT COUNT(*) n FROM menu_items').get().n,50);
+  assert.equal(updated.prepare('SELECT COUNT(*) n FROM subscribers').get().n,1);
+  assert.deepEqual(updated.prepare('PRAGMA foreign_key_check').all(),[]);updated.close();
+  const files=readdirSync(folder).filter(file=>file.endsWith('.bak'));assert.equal(files.length,1);
+  const backup=new DatabaseSync(join(folder,files[0]),{readOnly:true});
+  assert.equal(backup.prepare('SELECT image FROM menu_items WHERE id=?').get('velvet-latte').image,'/assets/images/latte.svg');backup.close();
+  const reopened=openDatabase(path);reopened.close();assert.equal(readdirSync(folder).filter(file=>file.endsWith('.bak')).length,1);
+ } finally {rmSync(folder,{recursive:true,force:true});}
 });

@@ -42,7 +42,7 @@
       "category": "south-indian",
       "description": "Crisp golden dosa, spiced potato masala, sambar and two chutneys.",
       "price": 12000,
-      "image": "/assets/images/food/dosa.svg",
+      "image": "/assets/images/photos/dosa.jpg",
       "badge": "BitesBro signature",
       "dietary": [
         "Vegetarian"
@@ -84,7 +84,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "dosa",
+        "title": "dosa",
+        "author": "Zoshua Colah",
+        "license": "Unsplash License",
+        "source": "https://unsplash.com/photos/a-crispy-dosa-with-dips-on-a-silver-tray-zKmzgVixk_I",
+        "licenseUrl": "https://unsplash.com/license",
+        "reference": null
+      }
     },
     {
       "id": "mysore-dosa",
@@ -92,7 +101,7 @@
       "category": "south-indian",
       "description": "Red-chutney dosa with potato filling and a proper Mysore kick.",
       "price": 14000,
-      "image": "/assets/images/food/dosa.svg",
+      "image": "/assets/images/photos/mysore-dosa.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -130,7 +139,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "mysore-dosa",
+        "title": "Mysore Masala Dosa",
+        "author": "Arjunm101",
+        "license": "CC BY-SA 3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Mysore_Masala_Dosa.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "reference": null
+      }
     },
     {
       "id": "ghee-roast",
@@ -138,7 +156,7 @@
       "category": "south-indian",
       "description": "Thin, lacy and golden with ghee. Simple things, done beautifully.",
       "price": 13000,
-      "image": "/assets/images/food/dosa.svg",
+      "image": "/assets/images/photos/masala-dosa.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -174,7 +192,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "masala-dosa",
+        "title": "Masala dosa 01",
+        "author": "Marajozkee",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Masala_dosa_01.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": "Dosa reference photo"
+      }
     },
     {
       "id": "rava-dosa",
@@ -182,7 +209,7 @@
       "category": "south-indian",
       "description": "A lacy semolina dosa with onions, cumin and green chilli.",
       "price": 14000,
-      "image": "/assets/images/food/dosa.svg",
+      "image": "/assets/images/photos/masala-dosa.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -219,7 +246,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "masala-dosa",
+        "title": "Masala dosa 01",
+        "author": "Marajozkee",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Masala_dosa_01.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": "Dosa reference photo"
+      }
     },
     {
       "id": "set-dosa",
@@ -227,7 +263,7 @@
       "category": "south-indian",
       "description": "Three fluffy dosas with vegetable saagu and coconut chutney.",
       "price": 11000,
-      "image": "/assets/images/food/idli.svg",
+      "image": "/assets/images/photos/dosa.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -262,7 +298,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "dosa",
+        "title": "dosa",
+        "author": "Zoshua Colah",
+        "license": "Unsplash License",
+        "source": "https://unsplash.com/photos/a-crispy-dosa-with-dips-on-a-silver-tray-zKmzgVixk_I",
+        "licenseUrl": "https://unsplash.com/license",
+        "reference": "Dosa reference photo"
+      }
     },
     {
       "id": "cheese-dosa",
@@ -270,7 +315,7 @@
       "category": "south-indian",
       "description": "Our crisp masala dosa with a generous, melty layer of cheese.",
       "price": 17000,
-      "image": "/assets/images/food/dosa.svg",
+      "image": "/assets/images/photos/cheese-dosa.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -307,7 +352,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "cheese-dosa",
+        "title": "Cheese masala dosa-IDL FOOD Street, Kukatpally-Hyderabad-DSC 0009",
+        "author": "Divya4232",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Cheese_masala_dosa-IDL_FOOD_Street,_Kukatpally-Hyderabad-DSC_0009.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "podi-idli",
@@ -315,7 +369,7 @@
       "category": "south-indian",
       "description": "Soft mini idlis tossed in ghee and a nutty, spiced podi.",
       "price": 12000,
-      "image": "/assets/images/food/idli.svg",
+      "image": "/assets/images/photos/idli.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -353,7 +407,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "idli",
+        "title": "idli",
+        "author": "Mayur Roxan",
+        "license": "Unsplash License",
+        "source": "https://unsplash.com/photos/idli-with-sambar-chutney-and-coffee-CBP1B46HG1I",
+        "licenseUrl": "https://unsplash.com/license",
+        "reference": "Idli reference photo"
+      }
     },
     {
       "id": "idli-sambar",
@@ -361,7 +424,7 @@
       "category": "south-indian",
       "description": "Pillowy steamed idlis, vegetable sambar and fresh coconut chutney.",
       "price": 8000,
-      "image": "/assets/images/food/idli.svg",
+      "image": "/assets/images/photos/idli.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -399,7 +462,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "idli",
+        "title": "idli",
+        "author": "Mayur Roxan",
+        "license": "Unsplash License",
+        "source": "https://unsplash.com/photos/idli-with-sambar-chutney-and-coffee-CBP1B46HG1I",
+        "licenseUrl": "https://unsplash.com/license",
+        "reference": null
+      }
     },
     {
       "id": "medu-vada",
@@ -407,7 +479,7 @@
       "category": "south-indian",
       "description": "Golden lentil vadas with soft centres, curry leaves and sambar.",
       "price": 9000,
-      "image": "/assets/images/food/vada.svg",
+      "image": "/assets/images/photos/vada.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -442,7 +514,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "vada",
+        "title": "Medu Vadas",
+        "author": "Mdsmds0",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Medu_Vadas.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "pongal",
@@ -450,7 +531,7 @@
       "category": "south-indian",
       "description": "Comforting rice and moong dal, black pepper and toasted cashews.",
       "price": 11000,
-      "image": "/assets/images/food/rice.svg",
+      "image": "/assets/images/photos/south-indian-meals.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -489,7 +570,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "south-indian-meals",
+        "title": "South Indian vegetarian thali on a banana leaf",
+        "author": "Gill jassu",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/w/index.php?curid=195510914",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "reference": "South Indian meal reference photo"
+      }
     },
     {
       "id": "uttapam",
@@ -497,7 +587,7 @@
       "category": "south-indian",
       "description": "A thick, soft dosa topped with onion, tomato and green chilli.",
       "price": 12000,
-      "image": "/assets/images/food/pizza.svg",
+      "image": "/assets/images/photos/cheese-dosa.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -532,7 +622,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "cheese-dosa",
+        "title": "Cheese masala dosa-IDL FOOD Street, Kukatpally-Hyderabad-DSC 0009",
+        "author": "Divya4232",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Cheese_masala_dosa-IDL_FOOD_Street,_Kukatpally-Hyderabad-DSC_0009.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": "South Indian dosa reference photo"
+      }
     },
     {
       "id": "appam-stew",
@@ -540,7 +639,7 @@
       "category": "south-indian",
       "description": "Lacy appams with a gentle coconut-milk vegetable stew.",
       "price": 17000,
-      "image": "/assets/images/food/idli.svg",
+      "image": "/assets/images/photos/idli.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -575,7 +674,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "idli",
+        "title": "idli",
+        "author": "Mayur Roxan",
+        "license": "Unsplash License",
+        "source": "https://unsplash.com/photos/idli-with-sambar-chutney-and-coffee-CBP1B46HG1I",
+        "licenseUrl": "https://unsplash.com/license",
+        "reference": "South Indian breakfast reference photo"
+      }
     },
     {
       "id": "puttu-kadala",
@@ -583,7 +691,7 @@
       "category": "south-indian",
       "description": "Steamed rice-and-coconut puttu with spiced black chickpea curry.",
       "price": 16000,
-      "image": "/assets/images/food/meals.svg",
+      "image": "/assets/images/photos/puttu.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -618,7 +726,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "puttu",
+        "title": "Puttu with chickpea curry",
+        "author": "Photographer not named in source repository",
+        "license": "Pexels License",
+        "source": "https://www.pexels.com/photo/5560763/",
+        "licenseUrl": "https://www.pexels.com/license/",
+        "reference": null
+      }
     },
     {
       "id": "bisi-bele-bath",
@@ -626,7 +743,7 @@
       "category": "south-indian",
       "description": "Karnataka’s comforting rice-and-lentil favourite with vegetables.",
       "price": 13000,
-      "image": "/assets/images/food/rice.svg",
+      "image": "/assets/images/photos/south-indian-meals.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -665,7 +782,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "south-indian-meals",
+        "title": "South Indian vegetarian thali on a banana leaf",
+        "author": "Gill jassu",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/w/index.php?curid=195510914",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "reference": "South Indian meal reference photo"
+      }
     },
     {
       "id": "south-indian-meals",
@@ -673,7 +799,7 @@
       "category": "south-indian",
       "description": "Rice, sambar, rasam, poriyal, kootu, curd, papad and a sweet finish.",
       "price": 24000,
-      "image": "/assets/images/food/meals.svg",
+      "image": "/assets/images/photos/south-indian-meals.jpg",
       "badge": "A whole lot of happy",
       "dietary": [
         "Vegetarian"
@@ -711,7 +837,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "south-indian-meals",
+        "title": "South Indian vegetarian thali on a banana leaf",
+        "author": "Gill jassu",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/w/index.php?curid=195510914",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "reference": null
+      }
     },
     {
       "id": "chicken-chettinad-dosa",
@@ -719,7 +854,7 @@
       "category": "south-indian",
       "description": "A crisp dosa with peppery Chettinad chicken masala and curry leaves.",
       "price": 22000,
-      "image": "/assets/images/food/dosa.svg",
+      "image": "/assets/images/photos/dosa.jpg",
       "badge": null,
       "dietary": [
         "Non-vegetarian"
@@ -755,7 +890,16 @@
           "label": "Extra chutney",
           "price": 1000
         }
-      ]
+      ],
+      "photo": {
+        "id": "dosa",
+        "title": "dosa",
+        "author": "Zoshua Colah",
+        "license": "Unsplash License",
+        "source": "https://unsplash.com/photos/a-crispy-dosa-with-dips-on-a-silver-tray-zKmzgVixk_I",
+        "licenseUrl": "https://unsplash.com/license",
+        "reference": "Dosa reference photo; chicken filling not shown"
+      }
     },
     {
       "id": "paneer-butter-masala",
@@ -763,7 +907,7 @@
       "category": "north-indian",
       "description": "Soft paneer in a silky tomato, butter and cream gravy.",
       "price": 23000,
-      "image": "/assets/images/food/curry.svg",
+      "image": "/assets/images/photos/paneer-curry.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -791,7 +935,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "paneer-curry",
+        "title": "Paneer Butter Masala 5",
+        "author": "Gannu03",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Paneer_Butter_Masala_5.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "dal-tadka",
@@ -799,7 +952,7 @@
       "category": "north-indian",
       "description": "Yellow lentils with a fragrant garlic-and-cumin tempering.",
       "price": 16000,
-      "image": "/assets/images/food/curry.svg",
+      "image": "/assets/images/photos/dal-tadka.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -823,7 +976,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "dal-tadka",
+        "title": "Dal Tadka-Delhi",
+        "author": "AugustineKajur",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Dal_Tadka-Delhi.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "chole-bhature",
@@ -831,7 +993,7 @@
       "category": "north-indian",
       "description": "Fluffy bhature with tangy chickpea curry, onions and pickle.",
       "price": 19000,
-      "image": "/assets/images/food/meals.svg",
+      "image": "/assets/images/photos/chole-bhature.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -858,7 +1020,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "chole-bhature",
+        "title": "Chole Bhature 6",
+        "author": "Gannu03",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Chole_Bhature_6.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "butter-chicken",
@@ -866,7 +1037,7 @@
       "category": "north-indian",
       "description": "Tender chicken in a rich tomato-and-butter gravy.",
       "price": 29000,
-      "image": "/assets/images/food/curry.svg",
+      "image": "/assets/images/photos/butter-chicken.jpg",
       "badge": null,
       "dietary": [
         "Non-vegetarian"
@@ -894,7 +1065,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "butter-chicken",
+        "title": "Chicken makhani",
+        "author": "stu_spivack",
+        "license": "CC BY-SA 2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Chicken_makhani.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+        "reference": null
+      }
     },
     {
       "id": "garlic-naan",
@@ -902,7 +1082,7 @@
       "category": "north-indian",
       "description": "Soft bread brushed with garlic butter and fresh coriander.",
       "price": 6000,
-      "image": "/assets/images/food/naan.svg",
+      "image": "/assets/images/photos/garlic-naan.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -929,7 +1109,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "garlic-naan",
+        "title": "Butter Garlic Naan",
+        "author": "Fatfoodie",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Butter_Garlic_Naan.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "hyderabadi-biryani",
@@ -937,7 +1126,7 @@
       "category": "biryani",
       "description": "Fragrant basmati, chicken and whole spices, slow cooked. Raita included.",
       "price": 28000,
-      "image": "/assets/images/food/biryani.svg",
+      "image": "/assets/images/photos/biryani.jpg",
       "badge": null,
       "dietary": [
         "Non-vegetarian"
@@ -975,7 +1164,16 @@
           "label": "Extra raita",
           "price": 2000
         }
-      ]
+      ],
+      "photo": {
+        "id": "biryani",
+        "title": "Chicken Hyderabadi Biryani",
+        "author": "Dheerajk88",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Chicken_Hyderabadi_Biryani.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "donne-biryani",
@@ -983,7 +1181,7 @@
       "category": "biryani",
       "description": "Seeraga samba rice, herby green masala and juicy chicken.",
       "price": 26000,
-      "image": "/assets/images/food/biryani.svg",
+      "image": "/assets/images/photos/biryani.jpg",
       "badge": "Bangalore favourite",
       "dietary": [
         "Non-vegetarian"
@@ -1021,7 +1219,16 @@
           "label": "Extra raita",
           "price": 2000
         }
-      ]
+      ],
+      "photo": {
+        "id": "biryani",
+        "title": "Chicken Hyderabadi Biryani",
+        "author": "Dheerajk88",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Chicken_Hyderabadi_Biryani.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": "Chicken biryani reference photo"
+      }
     },
     {
       "id": "veg-biryani",
@@ -1029,7 +1236,7 @@
       "category": "biryani",
       "description": "Basmati, colourful vegetables, mint and spices, sealed and slow cooked.",
       "price": 22000,
-      "image": "/assets/images/food/biryani.svg",
+      "image": "/assets/images/photos/veg-biryani.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1067,7 +1274,16 @@
           "label": "Extra raita",
           "price": 2000
         }
-      ]
+      ],
+      "photo": {
+        "id": "veg-biryani",
+        "title": "Vegetable Biryani",
+        "author": "Miansari66",
+        "license": "CC0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vegetable_Biryani.JPG",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "reference": null
+      }
     },
     {
       "id": "mutton-biryani",
@@ -1075,7 +1291,7 @@
       "category": "biryani",
       "description": "Slow-cooked mutton and basmati with layers of warming spices.",
       "price": 36000,
-      "image": "/assets/images/food/biryani.svg",
+      "image": "/assets/images/photos/mutton-biryani.jpg",
       "badge": null,
       "dietary": [
         "Non-vegetarian"
@@ -1113,7 +1329,16 @@
           "label": "Extra raita",
           "price": 2000
         }
-      ]
+      ],
+      "photo": {
+        "id": "mutton-biryani",
+        "title": "Lucknowi Mutton Matka Dum Biriyani",
+        "author": "Kalesh",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Lucknowi_Mutton_Matka_Dum_Biriyani.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "hakka-noodles",
@@ -1121,7 +1346,7 @@
       "category": "chinese",
       "description": "Wok-tossed noodles, crunchy vegetables and smoky goodness.",
       "price": 18000,
-      "image": "/assets/images/food/noodles.svg",
+      "image": "/assets/images/photos/noodles.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -1148,7 +1373,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "noodles",
+        "title": "HK Arena Sunday AsiaWorld Expo Food Soy Sauce Fried Noodles 豉油皇炒麵",
+        "author": "Hoitintungs",
+        "license": "CC BY-SA 3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:HK_Arena_Sunday_AsiaWorld_Expo_Food_Soy_Sauce_Fried_Noodles_%E8%B1%89%E6%B2%B9%E7%9A%87%E7%82%92%E9%BA%B5.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "reference": null
+      }
     },
     {
       "id": "chicken-fried-rice",
@@ -1156,7 +1390,7 @@
       "category": "chinese",
       "description": "Wok-tossed rice with chicken, egg, spring onion and vegetables.",
       "price": 22000,
-      "image": "/assets/images/food/rice.svg",
+      "image": "/assets/images/photos/chicken-fried-rice.jpg",
       "badge": null,
       "dietary": [
         "Non-vegetarian"
@@ -1184,7 +1418,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "chicken-fried-rice",
+        "title": "Chicken fried rice",
+        "author": "Varaprasad Sidam",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Chicken_fried_rice.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "gobi-manchurian",
@@ -1192,7 +1435,7 @@
       "category": "chinese",
       "description": "Crispy cauliflower in a tangy, garlicky Indo-Chinese sauce.",
       "price": 19000,
-      "image": "/assets/images/food/curry.svg",
+      "image": "/assets/images/photos/gobi-manchurian.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -1219,7 +1462,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "gobi-manchurian",
+        "title": "Gobi Manchurian",
+        "author": "Harsha K R from Bangalore, India",
+        "license": "CC BY-SA 2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Gobi_Manchurian.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+        "reference": null
+      }
     },
     {
       "id": "chilli-chicken",
@@ -1227,7 +1479,7 @@
       "category": "chinese",
       "description": "Crisp chicken, peppers and onions in a fiery chilli-garlic sauce.",
       "price": 26000,
-      "image": "/assets/images/food/curry.svg",
+      "image": "/assets/images/photos/chilli-chicken.jpg",
       "badge": null,
       "dietary": [
         "Non-vegetarian"
@@ -1256,7 +1508,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "chilli-chicken",
+        "title": "Chicken Chilli",
+        "author": "Vikramdewangan22889",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Chicken_Chilli.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "avocado-toast",
@@ -1264,7 +1525,7 @@
       "category": "global",
       "description": "Smashed avocado, sourdough, cherry tomatoes, and chilli.",
       "price": 34000,
-      "image": "/assets/images/toast.svg",
+      "image": "/assets/images/photos/avocado-toast.jpg",
       "badge": "A good start",
       "dietary": [
         "Plant based",
@@ -1286,7 +1547,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "avocado-toast",
+        "title": "Avocado Toast",
+        "author": "Lisa Fotios",
+        "license": "CC0 1.0",
+        "source": "https://stocksnap.io/photo/avocado-toast-NQNFUT9KD7",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "reference": null
+      }
     },
     {
       "id": "pesto-melt",
@@ -1294,7 +1564,7 @@
       "category": "global",
       "description": "Basil pesto, tomatoes, and melting mozzarella on sourdough.",
       "price": 32000,
-      "image": "/assets/images/sandwich.svg",
+      "image": "/assets/images/photos/sandwich.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian",
@@ -1318,7 +1588,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "sandwich",
+        "title": "The Mediterranean sandwich – Dyke Road Park Cafe",
+        "author": "Photographer not named in source credits",
+        "license": "CC0 1.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_Mediterranean_sandwich_-_Dyke_Road_Park_Cafe_2025-05-09.jpg",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "reference": "Vegetarian sandwich reference photo"
+      }
     },
     {
       "id": "margherita",
@@ -1326,7 +1605,7 @@
       "category": "global",
       "description": "Tomato, fresh mozzarella and basil on a golden pizza base.",
       "price": 25000,
-      "image": "/assets/images/food/pizza.svg",
+      "image": "/assets/images/photos/pizza.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1364,7 +1643,16 @@
           "label": "Extra cheese",
           "price": 3000
         }
-      ]
+      ],
+      "photo": {
+        "id": "pizza",
+        "title": "Margherita Originale",
+        "author": "Mario56",
+        "license": "CC BY-SA 3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Margherita_Originale.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "reference": null
+      }
     },
     {
       "id": "paneer-pizza",
@@ -1372,7 +1660,7 @@
       "category": "global",
       "description": "Smoky paneer, peppers, onions and melting mozzarella.",
       "price": 31000,
-      "image": "/assets/images/food/pizza.svg",
+      "image": "/assets/images/photos/pizza.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1410,7 +1698,16 @@
           "label": "Extra cheese",
           "price": 3000
         }
-      ]
+      ],
+      "photo": {
+        "id": "pizza",
+        "title": "Margherita Originale",
+        "author": "Mario56",
+        "license": "CC BY-SA 3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Margherita_Originale.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "reference": "Vegetarian pizza reference photo"
+      }
     },
     {
       "id": "chicken-burger",
@@ -1418,7 +1715,7 @@
       "category": "global",
       "description": "Crisp chicken, crunchy slaw and mayo in a soft toasted bun.",
       "price": 22000,
-      "image": "/assets/images/food/burger.svg",
+      "image": "/assets/images/photos/chicken-burger.jpg",
       "badge": null,
       "dietary": [
         "Non-vegetarian"
@@ -1452,7 +1749,16 @@
           "label": "Extra cheese",
           "price": 3000
         }
-      ]
+      ],
+      "photo": {
+        "id": "chicken-burger",
+        "title": "Chicken sandwich",
+        "author": "Evan-Amos / Vanamo Media",
+        "license": "Public domain",
+        "source": "https://github.com/ClangsterXD/odin-recipes#attribution",
+        "licenseUrl": "https://commons.wikimedia.org/wiki/User:Evan-Amos",
+        "reference": null
+      }
     },
     {
       "id": "alfredo-pasta",
@@ -1460,7 +1766,7 @@
       "category": "global",
       "description": "Penne in a silky sauce with mushrooms and vegetarian hard cheese.",
       "price": 26000,
-      "image": "/assets/images/food/noodles.svg",
+      "image": "/assets/images/photos/pasta.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1488,7 +1794,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "pasta",
+        "title": "Italian vegetable pasta",
+        "author": "Jiaqian AirplaneFan",
+        "license": "CC BY 3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Italian_vegetable_pasta_in_Guido_%5E_Angelina_Restaurant_-_panoramio.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+        "reference": "Vegetable pasta reference photo"
+      }
     },
     {
       "id": "butter-croissant",
@@ -1496,7 +1811,7 @@
       "category": "snacks",
       "description": "Golden, gloriously flaky layers. Baked for slow mornings.",
       "price": 18000,
-      "image": "/assets/images/croissant.svg",
+      "image": "/assets/images/photos/croissant.jpg",
       "badge": "Fresh from the oven",
       "dietary": [
         "Vegetarian",
@@ -1518,7 +1833,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "croissant",
+        "title": "Croissant with jam and butter – Little Miss Piggies",
+        "author": "Photographer not named in source credits",
+        "license": "CC0 1.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Croissant_with_jam_and_butter_-_Little_Miss_Piggies.jpg",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "reference": null
+      }
     },
     {
       "id": "chocolate-cookie",
@@ -1526,7 +1850,7 @@
       "category": "snacks",
       "description": "Crisp edges, a soft centre, and generous dark chocolate.",
       "price": 14000,
-      "image": "/assets/images/cookie.svg",
+      "image": "/assets/images/photos/chocolate-cookie.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian",
@@ -1548,7 +1872,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "chocolate-cookie",
+        "title": "Chocolate chip cookies",
+        "author": "Luis Quintero",
+        "license": "Pexels License",
+        "source": "https://www.pexels.com/photo/plate-of-chocolate-chip-cookies-1626668/",
+        "licenseUrl": "https://www.pexels.com/license/",
+        "reference": null
+      }
     },
     {
       "id": "samosa",
@@ -1556,7 +1889,7 @@
       "category": "snacks",
       "description": "Crisp pastry pockets with spiced potato, peas and chutneys.",
       "price": 6000,
-      "image": "/assets/images/food/samosa.svg",
+      "image": "/assets/images/photos/samosa.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -1582,7 +1915,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "samosa",
+        "title": "Samosa with tamarind chutney and tomato sauce",
+        "author": "Madhura Vaze",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Samosa_with_tamarind_chutney_and_tomato_sauce.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "pav-bhaji",
@@ -1590,7 +1932,7 @@
       "category": "snacks",
       "description": "Butter-toasted pav, hearty spiced vegetable mash, onions and lime.",
       "price": 15000,
-      "image": "/assets/images/food/curry.svg",
+      "image": "/assets/images/photos/pav-bhaji.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1618,7 +1960,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "pav-bhaji",
+        "title": "Pav Bhaji at Home",
+        "author": "Nundhaa",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Pav_Bhaji_at_Home.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "fries",
@@ -1626,7 +1977,7 @@
       "category": "snacks",
       "description": "Golden, crisp fries with seasoning and tomato dip.",
       "price": 11000,
-      "image": "/assets/images/food/fries.svg",
+      "image": "/assets/images/photos/fries.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -1649,7 +2000,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "fries",
+        "title": "French Fries",
+        "author": "StockSnap",
+        "license": "CC0",
+        "source": "https://commons.wikimedia.org/wiki/File:French_Fries.JPG",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "reference": null
+      }
     },
     {
       "id": "gulab-jamun",
@@ -1657,7 +2017,7 @@
       "category": "desserts",
       "description": "Soft golden dumplings in cardamom-and-rose syrup.",
       "price": 9000,
-      "image": "/assets/images/food/sweet.svg",
+      "image": "/assets/images/photos/gulab-jamun.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1684,7 +2044,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "gulab-jamun",
+        "title": "Two Gulab Jamun in a plate 01",
+        "author": "Suyash.dwivedi",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Two_Gulab_Jamun_in_a_plate_01.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "payasam",
@@ -1692,7 +2061,7 @@
       "category": "desserts",
       "description": "Coconut-milk payasam with jaggery, cardamom and toasted cashews.",
       "price": 10000,
-      "image": "/assets/images/food/sweet.svg",
+      "image": "/assets/images/photos/payasam.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -1718,7 +2087,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "payasam",
+        "title": "Kheer",
+        "author": "stu spivack",
+        "license": "CC BY-SA 2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Kheer.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+        "reference": "Rice pudding reference photo"
+      }
     },
     {
       "id": "brownie",
@@ -1726,7 +2104,7 @@
       "category": "desserts",
       "description": "Warm eggless chocolate brownie with vanilla ice cream.",
       "price": 16000,
-      "image": "/assets/images/food/brownie.svg",
+      "image": "/assets/images/photos/brownie.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1754,7 +2132,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "brownie",
+        "title": "Chocolate dessert brownies cake",
+        "author": "www.Pixel.la Free Stock Photos",
+        "license": "CC0 1.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Chocolate-dessert-brownies-cake.jpg",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "reference": null
+      }
     },
     {
       "id": "velvet-latte",
@@ -1762,7 +2149,7 @@
       "category": "beverages",
       "description": "A double espresso, silky steamed milk, a little everyday magic.",
       "price": 22000,
-      "image": "/assets/images/latte.svg",
+      "image": "/assets/images/photos/latte.jpg",
       "badge": "The crowd favourite",
       "dietary": [
         "Vegetarian"
@@ -1781,7 +2168,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "latte",
+        "title": "Coffee Latte",
+        "author": "Sergey Zolkin",
+        "license": "CC0 1.0",
+        "source": "https://stocksnap.io/photo/coffee-latte-MK3VLNK8NA",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "reference": null
+      }
     },
     {
       "id": "iced-brown-sugar",
@@ -1789,7 +2185,7 @@
       "category": "beverages",
       "description": "Slow-sipped espresso, brown sugar, oat milk, and plenty of ice.",
       "price": 26000,
-      "image": "/assets/images/iced-coffee.svg",
+      "image": "/assets/images/photos/cold-coffee.jpg",
       "badge": "BitesBro signature",
       "dietary": [
         "Plant based"
@@ -1808,7 +2204,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "cold-coffee",
+        "title": "Iced Coffee in Glass - Sunshine Coffee - Laramie Cafe (53838344552)",
+        "author": "Tony Webster",
+        "license": "CC BY 2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Iced_Coffee_in_Glass_-_Sunshine_Coffee_-_Laramie_Cafe_(53838344552).jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+        "reference": null
+      }
     },
     {
       "id": "classic-flat-white",
@@ -1816,7 +2221,7 @@
       "category": "beverages",
       "description": "Rich espresso meets a soft, velvety layer of microfoam.",
       "price": 21000,
-      "image": "/assets/images/flat-white.svg",
+      "image": "/assets/images/photos/flat-white.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1835,7 +2240,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "flat-white",
+        "title": "Coffee Hot",
+        "author": "Nathan Dumlao",
+        "license": "CC0 1.0",
+        "source": "https://stocksnap.io/photo/coffee-hot-4DW84GDZ41",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "reference": null
+      }
     },
     {
       "id": "vanilla-matcha",
@@ -1843,7 +2257,7 @@
       "category": "beverages",
       "description": "Earthy Japanese matcha, oat milk, and a whisper of vanilla.",
       "price": 28000,
-      "image": "/assets/images/matcha.svg",
+      "image": "/assets/images/photos/matcha.jpg",
       "badge": "A little zen",
       "dietary": [
         "Plant based"
@@ -1862,7 +2276,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "matcha",
+        "title": "Matcha latte",
+        "author": "Photographer not named in source credits",
+        "license": "Unsplash License",
+        "source": "https://images.unsplash.com/photo-1536256263959-770b48d82b0a",
+        "licenseUrl": "https://unsplash.com/license",
+        "reference": null
+      }
     },
     {
       "id": "filter-coffee",
@@ -1870,7 +2293,7 @@
       "category": "beverages",
       "description": "Bold decoction, hot milk and a familiar frothy finish.",
       "price": 7000,
-      "image": "/assets/images/food/filter-coffee.svg",
+      "image": "/assets/images/photos/filter-coffee.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1895,7 +2318,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "filter-coffee",
+        "title": "Filter kaapi",
+        "author": "Vallari.a",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Filter_kaapi.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "lime-soda",
@@ -1903,7 +2335,7 @@
       "category": "beverages",
       "description": "Fresh lime, chilled soda and a little fizz.",
       "price": 8000,
-      "image": "/assets/images/food/cooler.svg",
+      "image": "/assets/images/photos/nimbu-pani.jpg",
       "badge": null,
       "dietary": [
         "Plant based"
@@ -1926,7 +2358,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "nimbu-pani",
+        "title": "Neemboo-Paani (Lime Water)",
+        "author": "HARIOM.AWASTHI",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Neemboo-Paani_(Lime_Water).JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     },
     {
       "id": "mango-lassi",
@@ -1934,7 +2375,7 @@
       "category": "beverages",
       "description": "Mango, thick yoghurt and a hint of cardamom.",
       "price": 11000,
-      "image": "/assets/images/food/cooler.svg",
+      "image": "/assets/images/photos/mango-lassi.jpg",
       "badge": null,
       "dietary": [
         "Vegetarian"
@@ -1959,7 +2400,16 @@
           "price": 0
         }
       ],
-      "addons": []
+      "addons": [],
+      "photo": {
+        "id": "mango-lassi",
+        "title": "Mango lassi at restaurant Momo & More in March 2024",
+        "author": "JIP",
+        "license": "CC BY-SA 4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Mango_lassi_at_restaurant_Momo_%26_More_in_March_2024.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reference": null
+      }
     }
   ]
 }

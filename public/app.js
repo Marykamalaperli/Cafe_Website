@@ -1,11 +1,14 @@
+import {mealRecommendations} from './recommendations.js';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n/100);
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const asset=path=>new URL(path.replace(/^\//,''),document.baseURI).href;
 const icon=name=>`<svg class="icon" aria-hidden="true"><use href="${asset('assets/icons.svg')}#${name}"/></svg>`;
 const state={menu:[],categories:[],category:'all',search:'',diet:'all',sort:'recommended',limit:12,cart:[],cafe:null,browseOnly:false};
+const photoAlt=item=>item.photo?'Representative photograph: '+item.photo.title:item.name;
+const photoReference=item=>item.photo?.reference?`<span class="photo-reference">${escape(item.photo.reference)}</span>`:'';
 const CART_KEY='bitesbro.food-bag.v2';
-let toastTimer, selectedDish;
+let toastTimer, selectedDish, recommendationClock;
 async function request(path,options={}){
  const response=await fetch(path,{...options,signal:options.signal||AbortSignal.timeout(12000),headers:{...(options.body?{'Content-Type':'application/json'}:{}),...options.headers}});
  let data;try{data=await response.json();}catch{const e=new Error('The ordering server is not available.');e.status=response.status;throw e;}
@@ -47,23 +50,23 @@ function renderMenu(){
  if(state.sort!=='recommended')filtered.sort((a,b)=>state.sort==='price-low'?a.price-b.price:b.price-a.price);
  $('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-count').textContent=`${filtered.length} ${filtered.length===1?'dish':'dishes'} to dig into`;
  $('#load-more').hidden=filtered.length<=state.limit;
- $('#menu-grid').innerHTML=filtered.length?filtered.slice(0,state.limit).map(item=>`<article class="menu-card" data-kind="${escape(item.category)}"><div class="menu-card-image"><img src="${escape(asset(item.image))}" alt="Illustration of ${escape(item.name)}" width="600" height="480" loading="lazy">${item.badge?`<span class="menu-badge">${escape(item.badge)}</span>`:''}</div><div class="menu-card-body"><div class="menu-card-kicker"><span class="diet-tag ${item.diet==='non-veg'?'non-veg':''}"><span aria-hidden="true"></span>${item.diet==='non-veg'?'NON-VEG':item.diet==='vegan'?'PLANT BASED':'VEGETARIAN'}</span><span>~${item.prepMinutes} MIN</span></div><h3>${escape(item.name)}</h3><p class="menu-card-description">${escape(item.description)}</p><div class="food-portion"><span>${escape(item.portion)}</span>${item.spice!=='none'?`<span>${escape(item.spice)} spice</span>`:''}</div><div class="menu-card-meta"><span class="menu-price">${money(item.price)}</span><button class="add-button" data-add="${escape(item.id)}" aria-label="Add ${escape(item.name)} to bag">Add <span aria-hidden="true">+</span></button></div></div></article>`).join(''):`<div class="empty-state">${icon('search')}<h3>No bites found. Yet.</h3><p>Try a different cuisine, diet or craving.</p><button class="button button-outline" id="reset-menu">Show the whole menu</button></div>`;
+ $('#menu-grid').innerHTML=filtered.length?filtered.slice(0,state.limit).map(item=>`<article class="menu-card" data-kind="${escape(item.category)}"><div class="menu-card-image"><img src="${escape(asset(item.image))}" alt="${escape(photoAlt(item))}" width="600" height="480" loading="lazy">${photoReference(item)}${item.badge?`<span class="menu-badge">${escape(item.badge)}</span>`:''}</div><div class="menu-card-body"><div class="menu-card-kicker"><span class="diet-tag ${item.diet==='non-veg'?'non-veg':''}"><span aria-hidden="true"></span>${item.diet==='non-veg'?'NON-VEG':item.diet==='vegan'?'PLANT BASED':'VEGETARIAN'}</span><span>~${item.prepMinutes} MIN</span></div><h3>${escape(item.name)}</h3><p class="menu-card-description">${escape(item.description)}</p><div class="food-portion"><span>${escape(item.portion)}</span>${item.spice!=='none'?`<span>${escape(item.spice)} spice</span>`:''}</div><div class="menu-card-meta"><span class="menu-price">${money(item.price)}</span><button class="add-button" data-add="${escape(item.id)}" aria-label="Add ${escape(item.name)} to bag">Add <span aria-hidden="true">+</span></button></div></div></article>`).join(''):`<div class="empty-state">${icon('search')}<h3>No bites found. Yet.</h3><p>Try a different cuisine, diet or craving.</p><button class="button button-outline" id="reset-menu">Show the whole menu</button></div>`;
 }
 function setCategory(category){state.category=category;state.limit=12;$$('.menu-tab').forEach(b=>{const active=b.dataset.category===category;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});renderMenu();}
 $$('.menu-tab').forEach(b=>b.addEventListener('click',()=>setCategory(b.dataset.category)));
 $$('[data-quick-category]').forEach(b=>b.addEventListener('click',()=>{setCategory(b.dataset.quickCategory);$('#menu').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}));
 $('#menu-search').addEventListener('input',e=>{state.search=e.target.value.trim().toLowerCase();state.limit=12;renderMenu();});
-$('#diet-filter').addEventListener('change',e=>{state.diet=e.target.value;state.limit=12;renderMenu();});
+$('#diet-filter').addEventListener('change',e=>{state.diet=e.target.value;state.limit=12;renderMenu();renderRecommendations();});
 $('#sort-filter').addEventListener('change',e=>{state.sort=e.target.value;renderMenu();});
 $('#load-more').addEventListener('click',()=>{state.limit+=12;renderMenu();});
-$('#menu-grid').addEventListener('click',event=>{const b=event.target.closest('[data-add]');if(b)openDish(b.dataset.add);if(event.target.closest('#reset-menu')){state.diet='all';state.search='';$('#diet-filter').value='all';$('#menu-search').value='';setCategory('all');}if(event.target.closest('#retry-menu'))boot();});
+$('#menu-grid').addEventListener('click',event=>{const b=event.target.closest('[data-add]');if(b)openDish(b.dataset.add);if(event.target.closest('#reset-menu')){state.diet='all';state.search='';$('#diet-filter').value='all';$('#menu-search').value='';setCategory('all');renderRecommendations();}if(event.target.closest('#retry-menu'))boot();});
 function openDialog(dialog){if(!dialog.open)dialog.showModal();document.body.classList.add('dialog-open');}
 document.addEventListener('click',event=>{const b=event.target.closest('[data-dialog]');if(b)openDialog(document.getElementById(b.dataset.dialog));event.target.closest('.close-dialog')?.closest('dialog').close();});
 $$('dialog').forEach(dialog=>{dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});dialog.addEventListener('close',()=>{if(!$$('dialog[open]').length)document.body.classList.remove('dialog-open');});});
 function openDish(id){
  const item=state.menu.find(i=>i.id===id);if(!item)return;selectedDish=item;
  $('#dish-title').textContent=item.name;
- $('#dish-detail').innerHTML=`<img class="dish-preview" src="${escape(asset(item.image))}" alt="Illustration of ${escape(item.name)}"><p>${escape(item.description)}</p><p class="dish-facts">${escape(item.cuisine)} · ${escape(item.portion)} · ~${item.prepMinutes} min · ${item.diet==='non-veg'?'Non-vegetarian':item.diet==='vegan'?'Plant based':'Vegetarian'}</p>${item.ingredients.length?`<p class="ingredient-note"><strong>Sample ingredients:</strong> ${escape(item.ingredients.join(', '))}</p>`:''}<p class="ingredient-note"><strong>Allergens:</strong> ${item.allergens.length?escape(item.allergens.join(', ')):'No common allergens listed in the sample recipe'}. Shared kitchen; confirm handling before live service.</p>`;
+ $('#dish-detail').innerHTML=`<img class="dish-preview" src="${escape(asset(item.image))}" alt="${escape(photoAlt(item))}">${item.photo?`<p class="dish-photo-credit">${escape(item.photo.reference||'Representative food photograph')}. <a href="./photo-credits.html#${escape(item.photo.id)}">Photo credits</a></p>`:''}<p>${escape(item.description)}</p><p class="dish-facts">${escape(item.cuisine)} · ${escape(item.portion)} · ~${item.prepMinutes} min · ${item.diet==='non-veg'?'Non-vegetarian':item.diet==='vegan'?'Plant based':'Vegetarian'}</p>${item.ingredients.length?`<p class="ingredient-note"><strong>Sample ingredients:</strong> ${escape(item.ingredients.join(', '))}</p>`:''}<p class="ingredient-note"><strong>Allergens:</strong> ${item.allergens.length?escape(item.allergens.join(', ')):'No common allergens listed in the sample recipe'}. Shared kitchen; confirm handling before live service.</p>`;
  $('#dish-variant').replaceChildren(...item.variants.map(v=>new Option(v.label+(v.price?' +'+money(v.price):''),v.id)));
  $('#spice-label').hidden=item.spice==='none';$('#dish-spice').disabled=item.spice==='none';$('#dish-spice').value=item.spice==='none'?'medium':item.spice;
  $('#dish-addons').hidden=!item.addons.length;$('#addon-choices').innerHTML=item.addons.map(a=>`<label class="addon-choice"><span><input type="checkbox" name="addon" value="${escape(a.id)}">${escape(a.label)}</span><span>+${money(a.price)}</span></label>`).join('');
@@ -223,12 +226,12 @@ async function boot(){
  state.browseOnly=false;
  try{catalog=await request('/api/menu');}
  catch(error){
-  try{const r=await fetch(new URL('menu.json',document.baseURI));if(!r.ok)throw new Error();catalog=await r.json();state.browseOnly=true;}
+  try{const r=await fetch(new URL('menu.json?v=photo-meals-4',document.baseURI),{cache:'no-cache',signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error();catalog=await r.json();state.browseOnly=true;}
   catch{$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML='<div class="empty-state"><h3>The kitchen menu couldn’t load.</h3><p>Check your connection and try again.</p><button class="button button-outline" id="retry-menu">Try again</button></div>';return;}
  }
  state.menu=catalog.items;state.categories=catalog.categories;state.cart=readCart();renderMenu();renderSignature();saveCart();
  if(!state.browseOnly){
-  try{state.cafe=await request('/api/cafe');$('#visit-address').textContent=state.cafe.address?state.cafe.address+', '+state.cafe.city:state.cafe.city+' · Street address coming soon.';$('#visit-hours').textContent=state.cafe.hours;
+  try{state.cafe=await request('/api/cafe');if(Number.isFinite(Date.parse(state.cafe.serverTime)))recommendationClock={time:Date.parse(state.cafe.serverTime),started:performance.now()};$('#visit-address').textContent=state.cafe.address?state.cafe.address+', '+state.cafe.city:state.cafe.city+' · Street address coming soon.';$('#visit-hours').textContent=state.cafe.hours;
    if(state.cafe.email||state.cafe.phone){const contact=$('#visit-contact');contact.replaceChildren();for(const [value,prefix]of [[state.cafe.email,'mailto:'],[state.cafe.phone,'tel:']])if(value){const link=document.createElement('a');link.href=prefix+value;link.textContent=value;contact.append(link,document.createElement('br'));}}
    initializeDates();
   }catch{state.browseOnly=true;}
@@ -238,5 +241,25 @@ async function boot(){
   $('#connection-note').textContent='Sample menu view · Customise your bag here. Online checkout and forms need the connected Node.js server.';
   for(const form of [$('#order-form'),$('#reservation-form'),$('#newsletter-form'),$('#contact-form')]){const result=$('.form-result',form);result.className='form-result';result.textContent='Sample site: the ordering server is not connected. Requests cannot be submitted here.';$('button[type=submit]',form).disabled=true;}
  }
+ renderRecommendations();
 }
 boot();
+
+function renderRecommendations(){
+ if(!state.menu.length)return;
+ const now=recommendationClock?new Date(recommendationClock.time+performance.now()-recommendationClock.started):new Date();
+ const {context,items}=mealRecommendations(state.menu,{now,timezone:state.cafe?.timezone||'Asia/Kolkata',...(state.cafe?.openingPeriods?{openingPeriods:state.cafe.openingPeriods}:{}),diet:state.diet});
+ $('#recommendations').dataset.period=context.key;
+ $('#recommendation-eyebrow').textContent=context.label.toUpperCase()+' · PICKED FOR THIS PART OF YOUR DAY';
+ $('#recommendation-title').innerHTML=escape(context.lead)+' <em>'+escape(context.emphasis)+'</em>';
+ $('#recommendation-description').textContent=context.description;
+ $('#recommendation-time').textContent=context.localTime;$('#recommendation-time').dateTime=context.iso;
+ $('#recommendation-kitchen').textContent=context.kitchenStatus;$('#recommendation-kitchen').classList.toggle('is-open',context.isOpen);
+ const nextKey=JSON.stringify([context.key,state.diet,items.map(item=>[item.id,item.price,item.image])]);
+ if($('#recommendation-grid').dataset.renderKey===nextKey)return;
+ $('#recommendation-grid').dataset.renderKey=nextKey;
+ $('#recommendation-grid').innerHTML=items.length?items.map(item=>`<article class="recommendation-card"><img src="${escape(asset(item.image))}" alt="${escape(photoAlt(item))}" width="400" height="280" loading="lazy">${photoReference(item)}<div class="recommendation-card-body"><span class="diet-tag ${item.diet==='non-veg'?'non-veg':''}"><span aria-hidden="true"></span>${item.diet==='non-veg'?'NON-VEG':item.diet==='vegan'?'PLANT BASED':'VEGETARIAN'}</span><h3>${escape(item.name)}</h3><div><span class="menu-price">${money(item.price)}</span><button class="add-button" data-recommend-add="${escape(item.id)}" aria-label="Customise recommended ${escape(item.name)}">Make it mine <span aria-hidden="true">+</span></button></div></div></article>`).join(''):'<p class="recommendation-empty">No time-of-day picks match this diet right now. Explore the full menu below.</p>';
+}
+$('#recommendation-grid').addEventListener('click',event=>{const button=event.target.closest('[data-recommend-add]');if(button)openDish(button.dataset.recommendAdd);});
+setInterval(()=>{if(!document.hidden)renderRecommendations();},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderRecommendations();});

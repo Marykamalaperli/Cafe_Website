@@ -97,12 +97,64 @@ test('reduced motion and pause controls work while dialog focus is restored',asy
  await page.emulateMedia({reducedMotion:'no-preference'});await page.getByRole('button',{name:'Pause animations',exact:true}).click();await expect(page.locator('.ticker-track')).toHaveCSS('animation-play-state','paused');
 });
 
+test('recommendations use the cafe clock, change at lunchtime and respect dietary choices',async({page})=>{
+ await page.clock.install({time:new Date('2030-01-10T06:29:30Z')});
+ await page.route('**/api/cafe',async route=>{
+  const response=await route.fetch();const data=await response.json();
+  await route.fulfill({response,json:{...data,serverTime:'2030-01-10T06:29:30Z',timezone:'Asia/Kolkata'}});
+ });
+ await page.goto('/');
+ await expect(page.locator('#recommendations')).toHaveAttribute('data-period','breakfast');
+ await expect(page.locator('.recommendation-card h3')).toHaveText(['Idli Sambar','Bangalore Masala Dosa','Crispy Medu Vada','South Indian Filter Coffee']);
+ await expect(page.locator('#recommendation-kitchen')).toHaveText('Kitchen open until 3pm');
+ await page.clock.fastForward(61000);
+ await expect(page.locator('#recommendations')).toHaveAttribute('data-period','lunch');
+ await expect(page.locator('.recommendation-card h3')).toHaveText(['Hyderabadi Chicken Biryani','Vegetable Dum Biryani','The South Indian Thali','Paneer Butter Masala']);
+ await expect(page.locator('#menu-count')).toContainText('50 dishes');
+ await page.locator('#diet-filter').selectOption('veg');
+ await expect(page.locator('.recommendation-card .non-veg')).toHaveCount(0);
+ await page.locator('#diet-filter').selectOption('non-veg');
+ await expect(page.locator('.recommendation-card .non-veg')).toHaveCount(4);
+ const first=page.locator('.recommendation-card h3').first();const name=await first.textContent();
+ await page.locator('[data-recommend-add]').first().click();
+ await expect(page.locator('#dish-title')).toHaveText(name);
+ await page.locator('#dish-add').click();await expect(page.locator('#bag-count')).toHaveText('1');
+});
+
+test('morning suggestions disclose that the kitchen opens at 10am',async({page})=>{
+ await page.route('**/api/cafe',async route=>{
+  const response=await route.fetch();const data=await response.json();
+  await route.fulfill({response,json:{...data,serverTime:'2030-01-10T02:30:00Z',timezone:'Asia/Kolkata'}});
+ });
+ await page.goto('/');await expect(page.locator('#recommendations')).toHaveAttribute('data-period','breakfast');
+ await expect(page.locator('#recommendation-kitchen')).toHaveText('Kitchen opens at 10am');
+ await expect(page.locator('#recommendation-time')).toHaveText(/8:00/);
+});
+
+test('food photo credits remain visible and their locally served images decode',async({page})=>{
+ await page.goto('/');await page.locator('.footer-bottom').getByRole('link',{name:'Photo credits'}).click();
+ await expect(page).toHaveTitle('Food photograph credits — BitesBro');
+ await expect(page.locator('.credit-card')).toHaveCount(40);
+ for(const image of await page.locator('.credit-card img').all())await image.scrollIntoViewIfNeeded();
+ await expect.poll(()=>page.locator('.credit-card img').evaluateAll(images=>images.every(image=>image.complete&&image.naturalWidth>0))).toBe(true);
+ await expect(page.locator('.credit-card a[href*="creativecommons.org/licenses/by-sa/"]').first()).toBeVisible();
+ await page.setViewportSize({width:320,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
 test('built GitHub Pages site displays the new food catalogue and honest browse-only checkout',async({page})=>{
  const root=resolve('_site');const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'};
  await page.route('**/api/**',r=>r.fulfill({status:404,contentType:'text/plain',body:'GitHub Pages has no backend'}));
  await page.route('**/Cafe_Website/**',async route=>{const pathname=new URL(route.request().url()).pathname;const relative=decodeURIComponent(pathname.slice('/Cafe_Website/'.length))||'index.html';const file=resolve(root,relative);if(!file.startsWith(root+'/'))return route.fulfill({status:404});try{await route.fulfill({status:200,contentType:mime[extname(file)]||'application/octet-stream',body:await readFile(file)});}catch{await route.fulfill({status:404});}});
  const assetRequests=[];page.on('request',r=>{if(r.url().includes('/assets/'))assetRequests.push(new URL(r.url()).pathname);});
+ await page.clock.install({time:new Date('2030-01-10T08:00:00Z')});
  await page.goto('/Cafe_Website/');await expect(page.locator('#hero-title')).toContainText('Good food.');await expect(page.locator('.menu-card')).toHaveCount(12);await expect(page.locator('#menu-count')).toContainText('50 dishes');await expect(page.locator('#connection-note')).toContainText('Sample menu view');
+ await expect(page.locator('#recommendations')).toHaveAttribute('data-period','lunch');
+ await expect(page.locator('.recommendation-card')).toHaveCount(4);
+ expect(await page.locator('.menu-card img').evaluateAll(images=>images.every(image=>new URL(image.src).pathname.includes('/assets/images/photos/')&&new URL(image.src).pathname.endsWith('.jpg')))).toBe(true);
  await addDish(page,'Bangalore Masala Dosa');await page.getByRole('button',{name:'Open bag, 1 item',exact:true}).click();await expect(page.locator('#cart-total')).toHaveText('₹120');await expect(page.locator('#order-form button[type=submit]')).toBeDisabled();await expect(page.locator('#order-form .form-result')).toContainText('server is not connected');
  expect(assetRequests.length).toBeGreaterThan(5);expect(assetRequests.every(path=>path.startsWith('/Cafe_Website/assets/'))).toBe(true);
+ await page.keyboard.press('Escape');await page.locator('.footer-bottom').getByRole('link',{name:'Photo credits'}).click();
+ await expect(page).toHaveURL(/\/Cafe_Website\/photo-credits.html$/);
+ await expect(page.locator('.credit-card')).toHaveCount(40);
+ await expect(page.locator('.credit-card img').first()).toHaveAttribute('src',/^\/Cafe_Website\/assets\/images\/photos\//);
 });
