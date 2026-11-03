@@ -6,7 +6,7 @@ The sample catalogue has **50 dishes across eight categories, including 16 South
 
 ## Run
 
-Requires **Node.js 24+**. The server uses Node's built-in HTTP and SQLite modules; there are no npm runtime dependencies or required API keys.
+Requires **Node.js 24+**. With the configured public Supabase environment variables, the app uses Supabase Auth, Postgres and Storage. Without them, the Node server retains its local SQLite preview.
 
 ```sh
 npm ci
@@ -15,20 +15,26 @@ npm run dev
 
 Run these commands from `/workspace/Cafe_Website` in this cloud workspace, or from the cloned repository root on another machine. The server listens on port 3000 by default. `npm start` runs without the file watcher. Copy `.env.example` to an ignored `.env` file to override `PORT`, `HOST`, `SITE_URL`, `DATABASE_PATH`, `CAFE_TIMEZONE`, or `RATE_LIMIT_MAX`.
 
-## Three-role browser demonstration
+## Supabase authentication, database and Storage
 
-The existing customer website now connects to a **fictional Kitchen Display System and Administrator dashboard** without backend hosting:
+Email/password signup, confirmation, sign-in, recovery and sign-out are implemented with the official Supabase SDK. Customers use the customer site and their own order history; chefs use the Kitchen Display; administrators manage operations and can also open the kitchen. Postgres roles, RLS and transactional functions enforce these permissions, including calls made outside the UI.
 
-- Customer demo: `/?demo=1` — the full menu, existing customiser/bag, separate Demo Checkout and tracking.
-- Kitchen: `/kitchen/` — incoming/preparing/ready tickets, allowed preparation actions, history and menu availability.
-- Administrator: `/admin/` — overview, orders, demo menu editing/add/archive, simulated reports, kitchen preferences and reset.
-- Tracking: `/orders/` — fictional history, option/price snapshots and the Received → Preparing → Ready → Collected timeline.
+**The owner chose to run SQL manually. Cloud migration and photo upload are pending until these steps are completed:**
 
-Use **Explore BitesBro Demo** to switch roles. Changes sync between tabs in the same browser/origin; they do not sync across devices. All operational data is fictional and labelled **Demo Mode — No real orders or payments.** The role selector is not staff authentication.
+1. Run [supabase/setup.sql](supabase/setup.sql) in **Bites_Bro_Website → SQL Editor**. It creates the protected tables, functions, 50-dish catalogue, photo credits and `menu-images` bucket.
+2. Configure Supabase email authentication and the website's `/auth/` callback URL.
+3. Create and confirm **admin@bitesbro.com**, then run [supabase/bootstrap-admin.sql](supabase/bootstrap-admin.sql). Choose the password in Auth, never in SQL or Git.
+4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to ignored `.env.local` locally, and to GitHub Actions **Variables** for Pages builds.
+5. Sign in as administrator → **Settings → Upload menu photographs**. All 40 licensed images upload to **Storage → menu-images → Files → files/** and become the menu's image URLs. Use **Staff access** to assign confirmed chef accounts.
+6. Run `npm run supabase:verify` for read-only Cloud readiness checks.
 
-The separate `bitesbro.demo.v1` store contains only fictional tickets, demo menu edits and preferences. Checkout uses a fixed Demo guest and preset preparation notes; it never copies names, contact details, addresses or payment information from connected forms. Menu edits never modify SQLite. New tickets use the current demonstration prices in integer paise, while historical tickets retain snapshots.
+[Complete Supabase instructions, table fields, role matrix and verification](docs/supabase.md).
 
-Opening `./` without `?demo=1` preserves the existing connected Node.js customer flow. In explicit browser-demo mode, server-write forms are disabled. [Workflow, architecture, security boundaries and future authenticated backend](docs/three-role-demo.md).
+The SDK is served locally. Generated browser configuration intentionally includes only the public project URL/publishable key. Secret/service-role keys are rejected, `.env.local` stays ignored, and no management token is required. Start/dev/build commands load `.env.local`. A failed Cloud request never saves to SQLite or the fictional browser store.
+
+## Local three-role demonstration
+
+The earlier fictional customer/kitchen/admin workflow remains available only when **Supabase is unconfigured** and `APP_DEMO_MODE=true` is explicitly enabled. It is disabled in Supabase mode, including when `?demo=1` is supplied. The preview stores only fictional orders in `bitesbro.demo.v1`; it never contains real customer contact or delivery details. Production staff pages require sign-in.
 
 ## Food ordering
 
@@ -40,9 +46,9 @@ Opening `./` without `?demo=1` preserves the existing connected Node.js customer
 - Pickup and demo delivery use half-hour slots during the supplied opening periods, with at least 30 minutes' lead time for same-day orders. Table reservations retain separate 90-minute sittings and capacity checks.
 - Delivery requests require an address and Bangalore `560xxx` postcode. The editable sample delivery fee is ₹40, waived at a food subtotal of ₹499 or more.
 - The server recalculates dish prices, portion surcharges, add-ons and delivery fees from authoritative data. Prices are integer paise. Client-supplied totals are ignored.
-- Orders and option/price snapshots, contact messages, newsletter subscriptions and reservations persist in SQLite. Public endpoints do not expose customer records.
+- Orders and option/price snapshots, contact messages, newsletter subscriptions and reservations persist in Supabase when configured. SQLite remains the local unconfigured preview. Public endpoints do not expose customer records.
 
-**Requests really save when the Node server is connected.** Payment processing, email delivery and delivery dispatch are not integrated. Forms explicitly describe demo requests and do not claim a confirmed visit or fulfilment from an unannounced business address. Recipe labels are samples, not guarantees about allergen handling.
+**Requests save in Supabase after setup, or in SQLite in the local preview.** Payment processing, email delivery and delivery dispatch are not integrated. Forms explicitly describe demo requests and do not claim a confirmed visit or fulfilment from an unannounced business address. Recipe labels are samples, not guarantees about allergen handling.
 
 ## Time-based recommendations and photographs
 
@@ -54,7 +60,9 @@ The hero, story, menu, customiser, bag and recommendations use **40 locally serv
 
 `public/photo-credits.json` records every author/source/licence, a pinned mirror revision, transformations, SHA-256 and dish mapping. Run `npm run photos:credits` to regenerate the credit page after editing this manifest. Keep photo licences and attribution with the files. The Pages build does this automatically. No image CDN, new runtime key or external browser request is needed.
 
-## Existing database upgrade
+## Existing SQLite database upgrade
+
+This section applies only to the local SQLite fallback. Supabase uses the separate SQL migrations above; the old file is retained and is never reset.
 
 Startup applies the original version-1 baseline followed by `server/migrations/002_food_ordering.sql` and the version-3 photograph update in `server/menu-photos.js`. For an existing file, it first creates a consistent, uniquely named `.pre-food-v2-….bak` SQLite backup beside the database using `VACUUM INTO`, including committed WAL data.
 
@@ -75,33 +83,31 @@ The migration preserves existing menu IDs, edited names/descriptions/prices, ava
 
 Changing seed data does not overwrite existing production menu records. For live menu changes, update the database or add a versioned migration, then refresh the exported sample catalogue when appropriate.
 
-## GitHub Pages and full-stack hosting
+## GitHub Pages and Node hosting
 
-GitHub Pages runs the complete three-role **browser demonstration**, sample menu, customiser and bag. It **cannot run Node.js or SQLite**. Connected server forms stay disabled when no API is available. The explicitly separate Demo Checkout stores only fictional orders in this browser and connects the customer, kitchen and administrator views. It never claims to save a real restaurant order.
+GitHub Pages serves the frontend; **Supabase provides authentication, database functions and file storage**, so authenticated ordering and staff dashboards can work on Pages without a Node host. Add the two public build variables described above before deploying. `.github/workflows/deploy.yml` installs dependencies, builds `_site/` with repository paths and deploys on pushes to `main`. It does not apply database migrations.
 
 ```sh
-npm run menu:export    # Export only the sample catalogue, using an in-memory DB
-npm run build:pages   # Build _site/ with correct repository paths and SEO URLs
+npm run menu:export    # Export only the sample catalogue, never customer records
+npm run build:pages   # Includes local SDK and generated public Supabase configuration
 ```
 
-`.github/workflows/deploy.yml` builds this food frontend on pushes to `main` and deploys it to GitHub Pages. Root, nested-page and repository-subpath asset handling is tested, including directly opening and refreshing role pages. `public/menu.json` contains sample menu data only, never customer records or production database contents.
-
-To accept database-backed requests, deploy the **whole application** to a Node.js host with a persistent disk using the provided Render Blueprint or Docker configuration. Set `SITE_URL` to the real HTTPS origin and `DATABASE_PATH` to the persistent mount. See [deployment instructions](docs/deployment.md). Render's Starter service and disk are paid resources; applying a Blueprint requires a hosting account and review of its price.
+When Supabase is unavailable, the sample catalogue remains browsable and forms are disabled. Staff pages fail closed. A Node host is optional; when configured it forwards authenticated operations to Supabase and does not write SQLite. Native Node hosting without Supabase retains the earlier local SQLite preview. [Deployment details](docs/deployment.md).
 
 ## Verification
 
 ```sh
 npm run check
-npm test               # 47 API/database, photo, recommendation and shared demo-model tests
+npm test               # API, PostgreSQL/RLS, model, photo, recommendation and configuration tests
 npm run build:pages
-npm run test:browser   # 21 Chromium journeys, including three-role workflows on the Pages build
+npm run test:browser   # Chromium journeys, including Supabase Auth/Storage and legacy local previews
 ```
 
 Browser tests use `/usr/bin/chromium`, `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`, or a Playwright-installed Chromium. They run against a separate temporary database on port 3100. API tests use in-memory and temporary files. Screenshots/traces go to ignored `test-results/`. Tests do not submit customer data to the development or production database.
 
 ## API
 
-All writes require JSON and explicit `consent: true`; validation failures return an `error` and optional field-specific errors.
+In Supabase mode, writes also require a valid customer Bearer session and orders require a `requestId` UUID. All writes require JSON and explicit `consent: true`; validation failures return an `error` and optional field-specific errors.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -121,4 +127,4 @@ An order line is `{ "id": "masala-dosa", "quantity": 2, "variant": "ghee-roast",
 
 [Three-role demonstration](docs/three-role-demo.md) · [Implementation report](docs/redesign-report.md) · [Architecture](docs/architecture.md) · [Design system](design_system.md) · [Agent instructions](agents.md) · [Credits](docs/credits.md) · [Deployment](docs/deployment.md)
 
-Use a single Node instance with persistent local disk. Terminate HTTPS at the hosting provider/reverse proxy; configure per-client abuse limits there because the application does not trust forwarded IP headers. Keep SQLite-aware backups and never delete `data/` to refresh a menu. Email, payments, authenticated staff tools, request fulfilment and a final privacy/retention policy remain explicit live-service integrations.
+For the unconfigured SQLite preview, use a single Node instance with persistent local disk. Terminate HTTPS at the hosting provider/reverse proxy; configure per-client abuse limits there because the application does not trust forwarded IP headers. Keep SQLite-aware backups and never delete `data/` to refresh a menu. Email notifications, payments, request fulfilment and a final privacy/retention policy remain explicit live-service integrations. Supabase authentication, staff roles and Storage are implemented; apply the supplied SQL and deployment settings to activate them.

@@ -3,6 +3,8 @@ import { readFile, realpath, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, extname, sep } from 'node:path';
 import { cafe, bookingSlots, foodSlots, openingHours } from './cafe.js';
+import { publicCloudConfig } from './cloud-config.js';
+import { createCloudApi } from './cloud-api.js';
 
 const publicRoot = resolve(fileURLToPath(new URL('../public/', import.meta.url)));
 export const SLOTS = bookingSlots;
@@ -82,7 +84,7 @@ async function body(req) {
 
 function ref(prefix) { return `BB-${prefix}-${randomBytes(5).toString('hex').toUpperCase()}`; }
 
-export function createApp({ db, siteUrl = 'http://localhost:3000', timezone = 'Asia/Kolkata', now = () => new Date(), rateLimitMax = 30 } = {}) {
+export function createApp({ db, siteUrl = 'http://localhost:3000', timezone = 'Asia/Kolkata', now = () => new Date(), rateLimitMax = 30, cloud = publicCloudConfig(), cloudApi = cloud.enabled ? createCloudApi(cloud) : null } = {}) {
   const canonicalOrigin = new URL(siteUrl).origin;
   new Intl.DateTimeFormat('en', { timeZone: timezone }); // Fail fast on invalid configuration.
   const rateBuckets = new Map();
@@ -93,11 +95,13 @@ export function createApp({ db, siteUrl = 'http://localhost:3000', timezone = 'A
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:${cloud.enabled ? ' ' + cloud.url + '/storage/v1/object/public/menu-images/' : ''}; connect-src 'self'${cloud.enabled ? ' ' + cloud.url : ''}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`);
     try {
       const url = new URL(req.url, 'http://local');
       const path = url.pathname;
       const clock = cafeClock(now(), timezone);
+      if (req.method === 'GET' && path === '/supabase-config.json') return json(res, 200, cloud);
+      if (cloud.enabled && req.method === 'GET' && path.startsWith('/api/')) return json(res, 200, await cloudApi(path, req, null, url));
       if (req.method === 'GET' && path === '/api/health') {
         db.prepare('SELECT 1').get();
         return json(res, 200, { status: 'ok', database: 'connected' });
@@ -140,6 +144,7 @@ export function createApp({ db, siteUrl = 'http://localhost:3000', timezone = 'A
         bucket.count++;
         if (bucket.count > rateLimitMax) { res.setHeader('Retry-After', String(Math.ceil((bucket.reset - timestamp) / 1000))); throw new HttpError(429, 'A few too many requests. Please try again in 15 minutes.'); }
         const data = await body(req);
+        if (cloud.enabled) return json(res, path === '/api/newsletter' ? 200 : 201, await cloudApi(path, req, data, url));
         consent(data);
         if (path === '/api/reservations') {
           const person = customer(data);

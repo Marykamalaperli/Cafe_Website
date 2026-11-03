@@ -8,17 +8,28 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "start": "node --env-file-if-exists=.env server/index.js",
-    "dev": "node --env-file-if-exists=.env --watch server/index.js",
+    "prestart": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/build-client.js",
+    "start": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --use-env-proxy server/index.js",
+    "predev": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/build-client.js",
+    "dev": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --use-env-proxy --watch server/index.js",
     "test": "node --test tests/*.test.js",
     "check": "node scripts/check.js",
     "test:browser": "playwright test",
-    "test:all": "npm run check && npm test && npm run test:browser",
+    "test:all": "npm run check && npm test && npm run build:pages && npm run test:browser",
     "menu:export": "node scripts/export-menu.js",
     "photos:credits": "node scripts/build-photo-credits.js",
-    "build:pages": "node scripts/build-pages.js"
+    "supabase:check": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --use-env-proxy scripts/check-supabase.js",
+    "build:client": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/build-client.js",
+    "supabase:prepare": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/prepare-supabase.js",
+    "supabase:verify": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --use-env-proxy scripts/verify-supabase.js",
+    "supabase:photos": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --use-env-proxy scripts/upload-menu-photos.js",
+    "build:pages": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/build-pages.js"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
     "@playwright/test": "^1.64.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0"
   }
 }

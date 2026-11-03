@@ -2,6 +2,7 @@ import {mealRecommendations} from './recommendations.js';
 import {connectDemoStore,clearDamagedDemo} from './shared/demo-store.js?v=three-roles-2';
 import {priceDemoBag,DEMO_BUSINESS} from './shared/demo-model.js?v=three-roles-2';
 import {mountRoleNavigation,siteURL} from './shared/ui.js?v=three-roles-2';
+import {cloudConfig,cloudRequest,requireRole,cloudClient,loginURL} from './shared/cloud.js';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:n%100?2:0}).format(n/100);
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -12,9 +13,9 @@ const photoAlt=item=>item.photo?'Representative photograph: '+item.photo.title:i
 const photoReference=item=>item.photo?.reference?`<span class="photo-reference">${escape(item.photo.reference)}</span>`:'';
 const CART_KEY='bitesbro.food-bag.v2';
 let toastTimer, selectedDish, recommendationClock;
-let demoMode=new URL(location.href).searchParams.get('demo')==='1',demoStore;
-mountRoleNavigation('customer',demoMode);
+let demoMode=false,demoStore,cloudEnabled=false,account,checkoutRequestId;
 async function request(path,options={}){
+ if(cloudEnabled) return cloudRequest(path,options);
  const response=await fetch(path,{...options,signal:options.signal||AbortSignal.timeout(12000),headers:{...(options.body?{'Content-Type':'application/json'}:{}),...options.headers}});
  let data;try{data=await response.json();}catch{const e=new Error('The ordering server is not available.');e.status=response.status;throw e;}
  if(!response.ok){const e=new Error(data.error||'Please try again.');e.fields=data.fields;e.status=response.status;throw e;}
@@ -166,8 +167,10 @@ function connectForm(id, path, transform = value => value, onSuccess) {
     const original = submit.innerHTML;
     submit.textContent = 'One little moment…';
     try {
-      const data = await request(path, { method: 'POST', body: JSON.stringify(transform(formValues(form))) });
+      if(cloudEnabled && path==='/api/orders') checkoutRequestId ||= crypto.randomUUID();
+      const data = await request(path, { method: 'POST', body: JSON.stringify({...transform(formValues(form)),...(cloudEnabled&&path==='/api/orders'?{requestId:checkoutRequestId}:{})}) });
       form.reset();
+      if(cloudEnabled&&account){if(form.elements.email)form.elements.email.value=account.user.email;if(form.elements.name)form.elements.name.value=account.user.user_metadata?.display_name||'';}
       initializeDates(form);
       result.className = 'form-result success';
       result.textContent = `${data.message}${data.reference ? ` Your reference: ${data.reference}.` : ''}`;
@@ -175,6 +178,7 @@ function connectForm(id, path, transform = value => value, onSuccess) {
     } catch (error) {
       result.className = 'form-result error';
       result.textContent = error.name === 'TypeError' || error.name === 'TimeoutError' ? 'We couldn’t reach the café. Check your connection and try again.' : error.message;
+      if(error.signIn){const link=document.createElement('a');link.href=loginURL();link.textContent=' Sign in / Create account';result.append(link);}
       for (const name of Object.keys(error.fields || {})) {
         const field = form.elements.namedItem(name);
         if (field instanceof HTMLElement) { field.setAttribute('aria-invalid', 'true'); field.classList.add('field-invalid'); }
@@ -193,10 +197,12 @@ connectForm('reservation-form', '/api/reservations', values => ({ ...values, gue
 connectForm('newsletter-form', '/api/newsletter');
 connectForm('contact-form', '/api/contact');
 connectForm('order-form', '/api/orders', values => ({ ...values, items: state.cart.map(({id,quantity,variant,spice,addons})=>({id,quantity,variant,spice,addons})) }), data => {
+  checkoutRequestId=undefined;
   state.cart = [];
   saveCart();
   $('#cart-checkout').hidden = true;
   $('#cart-content').innerHTML = `<div class="cart-empty">${icon('check')}<h3>A little good, all saved.</h3><p>Your demo food order is saved in the database.<br><strong>${escape(data.reference)}</strong></p><p>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}<br>No payment is taken, no delivery is dispatched and no email is sent.<br>Please wait for our location announcement before visiting.</p><button class="button button-orange close-dialog">Lovely, thank you ${icon('heart')}</button></div>`;
+  if(cloudEnabled){$('#cart-content').innerHTML=`<div class="cart-empty">${icon('check')}<h3>Your order is saved.</h3><p><strong>${escape(data.reference)}</strong><br>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}</p><p>No online payment, delivery dispatch or email confirmation is connected.</p><a class="button button-orange" href="${escape(siteURL('orders/?order='+encodeURIComponent(data.reference)))}">Track my order ${icon('arrow')}</a></div>`;}
 });
 
 const navToggle = $('#nav-toggle');
@@ -227,10 +233,19 @@ $('#motion-toggle').addEventListener('click', event => {
 
 $('#year').textContent=new Date().getFullYear();
 async function boot(){
+ try{
+  const config=await cloudConfig(); cloudEnabled=config.enabled;
+  demoMode=!cloudEnabled&&config.demoEnabled&&new URL(location.href).searchParams.get('demo')==='1';
+  account=await requireRole('customer',{optional:true});
+  if(account&&!account.demo&&account.role!=='customer')return;
+  await mountRoleNavigation('customer',demoMode,account?.demo?undefined:account);
+  if(cloudEnabled) configureCloudCustomer();
+  else if(!config.demoEnabled){$('#demo-checkout-panel').hidden=true;$('.demo-workflow').hidden=true;}
+ }catch(error){$('#menu-status').textContent=error.message;$('#demo-checkout-panel').hidden=true;$('.demo-workflow').hidden=true;state.browseOnly=true;for(const form of $$('form'))$('button[type=submit]',form)?.setAttribute('disabled','');return;}
  if(demoMode){try{await activateDemo();}catch(error){$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML=`<div class="empty-state"><h3>The demo couldn’t open.</h3><p>${escape(error.message)}</p><button class="button button-outline" id="recover-customer-demo">Reset fictional demo data</button></div>`;}return;}
  let catalog;
  state.browseOnly=false;
- try{catalog=await request('/api/menu');}
+ try{catalog=await request('/api/menu');if(cloudEnabled&&!catalog.items.length)throw new Error('Supabase menu setup is pending.');}
  catch(error){
   try{const r=await fetch(new URL('menu.json?v=three-roles-1',document.baseURI),{cache:'no-cache',signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error();catalog=await r.json();state.browseOnly=true;}
   catch{$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML='<div class="empty-state"><h3>The kitchen menu couldn’t load.</h3><p>Check your connection and try again.</p><button class="button button-outline" id="retry-menu">Try again</button></div>';return;}
@@ -244,12 +259,29 @@ async function boot(){
  }
  $('#connection-note').hidden=!state.browseOnly;
  if(state.browseOnly){
-  $('#connection-note').textContent='Sample menu view · Customise your bag here. Online checkout and forms need the connected Node.js server.';
+  $('#connection-note').textContent=cloudEnabled?'Supabase setup or connection is unavailable · Showing the sample menu. Ordering and forms are disabled until the database is ready.':'Sample menu view · Customise your bag here. Online checkout and forms need the connected Node.js server.';
   for(const form of [$('#order-form'),$('#reservation-form'),$('#newsletter-form'),$('#contact-form')]){const result=$('.form-result',form);result.className='form-result';result.textContent='Sample site: the ordering server is not connected. Requests cannot be submitted here.';$('button[type=submit]',form).disabled=true;}
  }
  renderRecommendations();
+ if(cloudEnabled&&!state.browseOnly){
+  const timer=setInterval(async()=>{if(document.hidden)return;try{const updated=await request('/api/menu');state.menu=updated.items;state.cart=readCart();renderMenu();renderSignature();renderRecommendations();saveCart();if($('#cart-dialog').open)renderCart();}catch{/* Keep the last menu; checkout still validates authoritative availability. */}},15000);
+  window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
+ }
 }
 boot();
+
+function configureCloudCustomer(){
+ document.body.dataset.live='true';$('#demo-checkout-panel').hidden=true;$('.demo-workflow').hidden=true;
+ $('#order-form').hidden=false;
+ $('.cart-payment').textContent='Orders saved in Supabase · No online payment collected';
+ for(const form of [$('#order-form'),$('#reservation-form'),$('#contact-form'),$('#newsletter-form')]){
+  const note=$('.form-note',form);if(note)note.textContent='Sign in with a customer account to save this request in Supabase. No payment, dispatch or email confirmation is connected.';
+  if(account){if(form.elements.email){form.elements.email.value=account.user.email;form.elements.email.readOnly=true;}if(form.elements.name)form.elements.name.value=account.user.user_metadata?.display_name||'';}
+ }
+ const privacy=$('#privacy-dialog .prose');
+ privacy.innerHTML='<p>BitesBro is in Bangalore, with supplied hours of 10am–3pm and 6pm–11pm. Address, business contact details and a retention policy must be published before live service.</p><h3>Your account and orders</h3><p>Supabase Authentication manages your sign-in and password. With your consent, your order, booking, message and subscription details are stored in this project’s Supabase database. Customers can read only their own orders. Authorised administrators manage operations; chefs receive preparation tickets without customer contact details or delivery addresses.</p><h3>Browser storage</h3><p>Your bag stores only dish identifiers, options and quantities. The Supabase SDK stores your sign-in session in this browser so it can refresh your login. Sign out on shared devices. Customer order records are not stored in the browser demo store.</p><h3>Food photographs</h3><p>Menu photographs use a public Supabase storage bucket after administrator upload. Customer files are not accepted. Author, source and licence credits remain linked below.</p><h3>Service status</h3><p>Online payment, delivery dispatch and email notifications are not connected. Authentication confirmation and password reset emails are managed by Supabase. You can browse the menu without creating an account.</p>';
+ cloudClient().then(client=>client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')location.reload();})).catch(()=>{});
+}
 
 function renderRecommendations(){
  if(!state.menu.length)return;
@@ -297,6 +329,7 @@ function refreshDemo() {
  if(state.cart.reduce((sum,line)=>sum+line.quantity,0)<previousCount)notify('Unavailable demo dishes were removed from your bag.',true);
 }
 async function activateDemo() {
+ const config=await cloudConfig();if(config.enabled||!config.demoEnabled)throw new Error('Browser demo checkout is disabled. Use your customer account to order.');
  if(!demoStore){
   const connection=await connectDemoStore();
   demoStore=connection;demoMode=true;state.browseOnly=true;state.cafe=null;recommendationClock=undefined;

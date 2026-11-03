@@ -5,6 +5,8 @@ import { join } from 'node:path';
 
 const databaseFolder = mkdtempSync(join(tmpdir(), 'bitesbro-browser-'));
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
+// Only the isolated loopback test server bypasses an inherited outbound proxy.
+for(const name of ['NO_PROXY','no_proxy'])process.env[name]=[process.env[name],'127.0.0.1','localhost'].filter(Boolean).join(',');
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.js',
@@ -27,6 +29,6 @@ export default defineConfig({
     url: 'http://127.0.0.1:3100/api/health',
     reuseExistingServer: false,
     timeout: 15000,
-    env: { HOST: '127.0.0.1', PORT: '3100', SITE_URL: 'http://127.0.0.1:3100', DATABASE_PATH: join(databaseFolder, 'cafe.sqlite'), RATE_LIMIT_MAX: '1000' }
+    env: { HOST: '127.0.0.1', PORT: '3100', SITE_URL: 'http://127.0.0.1:3100', DATABASE_PATH: join(databaseFolder, 'cafe.sqlite'), RATE_LIMIT_MAX: '1000', APP_DEMO_MODE: 'true' }
   }
 });

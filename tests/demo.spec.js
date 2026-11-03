@@ -10,6 +10,7 @@ async function pages(context) {
  await context.route('**/Cafe_Website/**', async route => {
   const pathname = new URL(route.request().url()).pathname;
   let relative = decodeURIComponent(pathname.slice(base.length));
+  if(relative==='supabase-config.json')return route.fulfill({json:{enabled:false,demoEnabled:true}});
   if (!relative || relative.endsWith('/')) relative += 'index.html';
   const file = resolve(root, relative);
   if (!file.startsWith(root + '/')) return route.fulfill({ status: 404 });

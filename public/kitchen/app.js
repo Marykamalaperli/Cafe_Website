@@ -4,7 +4,7 @@ import { demoMetrics, STATUS_LABELS, INSTRUCTIONS } from '../shared/demo-model.j
 
 let store, queue = 'active', sort = 'oldest', search = '';
 function ticket(order) {
- return `<article class="ticket-card" data-ticket="${escape(order.reference)}"><div class="ticket-card-header"><div><h3>${escape(order.reference)}</h3><p>${localDate(order.createdAt)} · ${localTime(order.createdAt)}<br>${escape(order.fulfilment)} · ${order.origin === 'sample' ? 'Sample ticket' : 'Customer demo'}</p></div>${badge(order.status)}</div><div class="ticket-card-body">${orderItems(order)}<p class="ticket-instructions"><strong>Preparation note</strong>${escape(INSTRUCTIONS[order.instruction])}</p><div class="ticket-actions">${orderActions(order, 'kitchen')}<button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}">Details</button></div></div></article>`;
+ return `<article class="ticket-card" data-ticket="${escape(order.reference)}"><div class="ticket-card-header"><div><h3>${escape(order.reference)}</h3><p>${localDate(order.createdAt)} · ${localTime(order.createdAt)}<br>${escape(order.fulfilment)} · ${store?.live ? escape(order.date+' '+order.time) : order.origin === 'sample' ? 'Sample ticket' : 'Customer demo'}</p></div>${badge(order.status)}</div><div class="ticket-card-body">${orderItems(order)}<p class="ticket-instructions"><strong>Preparation note</strong>${escape(store?.live ? order.instructions||'Standard preparation' : INSTRUCTIONS[order.instruction])}</p><div class="ticket-actions">${orderActions(order, 'kitchen')}<button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}">Details</button></div></div></article>`;
 }
 function render(state) {
  const { counts } = demoMetrics(state);
@@ -22,6 +22,7 @@ function render(state) {
 
 await startOperations('kitchen', render, async (connection, redraw) => {
  store = connection;
+ if(store.live && store.account.role==='chef') document.querySelector('a[href="../admin/#orders"]')?.remove();
  $('#queue-filters').addEventListener('click', event => {
   const button = event.target.closest('[data-queue]'); if (!button) return;
   queue = button.dataset.queue;

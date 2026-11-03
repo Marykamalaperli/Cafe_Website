@@ -59,6 +59,8 @@ The customiser uses a native dialog with portion choices, spice levels, add-ons,
 
 ## Motion
 
+Account pages extend the same Fraunces/DM Sans pairing and forest/ivory/terracotta controls. Sign-in, signup, confirmation feedback and password recovery use labelled native form controls, password autocomplete, clear status messages and a constrained card on small screens. Operational views stay hidden until the role check completes. The live account strip shows only the signed-in role's useful destinations and sign-out. Cloud mode removes fictional checkout and reset controls without changing the customer food layout.
+
 Use `cubic-bezier(.22, 1, .36, 1)` for entrance and interaction easing. Hover changes should feel small and physical: 2px button lift, a slight photo tilt, or a subtle image zoom. Reveal sections once on entry with opacity and about 22px of vertical motion. The ticker and circular stamp rotate slowly over 55 seconds.
 
 `prefers-reduced-motion: reduce` stops continuous animation, entrance transforms, and smooth scrolling. Reveal content remains visible. All primary information and controls must work without decorative motion. Native dialogs preserve focus and Escape behaviour; status regions announce form results and bag additions.

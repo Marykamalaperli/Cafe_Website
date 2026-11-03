@@ -1,5 +1,7 @@
 # Assets and credits
 
+Supabase authentication, database and Storage use the official `@supabase/supabase-js` SDK (MIT). Its official browser bundle and licence are copied locally at build time. The isolated PostgreSQL security tests use `@electric-sql/pglite` (Apache-2.0); it is a development dependency and does not run in the website.
+
 ## Fonts
 
 - **Fraunces**, by Undercase Type and contributors. Distributed through `@fontsource/fraunces` 5.2.7 under the SIL Open Font License. See `public/assets/fonts/fraunces-OFL.txt`.
@@ -23,4 +25,4 @@ The plate/cutlery logo, SVG icon sprite, favicon and illustrative neighbourhood 
 
 ## Development tooling
 
-Playwright is used only for browser testing. The production server uses the Node.js standard library and SQLite; there are no npm runtime dependencies.
+Playwright is used only for browser testing. Node serves the frontend and optional API; the configured production backend uses Supabase Auth, Postgres and Storage. SQLite remains the unconfigured local preview.

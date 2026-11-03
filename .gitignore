@@ -13,3 +13,7 @@ _site/
 *.sqlite-shm
 *.sqlite-wal
 *.bak
+
+# Generated browser SDK and public runtime configuration (never source credentials).
+public/vendor/
+public/supabase-config.json

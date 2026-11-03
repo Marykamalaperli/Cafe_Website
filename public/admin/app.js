@@ -1,6 +1,8 @@
-import { startOperations, statCard } from '../shared/operations.js?v=three-roles-2';
+import { startOperations, statCard, liveCopy } from '../shared/operations.js?v=three-roles-2';
 import { $, $$, escape, money, badge, localDate, localTime, siteURL, announce, showDialog, icon } from '../shared/ui.js?v=three-roles-2';
 import { demoMetrics, STATUSES, STATUS_LABELS } from '../shared/demo-model.js?v=three-roles-2';
+import {rpc} from '../shared/cloud.js';
+import {uploadMenuPhotos} from '../shared/photo-upload.js';
 
 let store, menuLimit = 12, editingId;
 const titles = {
@@ -15,6 +17,7 @@ function selectPanel() {
  $$('.admin-panel').forEach(section => { section.hidden = section.id !== 'panel-' + panel; });
  $$('[data-panel-link]').forEach(link => { if (link.dataset.panelLink === panel) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
  $('#admin-page-title').innerHTML = titles[panel][0]; $('#admin-page-description').textContent = titles[panel][1];
+ liveCopy();
 }
 
 function renderOrders(state) {
@@ -53,7 +56,7 @@ function render(state) {
 function openEditor(id) {
  const state = store.read(), item = state.menu.find(item => item.id === id), form = $('#demo-menu-form');
  editingId = item?.id; form.reset(); $('#menu-result').textContent = '';
- $('#menu-dialog-title').textContent = item ? 'Edit demo dish' : 'A new favourite.';
+ $('#menu-dialog-title').textContent = item ? store.live?'Edit dish':'Edit demo dish' : 'A new favourite.';
  form.elements.category.replaceChildren(...state.categories.map(category => new Option(category.name, category.id)));
  const photos = [...new Map(state.menu.filter(item => item.photo).map(item => [item.image, item])).values()];
  form.elements.image.replaceChildren(...photos.map(item => new Option(item.photo.title + ' · ' + item.photo.license, item.image)));
@@ -66,6 +69,14 @@ function openEditor(id) {
 
 await startOperations('admin', render, async (connection, redraw) => {
  store = connection; selectPanel(); window.addEventListener('hashchange', selectPanel);
+ if(store.live){
+  $('.reset-panel').hidden=true;$('#reset-dialog').remove();
+  const section=document.createElement('div');section.className='ops-two-col';
+  section.innerHTML='<section class="ops-panel"><div class="ops-panel-header"><div><h2>Menu photographs</h2><p>Upload the 40 bundled licensed photos to menu-images / files. Existing files are verified and reused.</p></div></div><button class="ops-button ops-button-primary" id="upload-menu-photos">Upload menu photographs</button><p class="ops-form-result" id="photo-upload-result" role="status"></p><p class="ops-muted">Only administrators can upload. Photo credits and source hashes remain with the catalogue.</p></section><section class="ops-panel"><div class="ops-panel-header"><div><h2>Staff access</h2><p>The account must sign up and confirm its email first. You cannot change your own role here.</p></div></div><form id="staff-access-form" class="staff-access-form"><label class="ops-field">Account email<input name="email" type="email" maxlength="254" autocomplete="off" required></label><label class="ops-field">Access<select name="role"><option value="chef">Chef · kitchen only</option><option value="admin">Administrator · admin and kitchen</option><option value="customer">Customer · customer pages only</option></select></label><button class="ops-button ops-button-primary" type="submit">Update account access</button><p class="ops-form-result" id="staff-access-result" role="status"></p></form></section>';
+  $('#panel-settings').append(section);
+  $('#upload-menu-photos').addEventListener('click',async event=>{const button=event.currentTarget;button.disabled=true;try{const count=await uploadMenuPhotos(text=>{$('#photo-upload-result').textContent=text;});await store.refresh();$('#photo-upload-result').textContent=`${count} licensed photos stored in Supabase and linked to the menu.`;}catch(error){$('#photo-upload-result').textContent=error.message;}finally{button.disabled=false;}});
+  $('#staff-access-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;if(!form.reportValidity())return;const button=$('button[type=submit]',form);button.disabled=true;try{await rpc('set_staff_role',{p_email:form.elements.email.value.trim(),p_role:form.elements.role.value});$('#staff-access-result').textContent='Account access updated. The next page or data refresh will use the new permissions.';form.reset();}catch(error){$('#staff-access-result').textContent=error.message;}finally{button.disabled=false;}});
+ }
  for (const id of ['admin-order-search', 'admin-menu-search']) $('#' + id).addEventListener('input', () => { menuLimit = 12; redraw(); });
  for (const id of ['admin-order-status', 'admin-menu-status']) $('#' + id).addEventListener('change', () => { menuLimit = 12; redraw(); });
  $('#more-demo-dishes').addEventListener('click', () => { menuLimit += 12; redraw(); });
@@ -78,7 +89,7 @@ await startOperations('admin', render, async (connection, redraw) => {
   if (!item) return; button.disabled = true;
   try {
    await store.dispatch({ type: availability ? 'menu.availability' : 'menu.archive', id: item.id, value: availability ? !item.available : !item.archived, role: 'admin' });
-   announce(`${item.name} ${availability ? item.available ? 'paused' : 'available' : item.archived ? 'restored' : 'archived'} in the demo.`);
+   announce(`${item.name} ${availability ? item.available ? 'paused' : 'available' : item.archived ? 'restored' : 'archived'}${store.live?'':' in the demo'}.`);
   } catch (error) { announce(error.message, true); if (button.isConnected) button.disabled = false; }
  });
  $('#demo-menu-form').addEventListener('submit', async event => {
@@ -86,19 +97,19 @@ await startOperations('admin', render, async (connection, redraw) => {
   form.dataset.submitting = 'true'; const button = $('button[type=submit]', form); button.disabled = true; $('#menu-result').textContent = '';
   const values = Object.fromEntries(new FormData(form));
   const fields = { ...values, price: Math.round(Number(values.price) * 100), prepMinutes: Number(values.prepMinutes), ingredients: values.ingredients.split(',').map(value => value.trim()).filter(Boolean), allergens: values.allergens.split(',').map(value => value.trim()).filter(Boolean) };
-  try { const item = await store.dispatch({ type: 'menu.save', id: editingId, fields }); $('#menu-dialog').close(); ($(`[data-edit-dish="${CSS.escape(item.id)}"]`)||$('#add-demo-dish')).focus({preventScroll:true}); announce(`${item.name} saved to the shared demonstration menu.`); }
+  try { const item = await store.dispatch({ type: 'menu.save', id: editingId, fields }); $('#menu-dialog').close(); ($(`[data-edit-dish="${CSS.escape(item.id)}"]`)||$('#add-demo-dish')).focus({preventScroll:true}); announce(`${item.name} saved to ${store.live?'the menu':'the shared demonstration menu'}.`); }
   catch (error) { $('#menu-result').textContent = error.message; }
   finally { delete form.dataset.submitting; button.disabled = false; }
  });
  $('#demo-settings-form').addEventListener('submit', async event => {
   event.preventDefault(); const form = event.currentTarget; if (!form.reportValidity()) return;
   const button = $('button[type=submit]', form); button.disabled = true;
-  try { await store.dispatch({ type: 'settings.save', acceptingOrders: $('#demo-accepting').checked, prepMinutes: Number($('#demo-prep').value) }); $('#settings-result').textContent = 'Demo preferences saved. The customer and kitchen views are updated.'; }
+  try { await store.dispatch({ type: 'settings.save', acceptingOrders: $('#demo-accepting').checked, prepMinutes: Number($('#demo-prep').value) }); $('#settings-result').textContent = `${store.live?'Kitchen':'Demo'} preferences saved. The customer and kitchen views are updated.`; }
   catch (error) { $('#settings-result').textContent = error.message; }
   finally { button.disabled = false; }
  });
- $('#open-reset-demo').addEventListener('click', () => showDialog($('#reset-dialog')));
- $('#confirm-reset-demo').addEventListener('click', async event => {
+ $('#open-reset-demo')?.addEventListener('click', () => showDialog($('#reset-dialog')));
+ $('#confirm-reset-demo')?.addEventListener('click', async event => {
   const button = event.currentTarget; button.disabled = true;
   try { await store.reset(); $('#reset-dialog').close(); $('#settings-result').textContent = ''; announce('Demo reset: 50 sample dishes and six fictional orders restored.'); }
   catch (error) { announce(error.message, true); }
