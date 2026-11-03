@@ -1,188 +1,96 @@
-const $ = (selector, root = document) => root.querySelector(selector);
-const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const money = paise => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(paise / 100);
-const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const icon = name => `<svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#${name}"/></svg>`;
-const state = { menu: [], filtered: [], category: 'all', search: '', cart: [], cafe: null };
-const CART_KEY = 'bitesbro.bag.v1';
-let menuRequest;
-let toastTimer;
-
-async function request(path, options = {}) {
-  const response = await fetch(path, { ...options, signal: options.signal || AbortSignal.timeout(12000), headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers } });
-  let data;
-  try { data = await response.json(); } catch { throw new Error('We couldn’t read the server response. Please try again.'); }
-  if (!response.ok) {
-    const error = new Error(data.error || 'Something went wrong. Please try again.');
-    error.fields = data.fields;
-    throw error;
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n/100);
+const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const asset=path=>new URL(path.replace(/^\//,''),document.baseURI).href;
+const icon=name=>`<svg class="icon" aria-hidden="true"><use href="${asset('assets/icons.svg')}#${name}"/></svg>`;
+const state={menu:[],categories:[],category:'all',search:'',diet:'all',sort:'recommended',limit:12,cart:[],cafe:null,browseOnly:false};
+const CART_KEY='bitesbro.food-bag.v2';
+let toastTimer, selectedDish;
+async function request(path,options={}){
+ const response=await fetch(path,{...options,signal:options.signal||AbortSignal.timeout(12000),headers:{...(options.body?{'Content-Type':'application/json'}:{}),...options.headers}});
+ let data;try{data=await response.json();}catch{const e=new Error('The ordering server is not available.');e.status=response.status;throw e;}
+ if(!response.ok){const e=new Error(data.error||'Please try again.');e.fields=data.fields;e.status=response.status;throw e;}
+ return data;
+}
+function notify(message,error=false){clearTimeout(toastTimer);const t=$('#toast');t.textContent=message;t.classList.toggle('error',error);t.classList.add('visible');toastTimer=setTimeout(()=>t.classList.remove('visible'),3500);}
+const itemFor=line=>state.menu.find(item=>item.id===line.id);
+function optionsFor(line){const item=itemFor(line);return {item,variant:item?.variants.find(v=>v.id===line.variant),addons:item?.addons.filter(a=>line.addons.includes(a.id))||[]};}
+function unitPrice(line){const {item,variant,addons}=optionsFor(line);return (item?.price||0)+(variant?.price||0)+addons.reduce((n,a)=>n+a.price,0);}
+const lineKey=line=>JSON.stringify([line.id,line.variant,line.spice,[...line.addons].sort()]);
+function readCart(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(CART_KEY)||localStorage.getItem('bitesbro.bag.v1')||'[]');
+  if(!Array.isArray(saved)) return [];
+  const result=[],keys=new Set();let total=0;
+  for(const entry of saved){
+   if(!entry||!Number.isInteger(entry.quantity)||entry.quantity<1||entry.quantity>10||total+entry.quantity>30) continue;
+   const item=itemFor(entry);if(!item)continue;
+   const variant=entry.variant||item.variants[0].id,spice=entry.spice||item.spice,addons=entry.addons||[];
+   if(!item.variants.some(v=>v.id===variant)||!Array.isArray(addons)||new Set(addons).size!==addons.length||addons.some(id=>!item.addons.some(a=>a.id===id))||!(item.spice==='none'?['none']:['mild','medium','hot']).includes(spice))continue;
+   const line={id:item.id,variant,spice,addons:[...addons].sort(),quantity:entry.quantity};line.key=lineKey(line);
+   if(keys.has(line.key))continue;keys.add(line.key);total+=line.quantity;result.push(line);
   }
-  return data;
+  return result;
+ }catch{return [];}
 }
-
-function notify(message, error = false) {
-  const toast = $('#toast');
-  clearTimeout(toastTimer);
-  toast.textContent = message;
-  toast.classList.toggle('error', error);
-  toast.classList.add('visible');
-  toastTimer = setTimeout(() => toast.classList.remove('visible'), 3500);
+function subtotal(){return state.cart.reduce((sum,line)=>sum+unitPrice(line)*line.quantity,0);}
+function deliveryFee(){return $('#fulfilment').value==='delivery'&&subtotal()<(state.cafe?.freeDeliveryFrom??49900)?(state.cafe?.deliveryFee??4000):0;}
+function saveCart(){
+ try{localStorage.setItem(CART_KEY,JSON.stringify(state.cart));localStorage.removeItem('bitesbro.bag.v1');}catch{}
+ const count=state.cart.reduce((sum,line)=>sum+line.quantity,0);
+ $('#bag-count').textContent=count;$('#open-cart').setAttribute('aria-label',`Open bag, ${count} ${count===1?'item':'items'}`);
+ $('#mobile-bag').hidden=!count;$('#mobile-bag-count').textContent=`${count} ${count===1?'dish':'dishes'}`;$('#mobile-bag-total').textContent=money(subtotal());document.body.classList.toggle('has-items',count>0);
 }
-
-function readCart() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-    if (!Array.isArray(saved)) return [];
-    const seen = new Set();
-    let total = 0;
-    return saved.filter(item => {
-      if (!item || typeof item.id !== 'string' || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 10 || seen.has(item.id) || !state.menu.some(menu => menu.id === item.id) || total + item.quantity > 30) return false;
-      seen.add(item.id);
-      total += item.quantity;
-      return true;
-    }).map(({ id, quantity }) => ({ id, quantity }));
-  } catch { return []; }
+function renderSignature(){const item=state.menu.find(i=>i.id==='masala-dosa');$('#signature').hidden=!item;if(!item)return;$('#signature-name').textContent=item.name;$('#signature-description').textContent=item.description;$('#signature-price').textContent=money(item.price);$('#signature-add').disabled=false;$('#signature-add').setAttribute('aria-label','Customise Bangalore Masala Dosa');}
+function renderMenu(){
+ let filtered=state.menu.filter(item=>(state.category==='all'||item.category===state.category)&&(state.diet==='all'||(state.diet==='veg'?item.diet!=='non-veg':item.diet===state.diet))&&(`${item.name} ${item.description} ${item.cuisine} ${item.ingredients.join(' ')}`.toLowerCase().includes(state.search)));
+ if(state.sort!=='recommended')filtered.sort((a,b)=>state.sort==='price-low'?a.price-b.price:b.price-a.price);
+ $('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-count').textContent=`${filtered.length} ${filtered.length===1?'dish':'dishes'} to dig into`;
+ $('#load-more').hidden=filtered.length<=state.limit;
+ $('#menu-grid').innerHTML=filtered.length?filtered.slice(0,state.limit).map(item=>`<article class="menu-card" data-kind="${escape(item.category)}"><div class="menu-card-image"><img src="${escape(asset(item.image))}" alt="Illustration of ${escape(item.name)}" width="600" height="480" loading="lazy">${item.badge?`<span class="menu-badge">${escape(item.badge)}</span>`:''}</div><div class="menu-card-body"><div class="menu-card-kicker"><span class="diet-tag ${item.diet==='non-veg'?'non-veg':''}"><span aria-hidden="true"></span>${item.diet==='non-veg'?'NON-VEG':item.diet==='vegan'?'PLANT BASED':'VEGETARIAN'}</span><span>~${item.prepMinutes} MIN</span></div><h3>${escape(item.name)}</h3><p class="menu-card-description">${escape(item.description)}</p><div class="food-portion"><span>${escape(item.portion)}</span>${item.spice!=='none'?`<span>${escape(item.spice)} spice</span>`:''}</div><div class="menu-card-meta"><span class="menu-price">${money(item.price)}</span><button class="add-button" data-add="${escape(item.id)}" aria-label="Add ${escape(item.name)} to bag">Add <span aria-hidden="true">+</span></button></div></div></article>`).join(''):`<div class="empty-state">${icon('search')}<h3>No bites found. Yet.</h3><p>Try a different cuisine, diet or craving.</p><button class="button button-outline" id="reset-menu">Show the whole menu</button></div>`;
 }
-
-function saveCart() {
-  try { localStorage.setItem(CART_KEY, JSON.stringify(state.cart)); } catch { /* The bag still works in memory when storage is disabled. */ }
-  const count = state.cart.reduce((sum, item) => sum + item.quantity, 0);
-  $('#bag-count').textContent = count;
-  $('#open-cart').setAttribute('aria-label', `Open bag, ${count} ${count === 1 ? 'item' : 'items'}`);
-  $('#mobile-bag').hidden = !count;
-  $('#mobile-bag-count').textContent = `${count} ${count === 1 ? 'little treat' : 'little treats'}`;
-  $('#mobile-bag-total').textContent = money(state.cart.reduce((sum, line) => sum + (state.menu.find(item => item.id === line.id)?.price || 0) * line.quantity, 0));
-  document.body.classList.toggle('has-items', count > 0);
+function setCategory(category){state.category=category;state.limit=12;$$('.menu-tab').forEach(b=>{const active=b.dataset.category===category;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});renderMenu();}
+$$('.menu-tab').forEach(b=>b.addEventListener('click',()=>setCategory(b.dataset.category)));
+$$('[data-quick-category]').forEach(b=>b.addEventListener('click',()=>{setCategory(b.dataset.quickCategory);$('#menu').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}));
+$('#menu-search').addEventListener('input',e=>{state.search=e.target.value.trim().toLowerCase();state.limit=12;renderMenu();});
+$('#diet-filter').addEventListener('change',e=>{state.diet=e.target.value;state.limit=12;renderMenu();});
+$('#sort-filter').addEventListener('change',e=>{state.sort=e.target.value;renderMenu();});
+$('#load-more').addEventListener('click',()=>{state.limit+=12;renderMenu();});
+$('#menu-grid').addEventListener('click',event=>{const b=event.target.closest('[data-add]');if(b)openDish(b.dataset.add);if(event.target.closest('#reset-menu')){state.diet='all';state.search='';$('#diet-filter').value='all';$('#menu-search').value='';setCategory('all');}if(event.target.closest('#retry-menu'))boot();});
+function openDialog(dialog){if(!dialog.open)dialog.showModal();document.body.classList.add('dialog-open');}
+document.addEventListener('click',event=>{const b=event.target.closest('[data-dialog]');if(b)openDialog(document.getElementById(b.dataset.dialog));event.target.closest('.close-dialog')?.closest('dialog').close();});
+$$('dialog').forEach(dialog=>{dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});dialog.addEventListener('close',()=>{if(!$$('dialog[open]').length)document.body.classList.remove('dialog-open');});});
+function openDish(id){
+ const item=state.menu.find(i=>i.id===id);if(!item)return;selectedDish=item;
+ $('#dish-title').textContent=item.name;
+ $('#dish-detail').innerHTML=`<img class="dish-preview" src="${escape(asset(item.image))}" alt="Illustration of ${escape(item.name)}"><p>${escape(item.description)}</p><p class="dish-facts">${escape(item.cuisine)} · ${escape(item.portion)} · ~${item.prepMinutes} min · ${item.diet==='non-veg'?'Non-vegetarian':item.diet==='vegan'?'Plant based':'Vegetarian'}</p>${item.ingredients.length?`<p class="ingredient-note"><strong>Sample ingredients:</strong> ${escape(item.ingredients.join(', '))}</p>`:''}<p class="ingredient-note"><strong>Allergens:</strong> ${item.allergens.length?escape(item.allergens.join(', ')):'No common allergens listed in the sample recipe'}. Shared kitchen; confirm handling before live service.</p>`;
+ $('#dish-variant').replaceChildren(...item.variants.map(v=>new Option(v.label+(v.price?' +'+money(v.price):''),v.id)));
+ $('#spice-label').hidden=item.spice==='none';$('#dish-spice').disabled=item.spice==='none';$('#dish-spice').value=item.spice==='none'?'medium':item.spice;
+ $('#dish-addons').hidden=!item.addons.length;$('#addon-choices').innerHTML=item.addons.map(a=>`<label class="addon-choice"><span><input type="checkbox" name="addon" value="${escape(a.id)}">${escape(a.label)}</span><span>+${money(a.price)}</span></label>`).join('');
+ updateDishPrice();openDialog($('#dish-dialog'));
 }
-
-function renderSignature() {
-  const item = state.menu.find(item => item.id === 'iced-brown-sugar');
-  $('#signature').hidden = !item;
-  if (!item) return;
-  $('#signature-name').textContent = item.name;
-  $('#signature-description').textContent = item.description;
-  $('#signature-price').textContent = money(item.price);
-  $('#signature-add').disabled = false;
-  $('#signature-add').setAttribute('aria-label', `Treat yourself to ${item.name}`);
+function selectedLine(){const item=selectedDish;return {id:item.id,variant:$('#dish-variant').value,spice:item.spice==='none'?'none':$('#dish-spice').value,addons:$$('#addon-choices input:checked').map(i=>i.value).sort(),quantity:1};}
+function updateDishPrice(){if(selectedDish)$('#dish-add').textContent='Add to order · '+money(unitPrice(selectedLine()));}
+$('#customise-form').addEventListener('change',updateDishPrice);
+$('#customise-form').addEventListener('submit',e=>{e.preventDefault();const line=selectedLine();line.key=lineKey(line);const existing=state.cart.find(l=>l.key===line.key);if((existing?.quantity||0)>=10||state.cart.reduce((n,l)=>n+l.quantity,0)>=30)return notify('Maximum 10 of each dish and 30 items per order.',true);if(existing)existing.quantity++;else state.cart.push(line);saveCart();$('#dish-dialog').close();notify(selectedDish.name+' added to your food bag.');});
+$('#signature-add').addEventListener('click',()=>openDish('masala-dosa'));
+function renderCart(){
+ $('#cart-checkout').hidden=!state.cart.length;
+ if(!state.cart.length){$('#cart-content').innerHTML=`<div class="cart-empty">${icon('plate')}<h3>A little room for good food.</h3><p>Your next favourite bite is on the menu.</p><button class="button button-orange" id="browse-menu">Find your craving ${icon('arrow')}</button></div>`;return;}
+ $('#cart-content').innerHTML=state.cart.map(line=>{const {item,variant,addons}=optionsFor(line);const summary=[variant.label,...(line.spice==='none'?[]:[line.spice+' spice']),...addons.map(a=>a.label)].join(' · ');return `<div class="cart-item"><img class="cart-item-image" src="${escape(asset(item.image))}" alt="" width="72" height="72"><div><h3>${escape(item.name)}</h3><p class="cart-options">${escape(summary)}</p><p class="cart-item-price">${money(unitPrice(line)*line.quantity)}</p><div class="quantity-control"><button data-quantity="${escape(line.key)}" data-delta="-1" aria-label="Remove one ${escape(item.name)}">−</button><span>${line.quantity}</span><button data-quantity="${escape(line.key)}" data-delta="1" aria-label="Add one ${escape(item.name)}">+</button></div></div><button class="remove-item" data-remove="${escape(line.key)}" aria-label="Remove ${escape(item.name)} from bag">×</button></div>`;}).join('');
+ updateTotals();
 }
-
-function renderMenu() {
-  const filtered = state.filtered.filter(item => `${item.name} ${item.description} ${item.dietary.join(' ')}`.toLowerCase().includes(state.search));
-  $('#menu-status').textContent = '';
-  $('#menu-grid').setAttribute('aria-busy', 'false');
-  $('#menu-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'favourite' : 'favourites'} to fall for`;
-  $('#menu-grid').innerHTML = filtered.length ? filtered.map((item, index) => `
-    <article class="menu-card" data-kind="${escape(item.category)}">
-      <div class="menu-card-image"><img src="${escape(item.image)}" alt="Illustration of ${escape(item.name)}" width="600" height="480" loading="lazy">${item.badge ? `<span class="menu-badge">${escape(item.badge)}</span>` : ''}</div>
-      <div class="menu-card-body"><div class="menu-card-kicker"><span>${escape(item.category === 'bakes' ? 'From the oven' : item.category === 'bites' ? 'A good bite' : 'A little sip')}</span><span aria-hidden="true">${String(index + 1).padStart(2, '0')}</span></div><h3>${escape(item.name)}</h3><p class="menu-card-description">${escape(item.description)}</p><div class="menu-card-meta"><span class="menu-price">${money(item.price)}<span class="dietary-indicator" role="img" aria-label="${escape(item.dietary.join(', '))}" title="${escape(item.dietary.join(', '))}"></span></span><button class="add-button" data-add="${escape(item.id)}" aria-label="Add ${escape(item.name)} to bag">Add <span aria-hidden="true">+</span></button></div></div>
-    </article>`).join('') : `<div class="empty-state">${icon('search')}<h3>No bites found. Yet.</h3><p>Try another craving, or have a look at all the good stuff.</p><button class="button button-outline" id="reset-menu">Show the whole menu</button></div>`;
-}
-
-async function loadMenu(category = 'all', firstLoad = false) {
-  menuRequest?.abort();
-  menuRequest = new AbortController();
-  const controller = menuRequest;
-  $('#menu-grid').setAttribute('aria-busy', 'true');
-  $('#menu-status').textContent = 'A fresh look at the good stuff…';
-  try {
-    // A recovered first load still needs the full catalogue for bag prices,
-    // even if the visitor selected a category while the initial request failed.
-    const fetchCategory = firstLoad ? 'all' : category;
-    const { items } = await request(`/api/menu?category=${encodeURIComponent(fetchCategory)}`, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(12000)]) });
-    if (controller.signal.aborted) return;
-    if (firstLoad || category === 'all') state.menu = items;
-    state.filtered = category === 'all' ? items : items.filter(item => item.category === category);
-    renderMenu();
-    renderSignature();
-    if (firstLoad) { state.cart = readCart(); saveCart(); }
-  } catch (error) {
-    if (controller.signal.aborted) return;
-    $('#menu-grid').setAttribute('aria-busy', 'false');
-    $('#menu-status').textContent = '';
-    $('#menu-count').textContent = '';
-    $('#menu-grid').innerHTML = `<div class="empty-state"><h3>A little brewing delay.</h3><p>We couldn’t load the menu. Check your connection and give us another go.</p><button class="button button-outline retry-button" id="retry-menu">Try again</button></div>`;
-  }
-}
-
-function setCategory(category) {
-  state.category = category;
-  $$('.menu-tab').forEach(button => {
-    const active = button.dataset.category === category;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-  loadMenu(category, state.menu.length === 0);
-}
-
-$$('.menu-tab').forEach(button => button.addEventListener('click', () => setCategory(button.dataset.category)));
-$('#menu-search').addEventListener('input', event => { state.search = event.target.value.trim().toLowerCase(); renderMenu(); });
-function addItem(id) {
-    const item = state.menu.find(item => item.id === id);
-    if (!item) return notify('Please reload the menu first.', true);
-    const existing = state.cart.find(item => item.id === id);
-    if ((existing?.quantity || 0) >= 10 || state.cart.reduce((sum, item) => sum + item.quantity, 0) >= 30) return notify('A little full! Maximum 10 of each item, 30 in your bag.', true);
-    if (existing) existing.quantity++;
-    else state.cart.push({ id, quantity: 1 });
-    saveCart();
-    notify(`${item.name} added. A good choice.`);
-}
-$('#signature-add').addEventListener('click', () => addItem('iced-brown-sugar'));
-$('#menu-grid').addEventListener('click', event => {
-  const add = event.target.closest('[data-add]');
-  if (add) addItem(add.dataset.add);
-  if (event.target.closest('#reset-menu')) { $('#menu-search').value = ''; state.search = ''; setCategory('all'); }
-  if (event.target.closest('#retry-menu')) loadMenu(state.category, state.menu.length === 0);
+function updateTotals(){const fee=deliveryFee();$('#cart-subtotal').textContent=money(subtotal());$('#cart-delivery').textContent=$('#fulfilment').value==='pickup'?'Pickup · free':fee?money(fee):'Free';$('#cart-total').textContent=money(subtotal()+fee);}
+function showCart(){renderCart();openDialog($('#cart-dialog'));}
+$('#open-cart').addEventListener('click',showCart);$('#mobile-bag').addEventListener('click',showCart);
+$('#cart-content').addEventListener('click',event=>{
+ if(event.target.closest('#browse-menu')){$('#cart-dialog').close();$('#menu').scrollIntoView({behavior:'smooth'});return;}
+ const remove=event.target.closest('[data-remove]'),quantity=event.target.closest('[data-quantity]');
+ if(remove)state.cart=state.cart.filter(l=>l.key!==remove.dataset.remove);
+ if(quantity){const line=state.cart.find(l=>l.key===quantity.dataset.quantity);if(!line)return;const delta=Number(quantity.dataset.delta);if(delta>0&&(line.quantity>=10||state.cart.reduce((n,l)=>n+l.quantity,0)>=30))return notify('Maximum 10 of each dish and 30 items per order.',true);line.quantity+=delta;state.cart=state.cart.filter(l=>l.quantity>0);}
+ if(remove||quantity){saveCart();renderCart();}
 });
-
-function openDialog(dialog) {
-  if (!dialog.open) dialog.showModal();
-  document.body.classList.add('dialog-open');
-}
-document.addEventListener('click', event => {
-  const trigger = event.target.closest('[data-dialog]');
-  if (trigger) openDialog(document.getElementById(trigger.dataset.dialog));
-  const close = event.target.closest('.close-dialog');
-  if (close) close.closest('dialog').close();
-});
-$$('dialog').forEach(dialog => {
-  dialog.addEventListener('click', event => {
-    if (event.target !== dialog) return;
-    const box = dialog.getBoundingClientRect();
-    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
-  });
-  dialog.addEventListener('close', () => {
-    if (!$$('dialog[open]').length) document.body.classList.remove('dialog-open');
-  });
-});
-
-function renderCart() {
-  const items = state.cart.map(line => ({ ...state.menu.find(item => item.id === line.id), quantity: line.quantity }));
-  $('#cart-checkout').hidden = !items.length;
-  if (!items.length) {
-    $('#cart-content').innerHTML = `<div class="cart-empty"><svg aria-hidden="true"><use href="/assets/icons.svg#cup"/></svg><h3>A little room for a treat.</h3><p>Your bag is taking a coffee break.<br>Let’s fill it with something good.</p><button class="button button-orange" id="browse-menu">Find your favourite ${icon('arrow')}</button></div>`;
-    return;
-  }
-  $('#cart-content').innerHTML = items.map(item => `<div class="cart-item"><img class="cart-item-image" src="${escape(item.image)}" alt="" width="72" height="72"><div><h3>${escape(item.name)}</h3><p class="cart-item-price">${money(item.price * item.quantity)}</p><div class="quantity-control" aria-label="Quantity for ${escape(item.name)}"><button data-quantity="${escape(item.id)}" data-delta="-1" aria-label="Remove one ${escape(item.name)}">−</button><span>${item.quantity}</span><button data-quantity="${escape(item.id)}" data-delta="1" aria-label="Add one ${escape(item.name)}">+</button></div></div><button class="remove-item" data-remove="${escape(item.id)}" aria-label="Remove ${escape(item.name)} from bag">×</button></div>`).join('');
-  $('#cart-total').textContent = money(items.reduce((sum, item) => sum + item.price * item.quantity, 0));
-}
-
-$('#open-cart').addEventListener('click', () => { renderCart(); openDialog($('#cart-dialog')); });
-$('#mobile-bag').addEventListener('click', () => { renderCart(); openDialog($('#cart-dialog')); });
-$('#cart-content').addEventListener('click', event => {
-  if (event.target.closest('#browse-menu')) { $('#cart-dialog').close(); $('#menu').scrollIntoView({ behavior: 'smooth' }); return; }
-  const remove = event.target.closest('[data-remove]');
-  const quantity = event.target.closest('[data-quantity]');
-  if (remove) state.cart = state.cart.filter(item => item.id !== remove.dataset.remove);
-  if (quantity) {
-    const item = state.cart.find(item => item.id === quantity.dataset.quantity);
-    if (!item) return;
-    const delta = Number(quantity.dataset.delta);
-    if (delta > 0 && (item.quantity >= 10 || state.cart.reduce((sum, item) => sum + item.quantity, 0) >= 30)) return notify('Maximum 10 of each item, 30 in your bag.', true);
-    item.quantity += delta;
-    state.cart = state.cart.filter(item => item.quantity > 0);
-  }
-  if (remove || quantity) { saveCart(); renderCart(); }
-});
+$('#fulfilment').addEventListener('change',()=>{const delivery=$('#fulfilment').value==='delivery';$('#delivery-fields').hidden=!delivery;$$('input,textarea',$('#delivery-fields')).forEach(i=>{i.disabled=!delivery;i.required=delivery;});updateTotals();});
 
 function nextDate(date, days = 1) { const d = new Date(`${date}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); }
 function formatTime(time) {
@@ -198,10 +106,10 @@ async function updateTimes(input, select, reservation) {
   select.replaceChildren(new Option('Checking the good times…', ''));
   if (!input.value) { select.replaceChildren(new Option('Choose your day first', '')); select.disabled = false; return; }
   try {
-    const { slots } = await request(`/api/availability?date=${encodeURIComponent(input.value)}`, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(12000)]) });
+    const { slots } = await request(`/api/${reservation?'availability':'fulfilment'}?date=${encodeURIComponent(input.value)}`, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(12000)]) });
     if (controller.signal.aborted) return;
     const guests = Number($('#reservation-guests').value);
-    const available = slots.filter(slot => !slot.past && (!reservation || slot.seatsLeft >= guests));
+    const available = slots.filter(slot => reservation ? !slot.past && slot.seatsLeft >= guests : slot.available);
     select.replaceChildren(new Option(available.length ? 'Choose a little time' : 'No times left · try another day', ''));
     for (const slot of available) select.add(new Option(formatTime(slot.time), slot.time));
   } catch (error) {
@@ -214,11 +122,11 @@ async function updateTimes(input, select, reservation) {
 }
 
 function initializeDates(form = document) {
-  if (!state.cafe) return;
+  if (!state.cafe || state.browseOnly) return;
   for (const input of $$('input[type=date]', form)) {
     input.min = state.cafe.today;
     input.max = nextDate(state.cafe.today, state.cafe.maxAdvanceDays);
-    input.value = state.cafe.slots.some(time => time > state.cafe.currentTime) ? state.cafe.today : nextDate(state.cafe.today);
+    input.value = (input.id==='reservation-date'?state.cafe.slots:state.cafe.foodSlots).some(time => time > state.cafe.currentTime) ? state.cafe.today : nextDate(state.cafe.today);
     const reservation = input.id === 'reservation-date';
     updateTimes(input, reservation ? $('#reservation-time') : $('#pickup-time'), reservation);
   }
@@ -239,6 +147,7 @@ function connectForm(id, path, transform = value => value, onSuccess) {
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (form.dataset.submitting === 'true') return;
+    if(state.browseOnly||!state.cafe){const result=$('.form-result',form);result.className='form-result error';result.textContent='This is the sample menu view. Connect the Node.js ordering server to submit real requests.';return;}
     const submit = $('button[type=submit]', form);
     const result = $('.form-result', form);
     result.textContent = '';
@@ -275,11 +184,11 @@ function connectForm(id, path, transform = value => value, onSuccess) {
 connectForm('reservation-form', '/api/reservations', values => ({ ...values, guests: Number(values.guests) }));
 connectForm('newsletter-form', '/api/newsletter');
 connectForm('contact-form', '/api/contact');
-connectForm('order-form', '/api/orders', values => ({ ...values, items: state.cart.map(({ id, quantity }) => ({ id, quantity })) }), data => {
+connectForm('order-form', '/api/orders', values => ({ ...values, items: state.cart.map(({id,quantity,variant,spice,addons})=>({id,quantity,variant,spice,addons})) }), data => {
   state.cart = [];
   saveCart();
   $('#cart-checkout').hidden = true;
-  $('#cart-content').innerHTML = `<div class="cart-empty">${icon('check')}<h3>A little good, all saved.</h3><p>Your demo pickup request is in the database.<br><strong>${escape(data.reference)}</strong></p><p>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}<br>No payment has been taken. No email is sent.<br>Please wait for our location announcement before visiting.</p><button class="button button-orange close-dialog">Lovely, thank you ${icon('heart')}</button></div>`;
+  $('#cart-content').innerHTML = `<div class="cart-empty">${icon('check')}<h3>A little good, all saved.</h3><p>Your demo food order is saved in the database.<br><strong>${escape(data.reference)}</strong></p><p>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}<br>No payment is taken, no delivery is dispatched and no email is sent.<br>Please wait for our location announcement before visiting.</p><button class="button button-orange close-dialog">Lovely, thank you ${icon('heart')}</button></div>`;
 });
 
 const navToggle = $('#nav-toggle');
@@ -307,27 +216,27 @@ $('#motion-toggle').addEventListener('click', event => {
   event.currentTarget.setAttribute('aria-pressed', String(paused));
   event.currentTarget.textContent = paused ? 'Resume animations' : 'Pause animations';
 });
-$('#year').textContent = new Date().getFullYear();
-loadMenu('all', true);
-request('/api/cafe').then(cafe => {
-  state.cafe = cafe;
-  $('#visit-address').textContent = cafe.address ? `${cafe.address}, ${cafe.city}` : `${cafe.city} · Street address coming soon.`;
-  $('#visit-hours').textContent = cafe.hours;
-  const contact = $('#visit-contact');
-  if (cafe.email || cafe.phone) {
-    contact.replaceChildren();
-    for (const [value, prefix] of [[cafe.email, 'mailto:'], [cafe.phone, 'tel:']]) if (value) {
-      const link = document.createElement('a');
-      link.href = prefix + value;
-      link.textContent = value;
-      contact.append(link, document.createElement('br'));
-    }
-  }
-  initializeDates();
-}).catch(() => {
-  for (const form of [$('#reservation-form'), $('#order-form')]) {
-    const result = $('.form-result', form);
-    result.className = 'form-result error';
-    result.textContent = 'Booking times couldn’t load. Please refresh the page to try again.';
-  }
-});
+
+$('#year').textContent=new Date().getFullYear();
+async function boot(){
+ let catalog;
+ state.browseOnly=false;
+ try{catalog=await request('/api/menu');}
+ catch(error){
+  try{const r=await fetch(new URL('menu.json',document.baseURI));if(!r.ok)throw new Error();catalog=await r.json();state.browseOnly=true;}
+  catch{$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML='<div class="empty-state"><h3>The kitchen menu couldn’t load.</h3><p>Check your connection and try again.</p><button class="button button-outline" id="retry-menu">Try again</button></div>';return;}
+ }
+ state.menu=catalog.items;state.categories=catalog.categories;state.cart=readCart();renderMenu();renderSignature();saveCart();
+ if(!state.browseOnly){
+  try{state.cafe=await request('/api/cafe');$('#visit-address').textContent=state.cafe.address?state.cafe.address+', '+state.cafe.city:state.cafe.city+' · Street address coming soon.';$('#visit-hours').textContent=state.cafe.hours;
+   if(state.cafe.email||state.cafe.phone){const contact=$('#visit-contact');contact.replaceChildren();for(const [value,prefix]of [[state.cafe.email,'mailto:'],[state.cafe.phone,'tel:']])if(value){const link=document.createElement('a');link.href=prefix+value;link.textContent=value;contact.append(link,document.createElement('br'));}}
+   initializeDates();
+  }catch{state.browseOnly=true;}
+ }
+ $('#connection-note').hidden=!state.browseOnly;
+ if(state.browseOnly){
+  $('#connection-note').textContent='Sample menu view · Customise your bag here. Online checkout and forms need the connected Node.js server.';
+  for(const form of [$('#order-form'),$('#reservation-form'),$('#newsletter-form'),$('#contact-form')]){const result=$('.form-result',form);result.className='form-result';result.textContent='Sample site: the ordering server is not connected. Requests cannot be submitted here.';$('button[type=submit]',form).disabled=true;}
+ }
+}
+boot();

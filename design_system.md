@@ -1,6 +1,6 @@
 # BitesBro design system
 
-**Good bites. Better days.** Warm, grounded, a little playful. The visual language combines café-editorial typography, a photographic collage, hand-drawn line icons, and original illustrated menu items. Real café photography should replace the representative stock images when available.
+**Good food. Great moods.** Warm, grounded, a little playful. The visual language combines café-editorial typography, a food-led photographic composition, hand-drawn line icons, and original illustrated menu items. Real café photography should replace the representative stock images when available.
 
 ## Brand foundations
 
@@ -36,22 +36,24 @@ The content container is capped at 1280px, with responsive 56/36/24/20px side sp
 
 | Component | Treatment |
 | --- | --- |
-| Logo | Original sun-and-cup SVG with Fraunces wordmark |
+| Logo | Original plate/cutlery SVG with Fraunces wordmark |
 | Primary button | Terracotta fill, cream text, 6px corners, directional icon |
 | Secondary button | Forest outline or forest fill; maintain consistent height |
 | Menu tab | Rounded pill, forest active state, `aria-pressed` |
 | Menu card | Original product artwork, dietary marker, stored price, named Add button |
 | Cart | Native dialog, right-aligned drawer, item quantities, visible total, honest pickup status |
 | Form | Explicit label, appropriate autocomplete/type, consent, errors and success references |
-| Photographs | Arch-shaped hero, slightly rotated polaroid, clean wide café image |
-| Stamp | Circular good-coffee message with line-art sun/cup |
+| Photographs | Arch-shaped South Indian feast hero and rotated food story image |
+| Stamp | Terracotta flavour stamp with italic display emphasis |
 | Location | Clearly illustrative neighbourhood, never presented as a real street map |
 
 The menu art is deliberately illustrative and labelled as such in alt text and allergen guidance. Photography crops use `object-fit: cover`; explicit dimensions reserve layout space. Lower-page images load lazily. All assets are local; there are no third-party tracking pixels or font requests.
 
-The hero uses an original generated BitesBro coffee still life, optimised to a locally served JPEG. The cup, green linen, travertine surface and warm light echo the site palette. This is concept imagery, not a photograph of a physical café. An offset outline, terracotta stamp, and rotated pastry polaroid add a tactile editorial composition.
+The hero now leads with an original generated South Indian feast: a crisp dosa, idli, vada, sambar and chutneys, with biryani and a cooler in the background. It is concept imagery, not a photo of a physical restaurant. A terracotta flavour stamp and plate/cutlery identity replace the coffee-led branding. Supporting story imagery uses the food composition, not a barista image.
 
-Menu cards have paper surfaces, quiet borders, category kickers and small edition numbers. A forest-green signature panel highlights the Iced Brown Sugar with a circular illustration, orbit detail, and handwritten-style annotations. Its name, price and ordering action use the same live catalogue as the menu. On phones, a fixed bag bar appears only after an item is added, showing the actual quantity and subtotal. Keep it clear of toasts, browser safe areas and open dialogs.
+Four cuisine shortcuts lead to South Indian, biryani, global dishes and desserts. The 50-dish sample catalogue spans eight categories. Cards label vegetarian/non-vegetarian/plant-based dishes with both text and markers; red marks non-vegetarian items. Portion, spice preference, price and estimated preparation time support decisions. Filters include diet, cuisine, ingredient search and price order, with progressive loading for the large catalogue.
+
+The customiser uses a native dialog with portion choices, spice levels, add-ons, ingredients and allergen information. The forest-green signature panel now features Bangalore Masala Dosa. Its details and price come from the catalogue. The cart shows food subtotal, delivery fee and total, with conditional delivery-address fields. A mobile bag bar remains clear of toasts, safe areas and dialogs. Form submission is visibly unavailable in the static Pages sample view.
 
 ## Motion
 
@@ -63,4 +65,4 @@ Use `cubic-bezier(.22, 1, .36, 1)` for entrance and interaction easing. Hover ch
 
 Write like a friendly neighbourhood host: “Save me a seat,” “Say a little hello,” and “A little room for a treat.” Keep operational instructions direct. Never trade clarity for personality when explaining errors, payment, email delivery, privacy, or booking status.
 
-Business facts supplied so far: **BitesBro**, **Bangalore**, **10am–3pm and 6pm–11pm**. Daily opening is an assumption. Street address, contact information, actual menu/recipes, and physical-space images are pending. Keep these editable and do not invent ratings, reviews, or a street address.
+Business facts supplied so far: **BitesBro**, **Bangalore**, **10am–3pm and 6pm–11pm**. Daily opening is an assumption. Street address, contact information, final menu/recipes and physical-space images are pending. Vegetarian and non-vegetarian choices are both requested; sample delivery rules remain editable. Keep these editable and do not invent ratings, reviews, or a street address.

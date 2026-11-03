@@ -55,9 +55,13 @@ Normal hosting builds do not need this secret. TLS verification remains enabled.
 ## Verify the public deployment
 
 - Open the real HTTPS service URL on desktop and mobile. Confirm the menu loads from the API and images/fonts load from the same origin.
-- `GET /api/health` must return `status: ok` and `database: connected`; `GET /api/menu` must return the eight sample items unless the menu was edited.
+- `GET /api/health` must return `status: ok` and `database: connected`; `GET /api/menu` must return the 50 sample items unless the menu was edited.
 - Confirm the canonical URL, social image URL, `robots.txt`, and `sitemap.xml` use the actual public origin.
 - Exercise forms using fictional details before accepting real requests. Confirm records survive a host restart/redeploy using the attached persistent disk.
 - Keep demo-request messaging until the actual café menu, street address, contact information, fulfilment and privacy policy are ready. Email delivery and online payments remain separate integrations.
 
 Keep backups through a SQLite-aware backup operation. Do not copy only the main database file while WAL writes are active, and never commit customer data or database files to GitHub.
+
+## GitHub Pages food frontend
+
+The repository workflow now builds with `npm run build:pages` using Node.js 24. It exports the 50-dish sample catalogue and fixes static paths for `/Cafe_Website/`. Menu browsing and bag customisation work on Pages; submission forms clearly indicate that a Node ordering server is needed. GitHub Pages does not store food orders. Deploy the whole repository with Render/Docker to enable the API and persistent database. The version-2 startup migration automatically creates a consistent backup of an existing database before upgrading it; retain sufficient disk space and keep its backup private.

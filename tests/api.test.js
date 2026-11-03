@@ -1,7 +1,8 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { DatabaseSync } from 'node:sqlite';
 import { createServer } from 'node:http';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { openDatabase } from '../server/database.js';
@@ -41,14 +42,14 @@ test('health proves database connectivity; café clock uses Bangalore time', asy
 
 test('menu is seeded in SQLite and category filters return actual stored items', async () => {
   const all = await get('/api/menu');
-  assert.equal(all.data.items.length, 8);
+  assert.equal(all.data.items.length, 50);
   assert.ok(all.data.items.every(item => Number.isInteger(item.price) && Array.isArray(item.dietary)));
   db.prepare('UPDATE menu_items SET price = 23000 WHERE id = ?').run('velvet-latte');
-  const coffee = await get('/api/menu?category=coffee');
-  assert.equal(coffee.data.items.length, 3);
+  const coffee = await get('/api/menu?category=beverages');
+  assert.equal(coffee.data.items.length, 7);
   assert.equal(coffee.data.items[0].price, 23000);
   db.prepare('UPDATE menu_items SET available = 0 WHERE id = ?').run('velvet-latte');
-  assert.equal((await get('/api/menu?category=coffee')).data.items.length, 2);
+  assert.equal((await get('/api/menu?category=beverages')).data.items.length, 6);
   assert.equal((await get('/api/menu?category=nope')).response.status, 400);
 });
 
@@ -133,7 +134,7 @@ test('contact messages are parameterised, private and persisted with a reference
   const { response, data } = await post('/api/contact', { ...validCustomer, subject: 'A little hello', message });
   assert.equal(response.status, 201);
   assert.equal(db.prepare('SELECT message FROM messages WHERE reference = ?').get(data.reference).message, message);
-  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM menu_items').get().n, 8);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM menu_items').get().n, 50);
   for (const resource of ['messages', 'orders', 'reservations', 'subscribers']) assert.equal((await get(`/api/${resource}`)).response.status, 404);
 });
 
@@ -196,8 +197,77 @@ test('SQLite data survives closing and reopening without duplicating the menu se
     first.close();
     const second = openDatabase(path);
     assert.equal(second.prepare('SELECT email FROM subscribers').get().email, 'persist@example.com');
-    assert.equal(second.prepare('SELECT COUNT(*) AS n FROM menu_items').get().n, 8);
+    assert.equal(second.prepare('SELECT COUNT(*) AS n FROM menu_items').get().n, 50);
     assert.equal(second.prepare('SELECT price FROM menu_items WHERE id = ?').get('velvet-latte').price, 25000);
     second.close();
   } finally { rmSync(folder, { recursive: true, force: true }); }
+});
+
+test('food catalogue includes eight cuisines, South Indian variety and real dietary filtering',async()=>{
+ const {data}=await get('/api/menu');
+ assert.equal(data.categories.length,8);
+ const south=await get('/api/menu?category=south-indian');
+ assert.equal(south.data.items.length,16);
+ assert.ok(south.data.items.some(i=>i.id==='masala-dosa'));
+ assert.ok(south.data.items.some(i=>i.diet==='non-veg'));
+ const vegan=await get('/api/menu?diet=vegan');
+ assert.ok(vegan.data.items.length>5);assert.ok(vegan.data.items.every(i=>i.diet==='vegan'));
+ const veg=await get('/api/menu?diet=veg');assert.ok(veg.data.items.every(i=>i.diet!=='non-veg'));
+ const chicken=await get('/api/menu?diet=non-veg&q=chicken');assert.ok(chicken.data.items.length>3);assert.ok(chicken.data.items.every(i=>i.diet==='non-veg'));
+ assert.equal((await get('/api/menu?diet=invalid')).response.status,400);
+});
+
+test('customised dish prices and options are validated and snapshotted on the server',async()=>{
+ const {response,data}=await post('/api/orders',order({items:[{id:'masala-dosa',quantity:2,variant:'ghee-roast',spice:'mild',addons:['extra-sambar'],price:1,total:1}]}));
+ assert.equal(response.status,201);assert.equal(data.total,32000);assert.equal(data.subtotal,32000);assert.equal(data.deliveryFee,0);
+ const line=db.prepare('SELECT * FROM order_items').get();
+ assert.equal(line.unit_price,16000);
+ const options=JSON.parse(line.options);assert.equal(options.variant.label,'Ghee-roasted');assert.equal(options.spice,'mild');assert.equal(options.addons[0].price,1500);
+ for(const extra of [{variant:'free-family'},{spice:'extreme'},{addons:['unknown']},{addons:['extra-sambar','extra-sambar']},{addons:'extra-sambar'}]){
+  assert.equal((await post('/api/orders',order({items:[{id:'masala-dosa',quantity:1,...extra}]}))).response.status,400);
+ }
+ assert.equal(db.prepare('SELECT COUNT(*) n FROM orders').get().n,1);
+});
+
+test('different configurations of the same dish can coexist; identical lines cannot',async()=>{
+ const result=await post('/api/orders',order({items:[{id:'masala-dosa',quantity:1,variant:'regular'},{id:'masala-dosa',quantity:1,variant:'ghee-roast'}]}));
+ assert.equal(result.response.status,201);assert.equal(result.data.total,26500);assert.equal(db.prepare('SELECT COUNT(*) n FROM order_items').get().n,2);
+});
+
+test('delivery addresses, postcodes and fees are enforced independently of client totals',async()=>{
+ const fields={fulfilment:'delivery',address:'12 Test Street, Bangalore',postcode:'560001',instructions:'Please ring the bell.',deliveryFee:0,items:[{id:'masala-dosa',quantity:1}]};
+ const first=await post('/api/orders',order(fields));assert.equal(first.response.status,201);assert.equal(first.data.deliveryFee,4000);assert.equal(first.data.total,16000);
+ const saved=db.prepare('SELECT * FROM orders WHERE reference=?').get(first.data.reference);assert.equal(saved.address,fields.address);assert.equal(saved.postcode,'560001');assert.equal(saved.instructions,fields.instructions);
+ const free=await post('/api/orders',order({...fields,items:[{id:'masala-dosa',quantity:5}]}));assert.equal(free.data.deliveryFee,0);assert.equal(free.data.total,60000);
+ for(const override of [{address:''},{postcode:'110001'},{postcode:'5600'},{fulfilment:'teleport'}]) assert.equal((await post('/api/orders',order({...fields,...override}))).response.status,400);
+});
+
+test('food slots cover both opening periods without using dining reservation intervals',async()=>{
+ const {data}=await get('/api/fulfilment?date=2030-01-11');
+ assert.ok(data.slots.some(s=>s.time==='10:30'));assert.ok(data.slots.some(s=>s.time==='22:30'));assert.ok(!data.slots.some(s=>s.time==='15:00'||s.time==='17:00'));
+ assert.equal((await post('/api/orders',order({time:'10:30'}))).response.status,201);
+ assert.equal((await post('/api/orders',order({time:'16:00'}))).response.status,400);
+ assert.equal((await post('/api/orders',order({date:'2030-01-10',time:'09:00'}))).response.status,400);
+});
+
+test('version-1 database upgrades preserve menu edits, customers and order history, with one backup',()=>{
+ const folder=mkdtempSync(join(tmpdir(),'bitesbro-v1-'));
+ try{
+  const path=join(folder,'legacy.sqlite'),old=new DatabaseSync(path);
+  old.exec(readFileSync(new URL('../server/schema.sql',import.meta.url),'utf8'));
+  old.prepare('INSERT INTO menu_items(id,name,category,description,price,image,dietary) VALUES(?,?,?,?,?,?,?)').run('velvet-latte','Owner-edited Latte','coffee','Owner recipe',27500,'/assets/images/latte.svg','["Vegetarian"]');
+  old.exec("INSERT INTO orders(id,reference,name,email,phone,pickup_date,pickup_time,total,consent) VALUES(1,'HISTORY','Old Guest','old@example.com','9000000000','2026-01-01','10:00',27500,1)");
+  old.exec("INSERT INTO order_items(order_id,menu_item_id,name,quantity,unit_price) VALUES(1,'velvet-latte','Historical Latte',1,27500)");old.close();
+  const upgraded=openDatabase(path),item=upgraded.prepare("SELECT * FROM menu_items WHERE id='velvet-latte'").get();
+  assert.equal(item.name,'Owner-edited Latte');assert.equal(item.price,27500);assert.equal(item.description,'Owner recipe');assert.equal(item.category,'beverages');
+  assert.equal(upgraded.prepare('SELECT name FROM order_items WHERE order_id=1').get().name,'Historical Latte');
+  assert.equal(upgraded.prepare('SELECT subtotal FROM orders WHERE id=1').get().subtotal,27500);
+  assert.deepEqual(upgraded.prepare('PRAGMA foreign_key_check').all(),[]);
+  assert.equal(upgraded.prepare('PRAGMA foreign_keys').get().foreign_keys,1);
+  upgraded.close();
+  const backups=readdirSync(folder).filter(n=>n.endsWith('.bak'));assert.equal(backups.length,1);
+  const backup=new DatabaseSync(join(folder,backups[0]),{readOnly:true});assert.equal(backup.prepare('SELECT COUNT(*) n FROM orders').get().n,1);backup.close();
+  const reopened=openDatabase(path);assert.equal(reopened.prepare('SELECT COUNT(*) n FROM schema_migrations').get().n,2);reopened.close();
+  assert.equal(readdirSync(folder).filter(n=>n.endsWith('.bak')).length,1);
+ }finally{rmSync(folder,{recursive:true,force:true});}
 });

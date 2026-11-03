@@ -7,3 +7,9 @@ coverage/
 test-results/
 *.log
 .DS_Store
+
+_site/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.bak

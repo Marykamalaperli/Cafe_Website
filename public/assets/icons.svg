@@ -17,4 +17,4 @@
   <symbol id="wifi" viewBox="0 0 24 24"><path d="M2 8a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0m-11 4a6 6 0 0 1 8 0"/><circle cx="12" cy="20" r=".5"/></symbol>
   <symbol id="book" viewBox="0 0 24 24"><path d="M12 5C8 2 4 2 2 3v16c4-1 7 0 10 2 3-2 6-3 10-2V3c-2-1-6-1-10 2Zm0 0v16"/></symbol>
   <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
-</svg>
+<symbol id="plate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="4"/><path d="M2 3v6m3-6v6M2 6h3M3.5 9v12M21 3c-3 3-3 7 0 8v10m0-18v8"/></symbol></svg>

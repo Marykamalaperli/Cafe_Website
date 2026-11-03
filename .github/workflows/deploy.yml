@@ -1,5 +1,5 @@
 
-name: Deploy Cafe Website Frontend
+name: Deploy BitesBro Food Frontend
 
 on:
   push:
@@ -27,17 +27,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Prepare static frontend
-        run: |
-          mkdir -p _site
-          cp -R public/. _site/
-          touch _site/.nojekyll
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
-          sed -i 's|/assets/|/Cafe_Website/assets/|g' _site/index.html _site/styles.css _site/app.js
-
-          sed -i 's|"/styles.css|"/Cafe_Website/styles.css|g; s|"/app.js|"/Cafe_Website/app.js|g' _site/index.html
-
-          sed -i 's|{{SITE_URL}}|https://marykamalaperli.github.io/Cafe_Website|g' _site/index.html _site/robots.txt _site/sitemap.xml
+      - name: Prepare food menu frontend
+        run: npm run build:pages
+        env:
+          PAGES_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

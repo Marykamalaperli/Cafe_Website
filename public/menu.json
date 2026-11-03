@@ -1,0 +1,1965 @@
+{
+  "sample": true,
+  "currency": "INR",
+  "categories": [
+    {
+      "id": "south-indian",
+      "name": "South Indian"
+    },
+    {
+      "id": "north-indian",
+      "name": "North Indian"
+    },
+    {
+      "id": "biryani",
+      "name": "Biryani & rice"
+    },
+    {
+      "id": "chinese",
+      "name": "Indo-Chinese"
+    },
+    {
+      "id": "global",
+      "name": "Pizza, burgers & pasta"
+    },
+    {
+      "id": "snacks",
+      "name": "Street bites"
+    },
+    {
+      "id": "desserts",
+      "name": "Desserts"
+    },
+    {
+      "id": "beverages",
+      "name": "Drinks"
+    }
+  ],
+  "items": [
+    {
+      "id": "masala-dosa",
+      "name": "Bangalore Masala Dosa",
+      "category": "south-indian",
+      "description": "Crisp golden dosa, spiced potato masala, sambar and two chutneys.",
+      "price": 12000,
+      "image": "/assets/images/food/dosa.svg",
+      "badge": "BitesBro signature",
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "South Indian",
+      "portion": "1 dosa + sides",
+      "ingredients": [
+        "Rice",
+        "urad dal",
+        "potato",
+        "curry leaves"
+      ],
+      "allergens": [
+        "Mustard"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Classic dosa",
+          "price": 0
+        },
+        {
+          "id": "ghee-roast",
+          "label": "Ghee-roasted",
+          "price": 2500
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "mysore-dosa",
+      "name": "Mysore Masala Dosa",
+      "category": "south-indian",
+      "description": "Red-chutney dosa with potato filling and a proper Mysore kick.",
+      "price": 14000,
+      "image": "/assets/images/food/dosa.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "South Indian",
+      "portion": "1 dosa + sides",
+      "ingredients": [
+        "Rice",
+        "lentils",
+        "potato",
+        "red chilli",
+        "garlic"
+      ],
+      "allergens": [
+        "Mustard"
+      ],
+      "prepMinutes": 25,
+      "spice": "hot",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 dosa + sides",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "ghee-roast",
+      "name": "Ghee Roast Dosa",
+      "category": "south-indian",
+      "description": "Thin, lacy and golden with ghee. Simple things, done beautifully.",
+      "price": 13000,
+      "image": "/assets/images/food/dosa.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "South Indian",
+      "portion": "1 dosa + sides",
+      "ingredients": [
+        "Rice",
+        "urad dal",
+        "ghee"
+      ],
+      "allergens": [
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 dosa + sides",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "rava-dosa",
+      "name": "Onion Rava Dosa",
+      "category": "south-indian",
+      "description": "A lacy semolina dosa with onions, cumin and green chilli.",
+      "price": 14000,
+      "image": "/assets/images/food/dosa.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "South Indian",
+      "portion": "1 dosa + sides",
+      "ingredients": [
+        "Semolina",
+        "rice flour",
+        "onion",
+        "cumin"
+      ],
+      "allergens": [
+        "Gluten"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 dosa + sides",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "set-dosa",
+      "name": "Soft Set Dosa",
+      "category": "south-indian",
+      "description": "Three fluffy dosas with vegetable saagu and coconut chutney.",
+      "price": 11000,
+      "image": "/assets/images/food/idli.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "South Indian",
+      "portion": "3 dosas + sides",
+      "ingredients": [
+        "Rice",
+        "lentils",
+        "vegetables",
+        "coconut"
+      ],
+      "allergens": [],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "3 dosas + sides",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "cheese-dosa",
+      "name": "Cheese Masala Dosa",
+      "category": "south-indian",
+      "description": "Our crisp masala dosa with a generous, melty layer of cheese.",
+      "price": 17000,
+      "image": "/assets/images/food/dosa.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "South Indian",
+      "portion": "1 dosa + sides",
+      "ingredients": [
+        "Rice",
+        "lentils",
+        "potato",
+        "cheese"
+      ],
+      "allergens": [
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 dosa + sides",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "podi-idli",
+      "name": "Ghee Podi Idli",
+      "category": "south-indian",
+      "description": "Soft mini idlis tossed in ghee and a nutty, spiced podi.",
+      "price": 12000,
+      "image": "/assets/images/food/idli.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "South Indian",
+      "portion": "8 mini idlis",
+      "ingredients": [
+        "Rice",
+        "urad dal",
+        "ghee",
+        "sesame"
+      ],
+      "allergens": [
+        "Milk",
+        "Sesame"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "8 mini idlis",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "idli-sambar",
+      "name": "Idli Sambar",
+      "category": "south-indian",
+      "description": "Pillowy steamed idlis, vegetable sambar and fresh coconut chutney.",
+      "price": 8000,
+      "image": "/assets/images/food/idli.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "South Indian",
+      "portion": "3 idlis + sides",
+      "ingredients": [
+        "Rice",
+        "urad dal",
+        "lentils",
+        "vegetables",
+        "coconut"
+      ],
+      "allergens": [
+        "Mustard"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "3 idlis + sides",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "medu-vada",
+      "name": "Crispy Medu Vada",
+      "category": "south-indian",
+      "description": "Golden lentil vadas with soft centres, curry leaves and sambar.",
+      "price": 9000,
+      "image": "/assets/images/food/vada.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "South Indian",
+      "portion": "2 vadas + sides",
+      "ingredients": [
+        "Urad dal",
+        "curry leaves",
+        "pepper",
+        "onion"
+      ],
+      "allergens": [],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "2 vadas + sides",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "pongal",
+      "name": "Ghee Ven Pongal",
+      "category": "south-indian",
+      "description": "Comforting rice and moong dal, black pepper and toasted cashews.",
+      "price": 11000,
+      "image": "/assets/images/food/rice.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "South Indian",
+      "portion": "1 bowl",
+      "ingredients": [
+        "Rice",
+        "moong dal",
+        "ghee",
+        "pepper",
+        "cashews"
+      ],
+      "allergens": [
+        "Milk",
+        "Cashews"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 bowl",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "uttapam",
+      "name": "Onion Uttapam",
+      "category": "south-indian",
+      "description": "A thick, soft dosa topped with onion, tomato and green chilli.",
+      "price": 12000,
+      "image": "/assets/images/food/pizza.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "South Indian",
+      "portion": "1 uttapam + sides",
+      "ingredients": [
+        "Rice",
+        "lentils",
+        "onion",
+        "tomato"
+      ],
+      "allergens": [],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 uttapam + sides",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "appam-stew",
+      "name": "Appam & Vegetable Stew",
+      "category": "south-indian",
+      "description": "Lacy appams with a gentle coconut-milk vegetable stew.",
+      "price": 17000,
+      "image": "/assets/images/food/idli.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "South Indian",
+      "portion": "2 appams + stew",
+      "ingredients": [
+        "Rice",
+        "coconut milk",
+        "carrot",
+        "potato"
+      ],
+      "allergens": [],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "2 appams + stew",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "puttu-kadala",
+      "name": "Puttu & Kadala Curry",
+      "category": "south-indian",
+      "description": "Steamed rice-and-coconut puttu with spiced black chickpea curry.",
+      "price": 16000,
+      "image": "/assets/images/food/meals.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "South Indian",
+      "portion": "1 serving",
+      "ingredients": [
+        "Rice flour",
+        "coconut",
+        "black chickpeas",
+        "spices"
+      ],
+      "allergens": [],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 serving",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "bisi-bele-bath",
+      "name": "Bisi Bele Bath",
+      "category": "south-indian",
+      "description": "Karnataka’s comforting rice-and-lentil favourite with vegetables.",
+      "price": 13000,
+      "image": "/assets/images/food/rice.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "South Indian",
+      "portion": "1 bowl",
+      "ingredients": [
+        "Rice",
+        "lentils",
+        "vegetables",
+        "ghee",
+        "peanuts"
+      ],
+      "allergens": [
+        "Milk",
+        "Peanuts"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 bowl",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "south-indian-meals",
+      "name": "The South Indian Thali",
+      "category": "south-indian",
+      "description": "Rice, sambar, rasam, poriyal, kootu, curd, papad and a sweet finish.",
+      "price": 24000,
+      "image": "/assets/images/food/meals.svg",
+      "badge": "A whole lot of happy",
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "South Indian",
+      "portion": "1 generous thali",
+      "ingredients": [
+        "Rice",
+        "lentils",
+        "seasonal vegetables",
+        "yoghurt"
+      ],
+      "allergens": [
+        "Milk",
+        "Mustard"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 generous thali",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "chicken-chettinad-dosa",
+      "name": "Chettinad Chicken Dosa",
+      "category": "south-indian",
+      "description": "A crisp dosa with peppery Chettinad chicken masala and curry leaves.",
+      "price": 22000,
+      "image": "/assets/images/food/dosa.svg",
+      "badge": null,
+      "dietary": [
+        "Non-vegetarian"
+      ],
+      "diet": "non-veg",
+      "cuisine": "South Indian",
+      "portion": "1 dosa + sides",
+      "ingredients": [
+        "Rice",
+        "lentils",
+        "chicken",
+        "pepper",
+        "curry leaves"
+      ],
+      "allergens": [],
+      "prepMinutes": 25,
+      "spice": "hot",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 dosa + sides",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "extra-sambar",
+          "label": "Extra sambar",
+          "price": 1500
+        },
+        {
+          "id": "extra-chutney",
+          "label": "Extra chutney",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": "paneer-butter-masala",
+      "name": "Paneer Butter Masala",
+      "category": "north-indian",
+      "description": "Soft paneer in a silky tomato, butter and cream gravy.",
+      "price": 23000,
+      "image": "/assets/images/food/curry.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "North Indian",
+      "portion": "1 bowl",
+      "ingredients": [
+        "Paneer",
+        "tomato",
+        "butter",
+        "cream",
+        "cashews"
+      ],
+      "allergens": [
+        "Milk",
+        "Cashews"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 bowl",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "dal-tadka",
+      "name": "Homestyle Dal Tadka",
+      "category": "north-indian",
+      "description": "Yellow lentils with a fragrant garlic-and-cumin tempering.",
+      "price": 16000,
+      "image": "/assets/images/food/curry.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "North Indian",
+      "portion": "1 bowl",
+      "ingredients": [
+        "Lentils",
+        "garlic",
+        "cumin",
+        "tomato"
+      ],
+      "allergens": [],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 bowl",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "chole-bhature",
+      "name": "Chole Bhature",
+      "category": "north-indian",
+      "description": "Fluffy bhature with tangy chickpea curry, onions and pickle.",
+      "price": 19000,
+      "image": "/assets/images/food/meals.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "North Indian",
+      "portion": "2 bhature + chole",
+      "ingredients": [
+        "Wheat",
+        "chickpeas",
+        "yoghurt",
+        "spices"
+      ],
+      "allergens": [
+        "Gluten",
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "2 bhature + chole",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "butter-chicken",
+      "name": "Old Delhi Butter Chicken",
+      "category": "north-indian",
+      "description": "Tender chicken in a rich tomato-and-butter gravy.",
+      "price": 29000,
+      "image": "/assets/images/food/curry.svg",
+      "badge": null,
+      "dietary": [
+        "Non-vegetarian"
+      ],
+      "diet": "non-veg",
+      "cuisine": "North Indian",
+      "portion": "1 bowl",
+      "ingredients": [
+        "Chicken",
+        "tomato",
+        "butter",
+        "cream",
+        "cashews"
+      ],
+      "allergens": [
+        "Milk",
+        "Cashews"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 bowl",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "garlic-naan",
+      "name": "Garlic Butter Naan",
+      "category": "north-indian",
+      "description": "Soft bread brushed with garlic butter and fresh coriander.",
+      "price": 6000,
+      "image": "/assets/images/food/naan.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "North Indian",
+      "portion": "1 naan",
+      "ingredients": [
+        "Wheat",
+        "yoghurt",
+        "butter",
+        "garlic"
+      ],
+      "allergens": [
+        "Gluten",
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 naan",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "hyderabadi-biryani",
+      "name": "Hyderabadi Chicken Biryani",
+      "category": "biryani",
+      "description": "Fragrant basmati, chicken and whole spices, slow cooked. Raita included.",
+      "price": 28000,
+      "image": "/assets/images/food/biryani.svg",
+      "badge": null,
+      "dietary": [
+        "Non-vegetarian"
+      ],
+      "diet": "non-veg",
+      "cuisine": "Biryani & rice",
+      "portion": "Serves 1",
+      "ingredients": [
+        "Rice",
+        "chicken",
+        "yoghurt",
+        "mint",
+        "whole spices"
+      ],
+      "allergens": [
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Serves 1",
+          "price": 0
+        },
+        {
+          "id": "large",
+          "label": "Serves 2",
+          "price": 15000
+        }
+      ],
+      "addons": [
+        {
+          "id": "raita",
+          "label": "Extra raita",
+          "price": 2000
+        }
+      ]
+    },
+    {
+      "id": "donne-biryani",
+      "name": "Bangalore Donne Biryani",
+      "category": "biryani",
+      "description": "Seeraga samba rice, herby green masala and juicy chicken.",
+      "price": 26000,
+      "image": "/assets/images/food/biryani.svg",
+      "badge": "Bangalore favourite",
+      "dietary": [
+        "Non-vegetarian"
+      ],
+      "diet": "non-veg",
+      "cuisine": "Biryani & rice",
+      "portion": "Serves 1",
+      "ingredients": [
+        "Seeraga samba rice",
+        "chicken",
+        "coriander",
+        "mint",
+        "yoghurt"
+      ],
+      "allergens": [
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "hot",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Serves 1",
+          "price": 0
+        },
+        {
+          "id": "large",
+          "label": "Serves 2",
+          "price": 15000
+        }
+      ],
+      "addons": [
+        {
+          "id": "raita",
+          "label": "Extra raita",
+          "price": 2000
+        }
+      ]
+    },
+    {
+      "id": "veg-biryani",
+      "name": "Vegetable Dum Biryani",
+      "category": "biryani",
+      "description": "Basmati, colourful vegetables, mint and spices, sealed and slow cooked.",
+      "price": 22000,
+      "image": "/assets/images/food/biryani.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Biryani & rice",
+      "portion": "Serves 1",
+      "ingredients": [
+        "Rice",
+        "vegetables",
+        "yoghurt",
+        "mint",
+        "spices"
+      ],
+      "allergens": [
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Serves 1",
+          "price": 0
+        },
+        {
+          "id": "large",
+          "label": "Serves 2",
+          "price": 15000
+        }
+      ],
+      "addons": [
+        {
+          "id": "raita",
+          "label": "Extra raita",
+          "price": 2000
+        }
+      ]
+    },
+    {
+      "id": "mutton-biryani",
+      "name": "Mutton Dum Biryani",
+      "category": "biryani",
+      "description": "Slow-cooked mutton and basmati with layers of warming spices.",
+      "price": 36000,
+      "image": "/assets/images/food/biryani.svg",
+      "badge": null,
+      "dietary": [
+        "Non-vegetarian"
+      ],
+      "diet": "non-veg",
+      "cuisine": "Biryani & rice",
+      "portion": "Serves 1",
+      "ingredients": [
+        "Rice",
+        "mutton",
+        "yoghurt",
+        "mint",
+        "spices"
+      ],
+      "allergens": [
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Serves 1",
+          "price": 0
+        },
+        {
+          "id": "large",
+          "label": "Serves 2",
+          "price": 15000
+        }
+      ],
+      "addons": [
+        {
+          "id": "raita",
+          "label": "Extra raita",
+          "price": 2000
+        }
+      ]
+    },
+    {
+      "id": "hakka-noodles",
+      "name": "Veg Hakka Noodles",
+      "category": "chinese",
+      "description": "Wok-tossed noodles, crunchy vegetables and smoky goodness.",
+      "price": 18000,
+      "image": "/assets/images/food/noodles.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "Indo-Chinese",
+      "portion": "1 bowl",
+      "ingredients": [
+        "Wheat noodles",
+        "vegetables",
+        "soy sauce",
+        "garlic"
+      ],
+      "allergens": [
+        "Gluten",
+        "Soy"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 bowl",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "chicken-fried-rice",
+      "name": "Chicken Fried Rice",
+      "category": "chinese",
+      "description": "Wok-tossed rice with chicken, egg, spring onion and vegetables.",
+      "price": 22000,
+      "image": "/assets/images/food/rice.svg",
+      "badge": null,
+      "dietary": [
+        "Non-vegetarian"
+      ],
+      "diet": "non-veg",
+      "cuisine": "Indo-Chinese",
+      "portion": "1 bowl",
+      "ingredients": [
+        "Rice",
+        "chicken",
+        "egg",
+        "vegetables",
+        "soy sauce"
+      ],
+      "allergens": [
+        "Egg",
+        "Soy"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 bowl",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "gobi-manchurian",
+      "name": "Gobi Manchurian",
+      "category": "chinese",
+      "description": "Crispy cauliflower in a tangy, garlicky Indo-Chinese sauce.",
+      "price": 19000,
+      "image": "/assets/images/food/curry.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "Indo-Chinese",
+      "portion": "1 serving",
+      "ingredients": [
+        "Cauliflower",
+        "flour",
+        "soy sauce",
+        "garlic"
+      ],
+      "allergens": [
+        "Gluten",
+        "Soy"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 serving",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "chilli-chicken",
+      "name": "Chilli Chicken",
+      "category": "chinese",
+      "description": "Crisp chicken, peppers and onions in a fiery chilli-garlic sauce.",
+      "price": 26000,
+      "image": "/assets/images/food/curry.svg",
+      "badge": null,
+      "dietary": [
+        "Non-vegetarian"
+      ],
+      "diet": "non-veg",
+      "cuisine": "Indo-Chinese",
+      "portion": "1 serving",
+      "ingredients": [
+        "Chicken",
+        "pepper",
+        "onion",
+        "soy sauce",
+        "chilli"
+      ],
+      "allergens": [
+        "Gluten",
+        "Soy",
+        "Egg"
+      ],
+      "prepMinutes": 25,
+      "spice": "hot",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 serving",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "avocado-toast",
+      "name": "Green Goodness Toast",
+      "category": "global",
+      "description": "Smashed avocado, sourdough, cherry tomatoes, and chilli.",
+      "price": 34000,
+      "image": "/assets/images/toast.svg",
+      "badge": "A good start",
+      "dietary": [
+        "Plant based",
+        "Contains gluten"
+      ],
+      "diet": "vegan",
+      "cuisine": "Contemporary",
+      "portion": "1 serving",
+      "ingredients": [],
+      "allergens": [
+        "gluten"
+      ],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Regular",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "pesto-melt",
+      "name": "The Pesto Melt",
+      "category": "global",
+      "description": "Basil pesto, tomatoes, and melting mozzarella on sourdough.",
+      "price": 32000,
+      "image": "/assets/images/sandwich.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian",
+        "Contains gluten",
+        "Contains nuts"
+      ],
+      "diet": "veg",
+      "cuisine": "Contemporary",
+      "portion": "1 serving",
+      "ingredients": [],
+      "allergens": [
+        "gluten",
+        "nuts"
+      ],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Regular",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "margherita",
+      "name": "Margherita Pizza",
+      "category": "global",
+      "description": "Tomato, fresh mozzarella and basil on a golden pizza base.",
+      "price": 25000,
+      "image": "/assets/images/food/pizza.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Pizza, burgers & pasta",
+      "portion": "8-inch pizza",
+      "ingredients": [
+        "Wheat",
+        "tomato",
+        "mozzarella",
+        "basil"
+      ],
+      "allergens": [
+        "Gluten",
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "8-inch pizza",
+          "price": 0
+        },
+        {
+          "id": "large",
+          "label": "12-inch pizza",
+          "price": 14000
+        }
+      ],
+      "addons": [
+        {
+          "id": "cheese",
+          "label": "Extra cheese",
+          "price": 3000
+        }
+      ]
+    },
+    {
+      "id": "paneer-pizza",
+      "name": "Tandoori Paneer Pizza",
+      "category": "global",
+      "description": "Smoky paneer, peppers, onions and melting mozzarella.",
+      "price": 31000,
+      "image": "/assets/images/food/pizza.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Pizza, burgers & pasta",
+      "portion": "8-inch pizza",
+      "ingredients": [
+        "Wheat",
+        "paneer",
+        "peppers",
+        "mozzarella"
+      ],
+      "allergens": [
+        "Gluten",
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "8-inch pizza",
+          "price": 0
+        },
+        {
+          "id": "large",
+          "label": "12-inch pizza",
+          "price": 14000
+        }
+      ],
+      "addons": [
+        {
+          "id": "cheese",
+          "label": "Extra cheese",
+          "price": 3000
+        }
+      ]
+    },
+    {
+      "id": "chicken-burger",
+      "name": "Crispy Chicken Burger",
+      "category": "global",
+      "description": "Crisp chicken, crunchy slaw and mayo in a soft toasted bun.",
+      "price": 22000,
+      "image": "/assets/images/food/burger.svg",
+      "badge": null,
+      "dietary": [
+        "Non-vegetarian"
+      ],
+      "diet": "non-veg",
+      "cuisine": "Pizza, burgers & pasta",
+      "portion": "1 burger",
+      "ingredients": [
+        "Chicken",
+        "bun",
+        "cabbage",
+        "mayonnaise"
+      ],
+      "allergens": [
+        "Gluten",
+        "Egg",
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 burger",
+          "price": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "cheese",
+          "label": "Extra cheese",
+          "price": 3000
+        }
+      ]
+    },
+    {
+      "id": "alfredo-pasta",
+      "name": "Creamy Alfredo Pasta",
+      "category": "global",
+      "description": "Penne in a silky sauce with mushrooms and vegetarian hard cheese.",
+      "price": 26000,
+      "image": "/assets/images/food/noodles.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Pizza, burgers & pasta",
+      "portion": "1 bowl",
+      "ingredients": [
+        "Penne",
+        "cream",
+        "mushrooms",
+        "garlic",
+        "cheese"
+      ],
+      "allergens": [
+        "Gluten",
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 bowl",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "butter-croissant",
+      "name": "The Butter Croissant",
+      "category": "snacks",
+      "description": "Golden, gloriously flaky layers. Baked for slow mornings.",
+      "price": 18000,
+      "image": "/assets/images/croissant.svg",
+      "badge": "Fresh from the oven",
+      "dietary": [
+        "Vegetarian",
+        "Contains gluten"
+      ],
+      "diet": "veg",
+      "cuisine": "Contemporary",
+      "portion": "1 serving",
+      "ingredients": [],
+      "allergens": [
+        "gluten"
+      ],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Regular",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "chocolate-cookie",
+      "name": "Chocolate Chunk Cookie",
+      "category": "snacks",
+      "description": "Crisp edges, a soft centre, and generous dark chocolate.",
+      "price": 14000,
+      "image": "/assets/images/cookie.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian",
+        "Contains gluten"
+      ],
+      "diet": "veg",
+      "cuisine": "Contemporary",
+      "portion": "1 serving",
+      "ingredients": [],
+      "allergens": [
+        "gluten"
+      ],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Regular",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "samosa",
+      "name": "Punjabi Samosa",
+      "category": "snacks",
+      "description": "Crisp pastry pockets with spiced potato, peas and chutneys.",
+      "price": 6000,
+      "image": "/assets/images/food/samosa.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "Street bites",
+      "portion": "2 pieces",
+      "ingredients": [
+        "Wheat",
+        "potato",
+        "peas",
+        "spices"
+      ],
+      "allergens": [
+        "Gluten"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "2 pieces",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "pav-bhaji",
+      "name": "Mumbai Pav Bhaji",
+      "category": "snacks",
+      "description": "Butter-toasted pav, hearty spiced vegetable mash, onions and lime.",
+      "price": 15000,
+      "image": "/assets/images/food/curry.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Street bites",
+      "portion": "2 pav + bhaji",
+      "ingredients": [
+        "Pav",
+        "potato",
+        "peas",
+        "tomato",
+        "butter"
+      ],
+      "allergens": [
+        "Gluten",
+        "Milk"
+      ],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "2 pav + bhaji",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "fries",
+      "name": "Golden French Fries",
+      "category": "snacks",
+      "description": "Golden, crisp fries with seasoning and tomato dip.",
+      "price": 11000,
+      "image": "/assets/images/food/fries.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "Street bites",
+      "portion": "1 portion",
+      "ingredients": [
+        "Potato",
+        "oil",
+        "salt"
+      ],
+      "allergens": [],
+      "prepMinutes": 25,
+      "spice": "medium",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 portion",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "gulab-jamun",
+      "name": "Warm Gulab Jamun",
+      "category": "desserts",
+      "description": "Soft golden dumplings in cardamom-and-rose syrup.",
+      "price": 9000,
+      "image": "/assets/images/food/sweet.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Desserts",
+      "portion": "2 pieces",
+      "ingredients": [
+        "Milk solids",
+        "flour",
+        "sugar",
+        "cardamom"
+      ],
+      "allergens": [
+        "Milk",
+        "Gluten"
+      ],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "2 pieces",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "payasam",
+      "name": "Coconut & Jaggery Payasam",
+      "category": "desserts",
+      "description": "Coconut-milk payasam with jaggery, cardamom and toasted cashews.",
+      "price": 10000,
+      "image": "/assets/images/food/sweet.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "Desserts",
+      "portion": "1 bowl",
+      "ingredients": [
+        "Rice",
+        "coconut milk",
+        "jaggery",
+        "cashews"
+      ],
+      "allergens": [
+        "Cashews"
+      ],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 bowl",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "brownie",
+      "name": "Brownie & Ice Cream",
+      "category": "desserts",
+      "description": "Warm eggless chocolate brownie with vanilla ice cream.",
+      "price": 16000,
+      "image": "/assets/images/food/brownie.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Desserts",
+      "portion": "1 serving",
+      "ingredients": [
+        "Flour",
+        "cocoa",
+        "milk",
+        "vanilla ice cream"
+      ],
+      "allergens": [
+        "Gluten",
+        "Milk",
+        "Soy"
+      ],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "1 serving",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "velvet-latte",
+      "name": "Velvet Latte",
+      "category": "beverages",
+      "description": "A double espresso, silky steamed milk, a little everyday magic.",
+      "price": 22000,
+      "image": "/assets/images/latte.svg",
+      "badge": "The crowd favourite",
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Contemporary",
+      "portion": "1 serving",
+      "ingredients": [],
+      "allergens": [],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Regular",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "iced-brown-sugar",
+      "name": "Iced Brown Sugar",
+      "category": "beverages",
+      "description": "Slow-sipped espresso, brown sugar, oat milk, and plenty of ice.",
+      "price": 26000,
+      "image": "/assets/images/iced-coffee.svg",
+      "badge": "BitesBro signature",
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "Contemporary",
+      "portion": "1 serving",
+      "ingredients": [],
+      "allergens": [],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Regular",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "classic-flat-white",
+      "name": "Classic Flat White",
+      "category": "beverages",
+      "description": "Rich espresso meets a soft, velvety layer of microfoam.",
+      "price": 21000,
+      "image": "/assets/images/flat-white.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Contemporary",
+      "portion": "1 serving",
+      "ingredients": [],
+      "allergens": [],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Regular",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "vanilla-matcha",
+      "name": "Vanilla Cloud Matcha",
+      "category": "beverages",
+      "description": "Earthy Japanese matcha, oat milk, and a whisper of vanilla.",
+      "price": 28000,
+      "image": "/assets/images/matcha.svg",
+      "badge": "A little zen",
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "Contemporary",
+      "portion": "1 serving",
+      "ingredients": [],
+      "allergens": [],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "Regular",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "filter-coffee",
+      "name": "South Indian Filter Coffee",
+      "category": "beverages",
+      "description": "Bold decoction, hot milk and a familiar frothy finish.",
+      "price": 7000,
+      "image": "/assets/images/food/filter-coffee.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Drinks",
+      "portion": "150 ml",
+      "ingredients": [
+        "Coffee",
+        "milk",
+        "sugar"
+      ],
+      "allergens": [
+        "Milk"
+      ],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "150 ml",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "lime-soda",
+      "name": "Fresh Lime Soda",
+      "category": "beverages",
+      "description": "Fresh lime, chilled soda and a little fizz.",
+      "price": 8000,
+      "image": "/assets/images/food/cooler.svg",
+      "badge": null,
+      "dietary": [
+        "Plant based"
+      ],
+      "diet": "vegan",
+      "cuisine": "Drinks",
+      "portion": "300 ml",
+      "ingredients": [
+        "Lime",
+        "soda",
+        "sugar or salt"
+      ],
+      "allergens": [],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "300 ml",
+          "price": 0
+        }
+      ],
+      "addons": []
+    },
+    {
+      "id": "mango-lassi",
+      "name": "Creamy Mango Lassi",
+      "category": "beverages",
+      "description": "Mango, thick yoghurt and a hint of cardamom.",
+      "price": 11000,
+      "image": "/assets/images/food/cooler.svg",
+      "badge": null,
+      "dietary": [
+        "Vegetarian"
+      ],
+      "diet": "veg",
+      "cuisine": "Drinks",
+      "portion": "300 ml",
+      "ingredients": [
+        "Mango",
+        "yoghurt",
+        "cardamom"
+      ],
+      "allergens": [
+        "Milk"
+      ],
+      "prepMinutes": 10,
+      "spice": "none",
+      "variants": [
+        {
+          "id": "regular",
+          "label": "300 ml",
+          "price": 0
+        }
+      ],
+      "addons": []
+    }
+  ]
+}

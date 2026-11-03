@@ -13,6 +13,8 @@ export const cafe = {
   seatsPerSitting: 24,
   maxGuests: 8,
   maxAdvanceDays: 60,
+  deliveryFee: 4000,
+  freeDeliveryFrom: 49900,
   // Stay in demo mode until address, contact, operations and privacy are finalised.
   demo: true
 };
@@ -29,3 +31,7 @@ function pretty(time) {
   return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''}${h >= 12 ? 'pm' : 'am'}`;
 }
 export const openingHours = `Daily, ${cafe.openingPeriods.map(({ open, close }) => `${pretty(open)}–${pretty(close)}`).join(' & ')}`;
+
+export const foodSlots = cafe.openingPeriods.flatMap(({open,close}) => {
+ const slots=[]; for(let t=minutes(open);t+30<=minutes(close);t+=30) slots.push(clock(t)); return slots;
+});

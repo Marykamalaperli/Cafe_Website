@@ -1,3 +1,4 @@
+// Version-1 legacy catalogue only. The food-ordering catalogue is in food-menu.js.
 // Prices are integer paise. Edit the seed before the first run; existing databases
 // are deliberately never overwritten on startup. See docs/architecture.md.
 export const menuSeed = [

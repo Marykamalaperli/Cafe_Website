@@ -1,14 +1,16 @@
 import { DatabaseSync } from 'node:sqlite';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { menuSeed } from './menu.js';
+import { migrateFood } from './migrations.js';
 
 export function openDatabase(path = './data/bitesbro.sqlite') {
+  const existingFile = path !== ':memory:' && existsSync(path);
   if (path !== ':memory:') mkdirSync(dirname(resolve(path)), { recursive: true });
   const db = new DatabaseSync(path);
   db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;');
   db.exec(readFileSync(new URL('./schema.sql', import.meta.url), 'utf8'));
-  if (db.prepare('SELECT COUNT(*) AS count FROM menu_items').get().count === 0) {
+  if (db.prepare('SELECT COUNT(*) AS count FROM menu_items').get().count === 0 && !db.prepare('SELECT 1 FROM schema_migrations WHERE version=2').get()) {
     const insert = db.prepare(`INSERT INTO menu_items
       (id, name, category, description, price, image, badge, dietary)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
@@ -23,5 +25,6 @@ export function openDatabase(path = './data/bitesbro.sqlite') {
       throw error;
     }
   }
+  try { migrateFood(db, existingFile ? path : null); } catch (error) { db.close(); throw error; }
   return db;
 }

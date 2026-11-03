@@ -10,9 +10,9 @@
 ## Architecture
 
 - `public/` is the only web-served directory. Keep server code, database files, and secrets outside it.
-- `server/cafe.js` owns business details and opening periods. `/api/cafe` drives visit details and the booking clock. The user supplied **BitesBro, Bangalore, 10am–3pm and 6pm–11pm**. Daily opening, sample menu/prices, and capacity remain editable assumptions.
-- `server/menu.js` supplies the first-run seed. Never drop or reseed an existing database merely to update the menu; use parameterised database updates or a versioned migration.
-- `server/schema.sql` applies idempotently and records schema version 1. Add forward migrations when changing an existing schema; `CREATE TABLE IF NOT EXISTS` alone cannot modify tables.
+- `server/cafe.js` owns business details and opening periods. `/api/cafe` drives visit details and the booking clock. The user supplied **BitesBro, Bangalore, 10am–3pm and 6pm–11pm**, and explicitly requested **both vegetarian and non-vegetarian food with South Indian dishes leading the menu**. Daily opening, sample menu/prices, and capacity remain editable assumptions.
+- `server/food-menu.js` supplies the 42 new food dishes and option metadata; `server/menu.js` retains eight legacy products for the version-1 baseline. Never drop or reseed an existing database merely to update the menu; use parameterised database updates or a versioned migration.
+- `server/schema.sql` applies the version-1 baseline. `server/migrations.js` then runs the version-2 food upgrade atomically, backs up existing database files, and preserves old menu edits and order history. Add forward migrations when changing an existing schema; `CREATE TABLE IF NOT EXISTS` alone cannot modify tables.
 - Store money as integer paise. Recompute totals from database prices on the server, and preserve order-line price/name snapshots.
 - Keep capacity checks and inserts in one transaction. Booking sittings must not overlap or span the afternoon closure.
 - Use the café timezone for booking dates, not the visitor's or server's local timezone.
@@ -21,13 +21,14 @@
 
 ## Interface
 
-- Maintain the ivory/forest/terracotta palette, Fraunces + DM Sans pairing, photographic collage, and custom menu artwork.
+- Maintain the ivory/forest/terracotta palette, Fraunces + DM Sans pairing, food-led hero photography, and custom dish artwork. The identity is now a food-ordering restaurant, with coffee as one drinks category.
 - Serve fonts, scripts, images, and styles locally. Update CSP deliberately if an authorised integration truly needs another origin.
+- GitHub Pages is browse-only: build it with `npm run build:pages`, retain the sample catalogue fallback and disable forms when no ordering server is connected. Test the repository-subpath asset URLs.
 - Keep every visible control useful. Forms must call real APIs, surface validation/network failures, prevent double clicks, and honestly describe what was saved.
 - Preserve semantic HTML, native dialog focus handling, labels, keyboard navigation, live status messages, and reduced-motion styles.
 - Keep content readable without reveal animations. The HTML is visible without JavaScript; `.motion-ready` activates progressive enhancements.
 - Avoid dummy links, fake maps/ratings/contact details, or claiming emails/payments are connected. Address/email/phone are pending the user's details. Preserve clear demo status until live operations are intentionally configured.
-- `localStorage` holds only bag IDs and quantities, never contact information.
+- `localStorage` holds only dish IDs, quantities and selected option IDs/spice, never contact information. Server-side totals must include validated portion/add-on prices and delivery fees.
 
 ## Verify changes
 

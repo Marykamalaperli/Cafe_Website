@@ -2,12 +2,12 @@ import { randomBytes } from 'node:crypto';
 import { readFile, realpath } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, extname, sep } from 'node:path';
-import { cafe, bookingSlots, openingHours } from './cafe.js';
+import { cafe, bookingSlots, foodSlots, openingHours } from './cafe.js';
 
 const publicRoot = resolve(fileURLToPath(new URL('../public/', import.meta.url)));
 export const SLOTS = bookingSlots;
 export const SLOT_CAPACITY = cafe.seatsPerSitting;
-const categories = ['coffee', 'matcha', 'bakes', 'bites'];
+import { categories, readMenu } from './food-menu.js';
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.png': 'image/png', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml; charset=utf-8' };
 
 export class HttpError extends Error {
@@ -103,13 +103,22 @@ export function createApp({ db, siteUrl = 'http://localhost:3000', timezone = 'A
         return json(res, 200, { status: 'ok', database: 'connected' });
       }
       if (req.method === 'GET' && path === '/api/cafe') {
-        return json(res, 200, { name: cafe.name, currency: cafe.currency, timezone, today: clock.date, currentTime: clock.time, slots: SLOTS, maxAdvanceDays: cafe.maxAdvanceDays, maxGuests: cafe.maxGuests, demo: cafe.demo, city: cafe.city, hours: openingHours, address: cafe.address, email: cafe.email, phone: cafe.phone });
+        return json(res, 200, { name: cafe.name, currency: cafe.currency, timezone, today: clock.date, currentTime: clock.time, slots: SLOTS, foodSlots, deliveryFee: cafe.deliveryFee, freeDeliveryFrom: cafe.freeDeliveryFrom, maxAdvanceDays: cafe.maxAdvanceDays, maxGuests: cafe.maxGuests, demo: cafe.demo, city: cafe.city, hours: openingHours, address: cafe.address, email: cafe.email, phone: cafe.phone });
       }
       if (req.method === 'GET' && path === '/api/menu') {
         const category = url.searchParams.get('category') || 'all';
-        if (category !== 'all' && !categories.includes(category)) throw new HttpError(400, 'Unknown menu category.');
-        const items = db.prepare("SELECT id, name, category, description, price, image, badge, dietary FROM menu_items WHERE available = 1 AND (? = 'all' OR category = ?) ORDER BY rowid").all(category, category);
-        return json(res, 200, { currency: 'INR', items: items.map(item => ({ ...item, dietary: JSON.parse(item.dietary) })) });
+        if (category !== 'all' && !categories.some(item=>item.id===category)) throw new HttpError(400,'Unknown menu category.');
+        const diet=url.searchParams.get('diet')||'all';
+        if(!['all','veg','vegan','non-veg'].includes(diet)) throw new HttpError(400,'Unknown dietary filter.');
+        const query=(url.searchParams.get('q')||'').slice(0,120).toLowerCase();
+        let items=readMenu(db,category).filter(item=>diet==='all'||(diet==='veg'?item.diet!=='non-veg':item.diet===diet));
+        if(query) items=items.filter(item=>(item.name+' '+item.description+' '+item.ingredients.join(' ')).toLowerCase().includes(query));
+        return json(res,200,{currency:'INR',categories,items});
+      }
+      if(req.method==='GET' && path==='/api/fulfilment'){
+        const date=dateCheck(url.searchParams.get('date'),clock);
+        const minute=t=>Number(t.slice(0,2))*60+Number(t.slice(3));
+        return json(res,200,{date,timezone,slots:foodSlots.map(time=>({time,available:date!==clock.date||minute(time)>=minute(clock.time)+30}))});
       }
       if (req.method === 'GET' && path === '/api/availability') {
         const date = dateCheck(url.searchParams.get('date'), clock);
@@ -152,27 +161,45 @@ export function createApp({ db, siteUrl = 'http://localhost:3000', timezone = 'A
         if (path === '/api/orders') {
           const person = customer(data);
           const date = dateCheck(data.date, clock);
-          slotCheck(date, data.time, clock);
-          if (!Array.isArray(data.items) || !data.items.length || data.items.length > 20) throw new HttpError(400, 'Add an item to your bag before checking out.');
-          const ids = new Set();
-          const items = data.items.map(item => {
-            if (!item || typeof item.id !== 'string' || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 10 || ids.has(item.id)) throw new HttpError(400, 'Please check your bag quantities (1–10 per item).');
-            ids.add(item.id);
-            const menuItem = db.prepare('SELECT id, name, price FROM menu_items WHERE id = ? AND available = 1').get(item.id);
-            if (!menuItem) throw new HttpError(409, 'An item is no longer available. Please refresh the menu.');
-            return { ...menuItem, quantity: item.quantity };
+          const minute=t=>Number(t.slice(0,2))*60+Number(t.slice(3));
+          if(!foodSlots.includes(data.time)||(date===clock.date&&minute(data.time)<minute(clock.time)+30)) throw new HttpError(400,'Choose a future food pickup time, at least 30 minutes from now.',{time:'Choose another time.'});
+          const fulfilment=data.fulfilment||'pickup';
+          if(!['pickup','delivery'].includes(fulfilment)) throw new HttpError(400,'Choose pickup or delivery.');
+          const address=fulfilment==='delivery'?text(data.address,'address',10,300):'';
+          const postcode=fulfilment==='delivery'?text(data.postcode,'postcode',6,6):'';
+          if(fulfilment==='delivery'&&!/^560\d{3}$/.test(postcode)) throw new HttpError(400,'Demo delivery is limited to Bangalore postcodes beginning 560.',{postcode:'Use a Bangalore 560xxx postcode.'});
+          const instructions=text(data.instructions||'','instructions',0,500);
+          if(!Array.isArray(data.items)||!data.items.length||data.items.length>20) throw new HttpError(400,'Add food to your bag before checking out.');
+          const keys=new Set();
+          const items=data.items.map(line=>{
+            if(!line||typeof line.id!=='string'||!Number.isInteger(line.quantity)||line.quantity<1||line.quantity>10) throw new HttpError(400,'Please check your food quantities (1–10 per item).');
+            const item=db.prepare('SELECT id,name,price,details FROM menu_items WHERE id=? AND available=1').get(line.id);
+            if(!item) throw new HttpError(409,'An item is no longer available. Refresh the menu.');
+            const details=JSON.parse(item.details);
+            const variant=details.variants.find(v=>v.id===(line.variant||details.variants[0].id));
+            if(!variant) throw new HttpError(400,'Choose a valid portion.');
+            const spice=line.spice||details.spice;
+            if(!(details.spice==='none'?['none']:['mild','medium','hot']).includes(spice)) throw new HttpError(400,'Choose a valid spice level.');
+            const ids=line.addons||[];
+            if(!Array.isArray(ids)||ids.length>5||new Set(ids).size!==ids.length) throw new HttpError(400,'Please check your add-ons.');
+            const addons=ids.map(id=>{const addon=details.addons.find(a=>a.id===id);if(!addon) throw new HttpError(400,'An add-on is not available for this dish.');return addon;});
+            const key=JSON.stringify([item.id,variant.id,spice,[...ids].sort()]);
+            if(keys.has(key)) throw new HttpError(400,'Combine identical dishes into a single quantity.');
+            keys.add(key);
+            return {id:item.id,name:item.name,quantity:line.quantity,price:item.price+variant.price+addons.reduce((n,a)=>n+a.price,0),options:{variant,spice,addons}};
           });
-          if (items.reduce((sum, item) => sum + item.quantity, 0) > 30) throw new HttpError(400, 'For more than 30 items, please contact the café.');
-          const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-          const reference = ref('ORDER');
+          if(items.reduce((n,item)=>n+item.quantity,0)>30) throw new HttpError(400,'Please limit your order to 30 items.');
+          const subtotal=items.reduce((n,item)=>n+item.price*item.quantity,0);
+          const deliveryFee=fulfilment==='delivery'&&subtotal<cafe.freeDeliveryFrom?cafe.deliveryFee:0;
+          const total=subtotal+deliveryFee,reference=ref('ORDER');
           db.exec('BEGIN IMMEDIATE');
-          try {
-            const order = db.prepare('INSERT INTO orders (reference, name, email, phone, pickup_date, pickup_time, total, consent) VALUES (?, ?, ?, ?, ?, ?, ?, 1)').run(reference, person.name, person.email, person.phone, date, data.time, total);
-            const add = db.prepare('INSERT INTO order_items (order_id, menu_item_id, name, quantity, unit_price) VALUES (?, ?, ?, ?, ?)');
-            for (const item of items) add.run(order.lastInsertRowid, item.id, item.name, item.quantity, item.price);
+          try{
+            const saved=db.prepare('INSERT INTO orders(reference,name,email,phone,pickup_date,pickup_time,total,consent,fulfilment,address,postcode,instructions,delivery_fee,subtotal) VALUES(?,?,?,?,?,?,?,1,?,?,?,?,?,?)').run(reference,person.name,person.email,person.phone,date,data.time,total,fulfilment,address,postcode,instructions,deliveryFee,subtotal);
+            const add=db.prepare('INSERT INTO order_items(order_id,menu_item_id,name,quantity,unit_price,options) VALUES(?,?,?,?,?,?)');
+            for(const item of items) add.run(saved.lastInsertRowid,item.id,item.name,item.quantity,item.price,JSON.stringify(item.options));
             db.exec('COMMIT');
-          } catch (error) { db.exec('ROLLBACK'); throw error; }
-          return json(res, 201, { reference, total, currency: 'INR', date, time: data.time, message: 'Your demo pickup order is saved. No payment has been taken and no email is sent.' });
+          }catch(error){db.exec('ROLLBACK');throw error;}
+          return json(res,201,{reference,total,subtotal,deliveryFee,fulfilment,currency:'INR',date,time:data.time,message:'Your demo food order is saved. No payment is taken, delivery is not dispatched, and no email is sent.'});
         }
         if (path === '/api/newsletter') {
           db.prepare('INSERT OR IGNORE INTO subscribers (email, consent) VALUES (?, 1)').run(email(data.email));
