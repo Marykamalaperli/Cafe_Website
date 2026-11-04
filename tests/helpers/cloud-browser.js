@@ -33,7 +33,7 @@ export function cloudFixture(){
     if(request.method()==='OPTIONS')return route.fulfill({status:204,headers});
     const token=request.headers().authorization?.replace(/^Bearer /,''),user=tokens.get(token),role=user?roles.get(user.id):null;
     let body;try{body=request.postDataJSON();}catch{body={};}
-    calls.push({path:url.pathname,method:request.method(),body,role});
+    calls.push({path:url.pathname,method:request.method(),body,role,apikey:request.headers().apikey,authorization:request.headers().authorization});
     const denied=()=>respond({code:'42501',message:'permission denied'},403);
     if(url.pathname==='/auth/v1/token'){
      if(url.searchParams.get('grant_type')==='pkce')return respond(session(users[0]));

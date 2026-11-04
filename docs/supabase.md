@@ -20,6 +20,8 @@ The built-in Supabase mail sender restricts delivery to approved project-team re
 
 If signup fails, the website displays a specific safe error and a provider reference code. In **Supabase → Logs → Auth**, inspect the matching failed request: `email_address_not_authorized` needs email-provider setup; `over_email_send_rate_limit` requires waiting or configuring appropriate SMTP limits; `weak_password` needs a stronger password. For `unexpected_failure`, the log distinguishes confirmation-email delivery from a database trigger/permission failure. Public Auth settings cannot reveal SMTP configuration or account-write errors. Do not rerun baseline SQL to guess at an Auth failure; diagnose the log first.
 
+`No API key found in request` is a gateway rejection before signup validation. Inspect the website's actual **POST** request in DevTools → Network → Response; opening the API URL directly in the address bar sends no `apikey` header and produces the same message. The browser adapter explicitly includes the runtime publishable key on requests to the configured Supabase origin while preserving the signed-in user's Authorization header. Confirm the two public Actions build settings match the project, redeploy, and hard-refresh the site if the actual POST is missing its key. Never put a service-role key in browser settings.
+
 In **Authentication → URL Configuration**, set the Site URL to your frontend, and allow its exact auth callback:
 
 ```text

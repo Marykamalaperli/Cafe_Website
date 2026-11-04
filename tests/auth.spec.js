@@ -14,7 +14,7 @@ test('signup requires matching passwords and sends customer display name without
  await page.locator('[name=name]').fill('New Customer');await page.locator('[name=email]').fill('new@bitesbro.invalid');await page.locator('[name=password]').fill(PASSWORD);await page.locator('[name=confirmation]').fill('Does-not-match-123');await page.locator('[name=consent]').check();
  await page.locator('#auth-submit').click();await expect(page.locator('#auth-status')).toHaveText('The two passwords must match.');
  await page.locator('[name=confirmation]').fill(PASSWORD);await page.locator('#auth-submit').click();await expect(page.locator('#auth-status')).toContainText('Check your email');
- const signup=fixture.calls.find(call=>call.path.endsWith('/signup'));expect(signup.body.data).toEqual({display_name:'New Customer'});expect(signup.body.data.role).toBeUndefined();
+ const signup=fixture.calls.find(call=>call.path.endsWith('/signup'));expect(signup.body.data).toEqual({display_name:'New Customer'});expect(signup.body.data.role).toBeUndefined();expect(signup.apikey).toBe('sb_publishable_browser_fixture');
 });
 
 for(const failure of[
@@ -22,13 +22,14 @@ for(const failure of[
  {code:'over_email_send_rate_limit',status:429,message:'Email rate limit exceeded',expected:'confirmation email limit has been reached'},
  {code:'weak_password',status:422,message:'Weak password',expected:'Choose a longer, unique password'},
  {code:'unexpected_failure',status:500,message:'Error sending confirmation email',expected:'confirmation email could not be sent'},
- {code:'unexpected_failure',status:500,message:'Database error saving new user',expected:'check its account database configuration'}
+ {code:'unexpected_failure',status:500,message:'Database error saving new user',expected:'check its account database configuration'},
+ {status:400,message:'No API key found in request',expected:'did not receive its public connection key'}
 ])test(`failed signup explains ${failure.code}: ${failure.message} and preserves the form for retry`,async({page,context})=>{
  const fixture=cloudFixture();await fixture.attach(context);
  await page.route('**/auth/v1/signup?**',route=>route.fulfill({status:failure.status,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*','X-Supabase-Api-Version':'2024-01-01','Access-Control-Expose-Headers':'X-Supabase-Api-Version'},body:JSON.stringify({code:failure.code,msg:failure.message,message:failure.message})}));
  await page.goto(SITE+'auth/');await page.getByRole('button',{name:'Create account',exact:true}).first().click();
  await page.locator('[name=name]').fill('Signup Fixture');await page.locator('[name=email]').fill('signup@bitesbro.invalid');await page.locator('[name=password]').fill(PASSWORD);await page.locator('[name=confirmation]').fill(PASSWORD);await page.locator('[name=consent]').check();await page.locator('#auth-submit').click();
- await expect(page.locator('#auth-status')).toContainText(failure.expected);await expect(page.locator('#auth-status')).toContainText(`Reference: ${failure.status>=500?'HTTP '+failure.status:failure.code}`);
+ await expect(page.locator('#auth-status')).toContainText(failure.expected);await expect(page.locator('#auth-status')).toContainText(`Reference: ${failure.code&&failure.status<500?failure.code:'HTTP '+failure.status}`);
  await expect(page.locator('#auth-status')).not.toContainText('Check your email for a confirmation link');await expect(page.locator('[name=email]')).toHaveValue('signup@bitesbro.invalid');await expect(page.locator('#auth-submit')).toBeEnabled();
 });
 
@@ -41,7 +42,7 @@ test('customer sign-in ignores forged metadata and staff destinations; real chec
  await page.getByRole('button',{name:'Add Bangalore Masala Dosa to bag',exact:true}).click();await page.locator('#dish-add').click();await page.getByRole('button',{name:'Open bag, 1 item',exact:true}).click();
  const form=page.locator('#order-form');await expect(form.locator('[name=email]')).toHaveValue('customer@bitesbro.invalid');await form.locator('[name=phone]').fill('9000000000');await form.locator('[name=date]').fill('2030-06-01');await form.locator('[name=time]').selectOption('10:00');await form.locator('[name=consent]').check();await form.getByRole('button',{name:'Place food order',exact:false}).click();
  await expect(page.locator('#cart-content')).toContainText('BB-ORDER-TEST1');
- const placed=fixture.calls.find(call=>call.path.endsWith('place_order'));expect(placed.role).toBe('customer');expect(placed.body.p.requestId).toMatch(/^[a-f0-9-]{36}$/);
+ const placed=fixture.calls.find(call=>call.path.endsWith('place_order'));expect(placed.role).toBe('customer');expect(placed.body.p.requestId).toMatch(/^[a-f0-9-]{36}$/);expect(placed.apikey).toBe('sb_publishable_browser_fixture');expect(placed.authorization).toMatch(/^Bearer /);expect(placed.authorization).not.toBe('Bearer sb_publishable_browser_fixture');
  await page.getByRole('link',{name:'Track my order',exact:false}).click();await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await expect(page.locator('#order-history')).not.toContainText('BB-ORDER-OTHER');
  await expect(page.locator('#tracking-detail')).toContainText('₹120');await page.getByRole('button',{name:'Cancel order',exact:true}).click();await expect(page.locator('#tracking-detail .status-chip')).toHaveText('Cancelled');
  const stored=await page.evaluate(()=>localStorage.getItem('bitesbro.demo.v1'));expect(stored).toBeNull();

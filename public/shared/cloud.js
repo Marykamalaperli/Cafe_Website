@@ -25,7 +25,16 @@ export async function cloudClient() {
   });
   return globalThis.supabase.createClient(config.url, config.publishableKey, {
    auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-   global: { fetch: (url, options) => fetch(url, { ...options, signal: options?.signal || AbortSignal.timeout(20000) }) }
+   global: { fetch: (url, options) => {
+    const target = new URL(url instanceof Request ? url.url : url);
+    const project = new URL(config.url);
+    const headers = new Headers(url instanceof Request ? url.headers : undefined);
+    new Headers(options?.headers).forEach((value, name) => headers.set(name, value));
+    // Preserve the caller's Authorization/session headers and explicitly attach
+    // the runtime publishable key only to the configured Supabase origin.
+    if (target.origin === project.origin) headers.set('apikey', config.publishableKey);
+    return fetch(url, { ...options, headers, signal: options?.signal || AbortSignal.timeout(20000) });
+   } }
   });
  })();
 }

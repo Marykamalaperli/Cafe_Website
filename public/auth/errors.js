@@ -17,6 +17,9 @@ export function signupErrorMessage(error = {}) {
   captcha_protection: 'The security check could not be completed. Please try again or contact BitesBro.'
  };
  if (messages[code]) return messages[code] + reference;
+ if (/no api key found in request/i.test(error.message || '')) {
+  return 'The account service did not receive its public connection key. Reload this page and try again.' + reference;
+ }
  // Some Auth versions use unexpected_failure for these server-side failures.
  // Classify only known messages; do not echo their raw text or response body.
  if (/error sending (?:confirmation|verification) email/i.test(error.message || '')) {
