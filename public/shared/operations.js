@@ -3,16 +3,18 @@ import { $, $$, escape, mountRoleNavigation, wireDialogs, localTime, announce, s
 import { STATUS_LABELS } from './demo-model.js?v=three-roles-2';
 import { cloudConfig, requireRole } from './cloud.js';
 import { connectCloudStore } from './cloud-store.js';
+import{wireOrderPayments}from'./order-services.js';
 
 // Preserve the operational layouts, while removing historical demo copy in cloud mode.
 export function liveCopy(root = document.body) {
  if (document.body.dataset.live !== 'true') return;
+ const review=document.body.dataset.review==='true',services=Number(document.body.dataset.orderServices)>=3;
  const walker = document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  let node;
  while ((node=walker.nextNode())) {
   if (node.parentElement.closest('script,style,.table-dish,.ticket-items,.popular-list,.ticket-instructions')) continue;
   node.textContent=node.textContent
-   .replace(/Demo Mode — No real orders or payments\. Shared in this browser only\./g,'Orders saved in Supabase · no online payments.')
+   .replace(/Demo Mode — No real orders or payments\. Shared in this browser only\./g,review?'Isolated review · simulated payments, emails and deliveries.':services?'Order updates · payment and delivery tracking.':'Orders saved in Supabase · no online payments.')
    .replace(/A live view of the fictional orders, menu and kitchen activity in this browser\./g,'Orders, menu and kitchen activity saved in Supabase.')
    .replace(/Prices and availability change only in this browser demo\./g,'Prices and availability are saved in Supabase.')
    .replace(/These switches update the demo customer menu and administrator view\. The actual restaurant database is unchanged\./g,'Availability changes update the customer menu and administrator view.')
@@ -20,7 +22,7 @@ export function liveCopy(root = document.body) {
    .replace(/Simple preferences for this demonstration\. Real business settings and SQLite stay unchanged\./g,'Manage ordering and kitchen preparation settings.')
    .replace(/Staff sign-in and server-side role permissions are required before connecting real operations\./g,'Staff sign-in is required. Administrators manage kitchen access in Settings.')
    .replace(/Changes sync between tabs in this browser only\./g,'Updates refresh from Supabase every eight seconds.')
-   .replace(/simulated sales/gi,'collected order value').replace(/Simulated data only\./g,'Order values only; online payments are not connected.')
+   .replace(/simulated sales/gi,'collected order value').replace(/Simulated data only\./g,services?'Order values; check payment status before reconciliation.':'Order values only; online payments are not connected.')
    .replace(/demonstration sales/gi,'collected order value').replace(/Simulated reports/g,'Order reports')
    .replace(/demonstration orders/g,'orders').replace(/demonstration menu/g,'menu').replace(/demonstration catalogue/g,'catalogue')
    .replace(/fictional orders/g,'orders').replace(/fictional order/g,'order').replace(/fictional kitchen/g,'kitchen')
@@ -30,11 +32,13 @@ export function liveCopy(root = document.body) {
    .replace(/demonstration ticket/g,'order').replace(/demonstration activity/g,'staff activity')
    .replace(/in this browser/g,'in Supabase').replace(/in this demonstration/g,'in the catalogue')
    .replace(/Customer demo/g,'Customer').replace(/Your demo order/g,'Your order').replace(/Customer demo/g,'Customer')
-   .replace(/demo orders/g,'orders').replace(/demo order/g,'order').replace(/demo dish/g,'dish').replace(/demo menu/g,'menu')
+   .replace(/demo orders/g,'orders').replace(/demo order/gi,'order').replace(/demo dish/g,'dish').replace(/demo menu/g,'menu')
+   .replace(/Your demonstration order/g,'Your order').replace(/Follow your demonstration order/g,'Follow your order')
    .replace(/demo preferences/g,'kitchen preferences').replace(/Demo preferences/g,'Kitchen preferences')
    .replace(/new demo checkout/g,'new orders').replace(/Demo availability/g,'Menu availability')
    .replace(/demo delivery/g,'delivery').replace(/Demo total/g,'Order total').replace(/Total demo orders/g,'Total orders')
    .replace(/ · DEMO/g,'').replace(/Leave demo/g,'Sign in').replace(/BitesBro Demo/g,'BitesBro');
+  if(review)node.textContent=node.textContent.replace(/Order updates are saved in Supabase\./g,'Updates are saved in this isolated browser demo.').replace(/Orders, menu and kitchen activity saved in Supabase\./g,'Isolated review of orders, menu and kitchen activity.').replace(/Updates refresh from Supabase every eight seconds\./g,'Updates refresh from the isolated demo every eight seconds.');
  }
  document.title=document.title.replace('BitesBro Demo','BitesBro');
 }
@@ -51,6 +55,7 @@ export async function startOperations(role, render, setup = () => {}) {
   const config=await cloudConfig(); const account=await requireRole(role);
   if(!account) return null;
   if(config.enabled) document.body.dataset.live='true';
+  if(config.reviewSandbox)document.body.dataset.review='true';
   await mountRoleNavigation(role,!config.enabled,account.demo?undefined:account);
   store = config.enabled ? await connectCloudStore(role) : await connectDemoStore();
   if(config.enabled){
@@ -65,7 +70,7 @@ export async function startOperations(role, render, setup = () => {}) {
     const selectors=['data-availability','data-menu-availability','data-archive-dish'];
     const control=selectors.find(attribute=>focused?.hasAttribute?.(attribute));
     const controlValue=control?focused.getAttribute(control):null;
-    const state = store.read(); setKitchenIndicator(state); render(state); liveCopy();
+    const state = store.read();document.body.dataset.orderServices=String(state.orderServicesVersion||0);setKitchenIndicator(state); render(state); liveCopy();
     if ($('#order-dialog')?.open && selectedReference) {
      const order = state.orders.find(order => order.reference === selectedReference);
      if (order) $('#order-dialog-content').innerHTML = detailMarkup(order, role); else $('#order-dialog').close();
@@ -77,6 +82,7 @@ export async function startOperations(role, render, setup = () => {}) {
    } catch (error) { announce(error.message, true); }
   };
   await setup(store, redraw);
+  if(config.enabled)wireOrderPayments(()=>store.refresh(),announce);
   store.subscribe(redraw);
   document.addEventListener('click', async event => {
    const details = event.target.closest('[data-view-order]');

@@ -1,3 +1,4 @@
+import{configurePaymentChoice,checkoutPayment}from'./shared/order-services.js';
 import {mealRecommendations} from './recommendations.js';
 import {connectDemoStore,clearDamagedDemo} from './shared/demo-store.js?v=three-roles-2';
 import {priceDemoBag,DEMO_BUSINESS} from './shared/demo-model.js?v=three-roles-2';
@@ -174,7 +175,7 @@ function connectForm(id, path, transform = value => value, onSuccess) {
       initializeDates(form);
       result.className = 'form-result success';
       result.textContent = `${data.message}${data.reference ? ` Your reference: ${data.reference}.` : ''}`;
-      onSuccess?.(data);
+      await onSuccess?.(data);
     } catch (error) {
       result.className = 'form-result error';
       result.textContent = error.name === 'TypeError' || error.name === 'TimeoutError' ? 'We couldn’t reach the café. Check your connection and try again.' : error.message;
@@ -196,13 +197,14 @@ function connectForm(id, path, transform = value => value, onSuccess) {
 connectForm('reservation-form', '/api/reservations', values => ({ ...values, guests: Number(values.guests) }));
 connectForm('newsletter-form', '/api/newsletter');
 connectForm('contact-form', '/api/contact');
-connectForm('order-form', '/api/orders', values => ({ ...values, items: state.cart.map(({id,quantity,variant,spice,addons})=>({id,quantity,variant,spice,addons})) }), data => {
+connectForm('order-form', '/api/orders', values => ({ ...values, items: state.cart.map(({id,quantity,variant,spice,addons})=>({id,quantity,variant,spice,addons})) }), async data => {
+  let paymentMessage='';if(['razorpay','upi'].includes(data.payment?.method)){try{const result=await checkoutPayment(data.reference);paymentMessage=result.message;}catch(error){paymentMessage=error.message;}}
   checkoutRequestId=undefined;
   state.cart = [];
   saveCart();
   $('#cart-checkout').hidden = true;
   $('#cart-content').innerHTML = `<div class="cart-empty">${icon('check')}<h3>A little good, all saved.</h3><p>Your demo food order is saved in the database.<br><strong>${escape(data.reference)}</strong></p><p>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}<br>No payment is taken, no delivery is dispatched and no email is sent.<br>Please wait for our location announcement before visiting.</p><button class="button button-orange close-dialog">Lovely, thank you ${icon('heart')}</button></div>`;
-  if(cloudEnabled){$('#cart-content').innerHTML=`<div class="cart-empty">${icon('check')}<h3>Your order is saved.</h3><p><strong>${escape(data.reference)}</strong><br>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}</p><p>No online payment, delivery dispatch or email confirmation is connected.</p><a class="button button-orange" href="${escape(siteURL('orders/?order='+encodeURIComponent(data.reference)))}">Track my order ${icon('arrow')}</a></div>`;}
+  if(cloudEnabled){$('#cart-content').innerHTML=`<div class="cart-empty">${icon('check')}<h3>Your order is saved.</h3><p><strong>${escape(data.reference)}</strong><br>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}</p><p>${escape(data.payment?paymentMessage||'Pay when collecting or receiving your order. Confirmation email status is shown in My orders.':'No online payment, delivery dispatch or email confirmation is connected.')}</p><a class="button button-orange" href="${escape(siteURL('orders/?order='+encodeURIComponent(data.reference)))}">Track my order ${icon('arrow')}</a></div>`;}
 });
 
 const navToggle = $('#nav-toggle');
@@ -239,7 +241,7 @@ async function boot(){
   account=await requireRole('customer',{optional:true});
   if(account&&!account.demo&&account.role!=='customer')return;
   await mountRoleNavigation('customer',demoMode,account?.demo?undefined:account);
-  if(cloudEnabled) configureCloudCustomer();
+  if(cloudEnabled){configureCloudCustomer();await configurePaymentChoice($('#order-form'));}
   else if(!config.demoEnabled){$('#demo-checkout-panel').hidden=true;$('.demo-workflow').hidden=true;}
  }catch(error){$('#menu-status').textContent=error.message;$('#demo-checkout-panel').hidden=true;$('.demo-workflow').hidden=true;state.browseOnly=true;for(const form of $$('form'))$('button[type=submit]',form)?.setAttribute('disabled','');return;}
  if(demoMode){try{await activateDemo();}catch(error){$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML=`<div class="empty-state"><h3>The demo couldn’t open.</h3><p>${escape(error.message)}</p><button class="button button-outline" id="recover-customer-demo">Reset fictional demo data</button></div>`;}return;}

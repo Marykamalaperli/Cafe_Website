@@ -65,6 +65,7 @@ form.addEventListener('submit', async event => {
 try {
  const config = await cloudConfig();
  if (!config.enabled) throw new Error('Supabase accounts are not configured on this deployment yet.');
+ if(config.reviewSandbox){$('#show-signup').hidden=true;$('#forgot-password').hidden=true;$('#auth-description').textContent='Use one of the three preset review accounts. This isolated demo does not send confirmation or recovery emails.';}
  const client = await cloudClient();
  client.auth.onAuthStateChange(event => { if (event === 'PASSWORD_RECOVERY') { recovery = true; setMode('update'); } });
  // Initializing auth completes PKCE confirmation/recovery callbacks before reading the role.

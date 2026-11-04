@@ -28,9 +28,17 @@ Email/password signup, confirmation, sign-in, recovery and sign-out are implemen
 5. Sign in as administrator → **Settings → Upload menu photographs**. All 40 licensed images upload to **Storage → menu-images → Files → files/** and become the menu's image URLs. Use **Staff access** to assign confirmed chef accounts.
 6. Run `npm run supabase:verify` for read-only Cloud readiness checks.
 
-[Complete Supabase instructions, table fields, role matrix and verification](docs/supabase.md).
+[Complete Supabase instructions, table fields, role matrix and verification](docs/supabase.md). For an already configured project, use the forward migration instructions below; do not rerun the baseline after upgrading to schema 3 or later.
 
 The SDK is served locally. Generated browser configuration intentionally includes only the public project URL/publishable key. Secret/service-role keys are rejected, `.env.local` stays ignored, and no management token is required. Start/dev/build commands load `.env.local`. A failed Cloud request never saves to SQLite or the fictional browser store.
+
+## YouPI payments, email and courier review
+
+The extension on `preview/youpi-demo` integrates the [YouPI-PG](https://github.com/youpi-pg/YouPI-PG) `MANUAL_UPI` REST/webhook contract, an order-email queue with a Resend adapter, and quoted Porter two-wheeler dispatch. A UPI reference or gateway success event never approves payment: an administrator checks the receiving bank account before the kitchen receives the ticket. Provider credentials, a hosted YouPI backend, restaurant pickup details and live UAT checks remain pending.
+
+`npm run build:review` builds a separate credential-free `/review/` sandbox with isolated browser PostgreSQL and explicitly simulated providers. `npm run demo:review` runs the internal Node version. Neither build changes Supabase Cloud. [Manual SQL upgrades, provider settings, verification and review instructions](docs/order-services.md).
+
+The prepared `.github/workflows/review.yml` runs only on `preview/youpi-demo`. It builds the production root from `main` and adds the isolated sandbox under `/review/`; it does not merge preview code into main or deploy server functions. GitHub Pages requires a branch commit to host this review. No preview has been published by creating that workflow. The `github-pages` environment may need to allow this preview branch in repository deployment settings. A later main deployment replaces the complete Pages artifact and removes the review folder.
 
 ## Local three-role demonstration
 
@@ -48,7 +56,7 @@ The earlier fictional customer/kitchen/admin workflow remains available only whe
 - The server recalculates dish prices, portion surcharges, add-ons and delivery fees from authoritative data. Prices are integer paise. Client-supplied totals are ignored.
 - Orders and option/price snapshots, contact messages, newsletter subscriptions and reservations persist in Supabase when configured. SQLite remains the local unconfigured preview. Public endpoints do not expose customer records.
 
-**Requests save in Supabase after setup, or in SQLite in the local preview.** Payment processing, email delivery and delivery dispatch are not integrated. Forms explicitly describe demo requests and do not claim a confirmed visit or fulfilment from an unannounced business address. Recipe labels are samples, not guarantees about allergen handling.
+**Requests save in Supabase after setup, or in SQLite in the local preview.** Payment, email and dispatch adapters are prepared in the review extension above; they are not connected to live providers until the forward SQL, server function and provider settings are applied and verified. Recipe labels are samples, not guarantees about allergen handling.
 
 ## Time-based recommendations and photographs
 
@@ -127,4 +135,4 @@ An order line is `{ "id": "masala-dosa", "quantity": 2, "variant": "ghee-roast",
 
 [Three-role demonstration](docs/three-role-demo.md) · [Implementation report](docs/redesign-report.md) · [Architecture](docs/architecture.md) · [Design system](design_system.md) · [Agent instructions](agents.md) · [Credits](docs/credits.md) · [Deployment](docs/deployment.md)
 
-For the unconfigured SQLite preview, use a single Node instance with persistent local disk. Terminate HTTPS at the hosting provider/reverse proxy; configure per-client abuse limits there because the application does not trust forwarded IP headers. Keep SQLite-aware backups and never delete `data/` to refresh a menu. Email notifications, payments, request fulfilment and a final privacy/retention policy remain explicit live-service integrations. Supabase authentication, staff roles and Storage are implemented; apply the supplied SQL and deployment settings to activate them.
+For the unconfigured SQLite preview, use a single Node instance with persistent local disk. Terminate HTTPS at the hosting provider/reverse proxy; configure per-client abuse limits there because the application does not trust forwarded IP headers. Keep SQLite-aware backups and never delete `data/` to refresh a menu. Live provider activation, request fulfilment and a final privacy/retention policy remain owner setup steps. Supabase authentication, staff roles and Storage are implemented; apply the supplied SQL and deployment settings to activate them.

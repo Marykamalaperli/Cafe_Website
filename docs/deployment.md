@@ -22,6 +22,8 @@ Before accepting real traffic, verify customer own-order isolation, rejected cus
 
 This change does not push or deploy automatically. Review it, apply the owner-run SQL and configure the deployment variables before publishing.
 
+The prepared payment/email/dispatch extension has [separate forward migrations and backend configuration](order-services.md). YouPI itself requires a running server; GitHub Pages cannot host it. The optional `review.yml` workflow publishes a simulated sandbox under `/review/` from `preview/youpi-demo`, while building the root from `main`. It needs a preview-branch commit and Pages environment access; no preview deployment is triggered by preparing these files locally. A normal main deployment replaces the complete artifact, including removal of a previously published review folder.
+
 ## Optional native Node hosting
 
 `npm start` builds the local SDK and starts Node 24. Set `SITE_URL` to the actual HTTPS origin and configure the same two public Supabase variables in the host. Node selects Supabase and does not open SQLite in that mode. `/api/health` queries applied schema readiness; writes require a customer Bearer session and pass through database role checks. Configure host/proxy client-IP abuse limits; the Node limiter trusts no forwarded headers by default.

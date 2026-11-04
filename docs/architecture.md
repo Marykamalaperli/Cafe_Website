@@ -9,6 +9,11 @@ flowchart LR
   Frontend -->|Publishable key + caller JWT| RPC[Role-checked Postgres functions / RLS]
   RPC --> DB[(Supabase Postgres)]
   Frontend -->|Admin upload / public food-image read| Storage[menu-images / files]
+  Frontend -->|Caller JWT| Services[Supabase order-services Edge Function]
+  Services -->|Server-only service RPCs| DB
+  Services --> YouPI[Hosted YouPI MANUAL_UPI API]
+  YouPI -->|Signed UTR claim webhook| Services
+  Services --> Providers[Resend email / Porter courier]
   Node[Optional Node HTTP API] -->|Verified caller JWT| RPC
 ```
 
@@ -47,6 +52,10 @@ supabase/
 ```
 
 ## Authentication and access
+
+The review extension adds `supabase/functions/order-services` and forward migrations 003–005 for payments, email jobs, courier booking and YouPI claims. The service verifies the caller against Auth and protected roles before using service-only RPCs. Signed YouPI claims never mark an order paid; a separate authenticated administrator bank-receipt check does. `public/shared/order-services*.js` extends checkout, tracking and admin settings using the existing styles. See [order-services.md](order-services.md) for setup and live-verification boundaries.
+
+`review/`, `server/review-*.js` and `scripts/build-review.js` supply an isolated review using actual PostgreSQL business functions and simulated external services. Only the separate static review build installs its scoped service worker and browser database. It contains no production URL/key and never uses live Auth, orders or providers. `build:pages` does not include this harness.
 
 The browser receives only a public project URL and publishable key through generated `supabase-config.json`. The official SDK is copied locally from the locked dependency. Secret/service-role keys are rejected by configuration validation. No management credential is needed at runtime or in Actions.
 

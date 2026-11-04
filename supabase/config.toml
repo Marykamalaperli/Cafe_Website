@@ -1,0 +1,4 @@
+[functions.order-services]
+# YouPI and optional Razorpay webhooks have no Supabase JWT. The handler validates JWTs on user/admin
+# routes, a separate worker token on jobs, and the raw-body HMAC on webhooks.
+verify_jwt = false

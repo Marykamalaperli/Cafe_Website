@@ -89,13 +89,16 @@ export function createApp({ db, siteUrl = 'http://localhost:3000', timezone = 'A
   new Intl.DateTimeFormat('en', { timeZone: timezone }); // Fail fast on invalid configuration.
   const rateBuckets = new Map();
   const windowMs = 15 * 60 * 1000;
+  const gatewayScripts=cloud.enabled?' https://checkout.razorpay.com':'';
+  const gatewayConnections=cloud.enabled?' https://api.razorpay.com https://checkout.razorpay.com':'';
+  const gatewayFrames=cloud.enabled?"; frame-src https://api.razorpay.com https://checkout.razorpay.com":"; frame-src 'none'";
 
   return async function app(req, res) {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:${cloud.enabled ? ' ' + cloud.url + '/storage/v1/object/public/menu-images/' : ''}; connect-src 'self'${cloud.enabled ? ' ' + cloud.url : ''}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`);
+    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self'${gatewayScripts}${gatewayFrames}; style-src 'self'; font-src 'self'; img-src 'self' data:${cloud.enabled ? ' ' + cloud.url + '/storage/v1/object/public/menu-images/' : ''}; connect-src 'self'${gatewayConnections}${cloud.enabled ? ' ' + cloud.url : ''}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`);
     try {
       const url = new URL(req.url, 'http://local');
       const path = url.pathname;

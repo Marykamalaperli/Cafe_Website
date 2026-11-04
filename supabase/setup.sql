@@ -5,6 +5,11 @@ set local standard_conforming_strings=on;
 
 do $guard$
 begin
+  if to_regclass('public.bitesbro_schema_migrations') is not null then
+    if exists(select 1 from public.bitesbro_schema_migrations where version>2) then
+      raise exception 'This project already uses order-service migrations. Apply forward migrations only; do not rerun the version-2 setup baseline.';
+    end if;
+  end if;
   if to_regclass('public.bitesbro_schema_migrations') is null and exists (
     select 1 from information_schema.tables where table_schema = 'public'
     and table_name in ('profiles','user_roles','menu_items','menu_categories','menu_photos',

@@ -3,8 +3,9 @@ import { $, $$, escape, money, badge, localDate, localTime, siteURL, announce, s
 import { demoMetrics, STATUSES, STATUS_LABELS } from '../shared/demo-model.js?v=three-roles-2';
 import {rpc} from '../shared/cloud.js';
 import {uploadMenuPhotos} from '../shared/photo-upload.js';
+import{mountOrderServicesAdmin}from'../shared/order-services-admin.js';
 
-let store, menuLimit = 12, editingId;
+let store, menuLimit = 12, editingId,renderServices=()=>{};
 const titles = {
  overview: ['Your daily <em>overview.</em>', 'A live view of the fictional orders, menu and kitchen activity in this browser.'],
  orders: ['Every order. <em>One view.</em>', 'Follow preparation, inspect customisations and manage permitted demonstration status changes.'],
@@ -44,6 +45,7 @@ function renderReports(metrics) {
  $('#daily-summary').innerHTML = `<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th scope="col">Bangalore date</th><th scope="col">Orders placed</th><th scope="col">Collected</th><th scope="col">Simulated sales</th></tr></thead><tbody>${[...metrics.days].reverse().map(day => `<tr><td>${escape(localDate(day.date + 'T12:00:00+05:30'))}</td><td>${day.orders}</td><td>${day.collected}</td><td>${money(day.sales)}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function render(state) {
+ renderServices(state);
  const metrics = demoMetrics(state);
  $('#admin-stats').innerHTML = statCard('total', 'Total demo orders', metrics.totalOrders, 'All statuses in this browser', true) + statCard('preparing', 'In preparation', metrics.counts.preparing, 'On the kitchen’s active queue') + statCard('ready', 'Ready for collection', metrics.counts.ready, 'Prepared and waiting') + statCard('collected', 'Collected orders', metrics.counts.collected, `${metrics.counts.cancelled} cancelled · ${metrics.counts.received} received`) + statCard('sales', 'Simulated sales', money(metrics.sales), 'Collected orders only') + statCard('available', 'Available dishes', metrics.available, `${state.menu.filter(item => !item.archived).length} active menu items`);
  $('#popular-items').innerHTML = metrics.popular.slice(0, 5).map((item, index) => `<li><span class="popular-rank">${index + 1}</span><span>${escape(item.name)}</span><strong>${item.quantity} ordered</strong></li>`).join('') || '<li>No fictional orders yet.</li>';
@@ -68,7 +70,9 @@ function openEditor(id) {
 }
 
 await startOperations('admin', render, async (connection, redraw) => {
- store = connection; selectPanel(); window.addEventListener('hashchange', selectPanel);
+ store = connection;
+ if(store.live&&(store.read().orderServicesVersion||0)>=3){titles.deliveries=['Every delivery. <em>In motion.</em>','Assign riders and follow delivery progress.'];renderServices=await mountOrderServicesAdmin(store);}
+ selectPanel(); window.addEventListener('hashchange', selectPanel);
  if(store.live){
   $('.reset-panel').hidden=true;$('#reset-dialog').remove();
   const section=document.createElement('div');section.className='ops-two-col';

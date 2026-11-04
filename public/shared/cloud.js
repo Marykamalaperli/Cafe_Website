@@ -23,8 +23,11 @@ export async function cloudClient() {
    script.onerror=()=>reject(new Error('The account SDK could not load. Reload to retry.'));
    document.head.append(script);
   });
+  let reviewKey;
+  if(config.reviewSandbox){config.url=new URL(config.url,location.origin).href;const chosen=new URL(location.href).searchParams.get('reviewRole');if(['customer','chef','admin'].includes(chosen))sessionStorage.setItem('bitesbro.review.role',chosen);reviewKey='bitesbro-review-'+(sessionStorage.getItem('bitesbro.review.role')||'customer');}
+  if(config.reviewSandbox&&!document.querySelector('.review-banner')){const banner=document.createElement('p');banner.className='review-banner';banner.textContent='Isolated review demo · simulated payments, emails and deliveries · no real charges';document.body.prepend(banner);}
   return globalThis.supabase.createClient(config.url, config.publishableKey, {
-   auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+   auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true,...(config.reviewSandbox?{storage:sessionStorage,storageKey:reviewKey}:{}) },
    global: { fetch: (url, options) => fetch(url, { ...options, signal: options?.signal || AbortSignal.timeout(20000) }) }
   });
  })();

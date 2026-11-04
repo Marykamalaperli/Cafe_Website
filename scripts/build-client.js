@@ -7,6 +7,7 @@ export function buildClient(root = 'public', env = process.env) {
  mkdirSync(`${root}/vendor`, { recursive: true });
  cpSync('node_modules/@supabase/supabase-js/dist/umd/supabase.js', `${root}/vendor/supabase.js`);
  cpSync('node_modules/@supabase/supabase-js/LICENSE', `${root}/vendor/supabase.LICENSE.txt`);
+ cpSync('node_modules/qrcode-generator/dist/qrcode.mjs',`${root}/vendor/qrcode.mjs`);
  writeFileSync(`${root}/supabase-config.json`, JSON.stringify(config) + '\n');
  console.log(`Prepared local Supabase browser SDK; cloud backend ${config.enabled ? 'configured' : 'not configured'}.`);
  return config;

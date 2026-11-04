@@ -23,13 +23,17 @@
     "supabase:prepare": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/prepare-supabase.js",
     "supabase:verify": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --use-env-proxy scripts/verify-supabase.js",
     "supabase:photos": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --use-env-proxy scripts/upload-menu-photos.js",
-    "build:pages": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/build-pages.js"
+    "build:pages": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/build-pages.js",
+    "demo:review": "node scripts/build-client.js && node server/review-demo.js",
+    "build:review": "node scripts/build-review.js",
+    "preview:review": "node scripts/serve-review.js"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.15",
     "@playwright/test": "^1.64.1"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.118.0"
+    "@supabase/supabase-js": "^2.118.0",
+    "qrcode-generator": "^2.0.4"
   }
 }

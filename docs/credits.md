@@ -1,6 +1,8 @@
 # Assets and credits
 
-Supabase authentication, database and Storage use the official `@supabase/supabase-js` SDK (MIT). Its official browser bundle and licence are copied locally at build time. The isolated PostgreSQL security tests use `@electric-sql/pglite` (Apache-2.0); it is a development dependency and does not run in the website.
+Supabase authentication, database and Storage use the official `@supabase/supabase-js` SDK (MIT). Its official browser bundle and licence are copied locally at build time. The isolated PostgreSQL tests and separate review sandbox use `@electric-sql/pglite` (Apache-2.0). The review build includes its licence; PGlite is not included in the production Pages build.
+
+The optional direct-UPI QR is generated locally with `qrcode-generator` by Kazuhiko Arase (MIT), retaining the copyright/licence header. The YouPI REST integration is original adapter code based on the public contract of `youpi-pg/YouPI-PG` revision `405327c27d78ae9d0dccdb1e2d2426cefc359477`; no upstream SDK/application code or APK is redistributed. See [order services](order-services.md) for the upstream licence uncertainty and setup requirements.
 
 ## Fonts
 

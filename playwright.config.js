@@ -24,11 +24,23 @@ export default defineConfig({
     trace: 'retain-on-failure',
     launchOptions: { executablePath, args: ['--no-sandbox', '--disable-dev-shm-usage'] }
   },
-  webServer: {
+  webServer: [{
     command: 'node server/index.js',
     url: 'http://127.0.0.1:3100/api/health',
     reuseExistingServer: false,
     timeout: 15000,
     env: { HOST: '127.0.0.1', PORT: '3100', SITE_URL: 'http://127.0.0.1:3100', DATABASE_PATH: join(databaseFolder, 'cafe.sqlite'), RATE_LIMIT_MAX: '1000', APP_DEMO_MODE: 'true' }
-  }
+  },{
+    command:'node server/review-demo.js',
+    url:'http://127.0.0.1:3210/api/health',
+    timeout:30000,
+    reuseExistingServer:false,
+    env:{REVIEW_PORT:'3210',REVIEW_HOST:'127.0.0.1'}
+  },{
+    command:'npm run build:review && node scripts/serve-review.js',
+    url:'http://127.0.0.1:3212/Cafe_Website/review/review.html',
+    timeout:30000,
+    reuseExistingServer:false,
+    env:{STATIC_REVIEW_PORT:'3212'}
+  }]
 });

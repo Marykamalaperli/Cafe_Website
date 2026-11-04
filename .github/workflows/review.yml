@@ -1,0 +1,62 @@
+name: Publish isolated YouPI review
+
+on:
+  push:
+    branches: [preview/youpi-demo]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.ref == 'refs/heads/preview/youpi-demo'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}review/review.html
+    steps:
+      - name: Checkout review source
+        uses: actions/checkout@v4
+        with:
+          path: review-source
+      - name: Checkout production main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production-source
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build production root from main
+        working-directory: production-source
+        run: npm ci && npm run build:pages
+        env:
+          PAGES_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          REQUIRE_SUPABASE: 'true'
+      - name: Build isolated review without production credentials
+        working-directory: review-source
+        run: npm ci && npm run build:review
+        env:
+          REVIEW_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/review/
+      - name: Add review folder to the production artifact
+        run: |
+          cp -R review-source/_review_site production-source/_site/review
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload combined artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: production-source/_site
+      - name: Publish Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

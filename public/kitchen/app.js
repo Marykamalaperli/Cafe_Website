@@ -7,6 +7,7 @@ function ticket(order) {
  return `<article class="ticket-card" data-ticket="${escape(order.reference)}"><div class="ticket-card-header"><div><h3>${escape(order.reference)}</h3><p>${localDate(order.createdAt)} · ${localTime(order.createdAt)}<br>${escape(order.fulfilment)} · ${store?.live ? escape(order.date+' '+order.time) : order.origin === 'sample' ? 'Sample ticket' : 'Customer demo'}</p></div>${badge(order.status)}</div><div class="ticket-card-body">${orderItems(order)}<p class="ticket-instructions"><strong>Preparation note</strong>${escape(store?.live ? order.instructions||'Standard preparation' : INSTRUCTIONS[order.instruction])}</p><div class="ticket-actions">${orderActions(order, 'kitchen')}<button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}">Details</button></div></div></article>`;
 }
 function render(state) {
+ state={...state,orders:state.orders.filter(order=>order.payment?.ready!==false)};
  const { counts } = demoMetrics(state);
  $('#kitchen-stats').innerHTML = statCard('received', 'Just received', counts.received, 'Ready to start', true) + statCard('preparing', 'On the stove', counts.preparing, 'Currently preparing') + statCard('ready', 'Ready to collect', counts.ready, 'Waiting at the counter') + statCard('collected', 'Collected', counts.collected, `${counts.cancelled} cancelled demo orders`);
  const statuses = queue === 'active' ? ['received', 'preparing', 'ready'] : queue === 'history' ? ['collected', 'cancelled'] : [queue];
