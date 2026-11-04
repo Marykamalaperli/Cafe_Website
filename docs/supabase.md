@@ -10,6 +10,8 @@ In **Bites_Bro_Website → SQL Editor**, open a new query, paste the complete co
 
 The source migrations are [001_bitesbro.sql](../supabase/migrations/001_bitesbro.sql) and [002_catalogue.sql](../supabase/migrations/002_catalogue.sql). The combined file can be rerun without resetting orders, staff assignments, owner menu edits or uploaded photographs. It refuses to adopt unrelated existing application tables or a pre-existing `menu-images` bucket. Review such a conflict instead of deleting existing data.
 
+The combined file is the version-2 baseline. The [guest-checkout extension](guest-checkout.md) uses forward migration **006_guest_checkout.sql**, which can run directly after version 2. After any newer migration, the baseline refuses to run so it cannot overwrite upgraded permission functions. Use forward migrations rather than resetting tables or deleting migration markers.
+
 `npm run supabase:prepare` regenerates the seed and combined SQL. If a local SQLite file exists, the generator reads **menu rows only** in a read-only transaction, including paused dishes and edited prices; otherwise it uses the sample catalogue. Custom images require their licence/hash in the photo manifest first. It never exports customer tables. The local database inspected for this change contained 50 dishes and no customer records. Future SQLite customer-history transfers need a separate, private migration with explicit account ownership; never infer ownership from an unverified email or publish an export in `public/`.
 
 ## 2. Configure email authentication
@@ -42,11 +44,14 @@ For chefs: create/confirm their accounts normally, then sign in as administrator
 | Account | Pages and data | Changes allowed |
 | --- | --- | --- |
 | Visitor | Public menu, recommendations, auth | Create account / request password reset |
+| Guest (after activation) | Customer menu and that guest session's own order history | Place food orders without signup; cancel own received orders |
 | Customer | Customer site and their own `/orders/` history | Place orders, cancel own received orders, submit own forms |
 | Chef | `/kitchen/`; preparation tickets without contact/address fields | Received → Preparing → Ready → Collected; dish availability |
 | Administrator | `/admin/` and `/kitchen/`; operational and customer records | Kitchen actions, permitted cancellations, menu editing/archive, settings, staff roles, photo uploads |
 
 New signups always get `customer`, even if a caller supplies `role: admin` in user metadata. Roles live in a protected `user_roles` table, not editable profile fields. No public role picker or `?demo=1` parameter can override Supabase access.
+
+Guest checkout uses Supabase anonymous Auth sessions after [its two activation steps](guest-checkout.md). It sends no signup email and does not relax staff confirmation requirements. Guest contact email is unverified, and matching it to another customer never exposes that customer's orders.
 
 ## 4. Configure the frontend
 

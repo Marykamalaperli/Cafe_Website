@@ -30,6 +30,8 @@ Email/password signup, confirmation, sign-in, recovery and sign-out are implemen
 
 [Complete Supabase instructions, table fields, role matrix and verification](docs/supabase.md).
 
+**Guest checkout:** Customers can order without signup or email confirmation after the owner runs [006_guest_checkout.sql](supabase/migrations/006_guest_checkout.sql) and enables Supabase **Anonymous Sign-Ins**. Their private guest session controls order tracking; admin/kitchen access still requires confirmed staff credentials. Domain and SMTP setup can wait. [Guest setup and verification](docs/guest-checkout.md).
+
 The SDK is served locally. Generated browser configuration intentionally includes only the public project URL/publishable key. Secret/service-role keys are rejected, `.env.local` stays ignored, and no management token is required. Start/dev/build commands load `.env.local`. A failed Cloud request never saves to SQLite or the fictional browser store.
 
 ## Local three-role demonstration

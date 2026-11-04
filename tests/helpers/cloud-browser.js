@@ -11,9 +11,9 @@ const users=[['customer','customer@bitesbro.invalid'],['chef','chef@bitesbro.inv
  user_metadata:{display_name:role==='customer'?'Test Customer':'Test Staff',role:'admin'},email_confirmed_at:'2026-01-01T00:00:00Z',aud:'authenticated'
 }));
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'};
-export function cloudFixture(){
+export function cloudFixture({guestReady=true,guestAuthEnabled=true}={}){
  const roles=new Map(users.map(user=>[user.id,user.role])),tokens=new Map(),uploads=new Map(),linked=new Map();
- const calls=[],orders=[];let sequence=1,settings={acceptingOrders:true,prepMinutes:25};
+ const calls=[],orders=[],guestUsers=[];let sequence=1,settings={acceptingOrders:true,prepMinutes:25};
  function session(user){
   const exp=Math.floor(Date.now()/1000)+3600;
   const token=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp,aud:'authenticated'}].map(value=>Buffer.from(JSON.stringify(value)).toString('base64url')).join('.')+'.test-signature';
@@ -27,7 +27,7 @@ export function cloudFixture(){
  async function attach(context){
   await context.route('**/*',async route=>{
    const request=route.request(),url=new URL(request.url());
-   const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info,x-supabase-api-version,cache-control,x-upsert','Access-Control-Allow-Methods':'GET,POST,PUT,DELETE,OPTIONS'};
+   const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info,x-supabase-api-version,cache-control,x-upsert','Access-Control-Allow-Methods':'GET,POST,PUT,DELETE,OPTIONS','X-Supabase-Api-Version':'2024-01-01','Access-Control-Expose-Headers':'X-Supabase-Api-Version'};
    const respond=(json,status=200)=>route.fulfill({status,headers,contentType:'application/json',body:JSON.stringify(json)});
    if(url.origin===new URL(CLOUD).origin){
     if(request.method()==='OPTIONS')return route.fulfill({status:204,headers});
@@ -41,7 +41,13 @@ export function cloudFixture(){
      return found&&body.password===PASSWORD?respond(session(found)):respond({error:'invalid_grant',error_description:'Invalid login credentials'},400);
     }
     if(url.pathname==='/auth/v1/user')return user?respond(user):denied();
-    if(url.pathname==='/auth/v1/signup')return respond({id:'new-customer',email:body.email,user_metadata:body.data});
+    if(url.pathname==='/auth/v1/signup'){
+     if(!body.email&&!body.password){
+      if(!guestAuthEnabled)return respond({code:'anonymous_provider_disabled',message:'Anonymous sign-ins are disabled'},422);
+      const guest={id:crypto.randomUUID(),is_anonymous:true,email:null,user_metadata:{},aud:'authenticated',role:'authenticated'};guestUsers.push(guest);roles.set(guest.id,'customer');return respond(session(guest));
+     }
+     return respond({id:'new-customer',email:body.email,user_metadata:body.data});
+    }
     if(url.pathname==='/auth/v1/recover'||url.pathname==='/auth/v1/logout')return respond({});
     if(url.pathname.startsWith('/rest/v1/rpc/')){
      const name=url.pathname.split('/').at(-1);
@@ -49,6 +55,7 @@ export function cloudFixture(){
      if(name==='get_menu')return respond({...catalogue,items:menu()});
      if(name==='get_cafe')return respond({name:'BitesBro',city:'Bangalore',timezone:'Asia/Kolkata',currency:'INR',serverTime:'2030-05-31T04:00:00Z',today:'2030-05-31',currentTime:'09:30',hours:'Daily, 10am–3pm & 6pm–11pm',openingPeriods:[{open:'10:00',close:'15:00'},{open:'18:00',close:'23:00'}],foodSlots:['10:00','10:30','18:00'],slots:['10:00','11:30','18:00'],maxAdvanceDays:60,maxGuests:8,deliveryFee:4000,freeDeliveryFrom:49900,demo:true,...settings});
      if(name==='get_slots')return respond({slots:['10:00','10:30','11:30','18:00'].map(time=>({time,available:true,past:false,seatsLeft:24}))});
+     if(name==='get_guest_checkout_status')return respond({enabled:guestReady});
      if(!role)return denied();
      if(name==='get_operations')return respond({categories:catalogue.categories,menu:menu(),orders:orders.filter(order=>role!=='customer'||order.owner===user.id).map(order=>publicOrder(order,role)),settings,activity:[]});
      if(name==='place_order'){
@@ -57,7 +64,7 @@ export function cloudFixture(){
       if(previous)return respond(publicOrder(previous,role));
       const items=p.items.map(line=>{const item=catalogue.items.find(item=>item.id===line.id),variant=item.variants.find(v=>v.id===line.variant)||item.variants[0],addons=item.addons.filter(a=>line.addons?.includes(a.id));return{id:item.id,name:item.name,image:item.image,quantity:line.quantity,unitPrice:item.price+variant.price+addons.reduce((n,a)=>n+a.price,0),options:{variant,spice:line.spice||item.spice,addons}};});
       const subtotal=items.reduce((sum,item)=>sum+item.quantity*item.unitPrice,0),deliveryFee=p.fulfilment==='delivery'&&subtotal<49900?4000:0,createdAt=new Date().toISOString();
-      const order={reference:'BB-ORDER-TEST'+sequence++,owner:user.id,requestId:p.requestId,origin:'customer',name:p.name,email:user.email,phone:p.phone,address:p.address||'',postcode:p.postcode||'',date:p.date,time:p.time,fulfilment:p.fulfilment,instructions:p.instructions||'',status:'received',createdAt,subtotal,deliveryFee,total:subtotal+deliveryFee,items,timeline:[{status:'received',at:createdAt}]};
+      const order={reference:'BB-ORDER-TEST'+sequence++,owner:user.id,requestId:p.requestId,origin:'customer',name:p.name,email:user.is_anonymous?p.email:user.email,phone:p.phone,address:p.address||'',postcode:p.postcode||'',date:p.date,time:p.time,fulfilment:p.fulfilment,instructions:p.instructions||'',status:'received',createdAt,subtotal,deliveryFee,total:subtotal+deliveryFee,items,timeline:[{status:'received',at:createdAt}]};
       orders.push(order);return respond({...publicOrder(order,role),message:'Your food order is saved. No payment is taken.'});
      }
      if(name==='transition_order'){
@@ -92,7 +99,7 @@ export function cloudFixture(){
    try{return route.fulfill({status:200,contentType:mime[extname(file)]||'application/octet-stream',body:await readFile(file)});}catch{return respond({error:'not found'},404);}
   });
  }
- return{attach,calls,orders,uploads,linked,roles,users,manifest};
+ return{attach,calls,orders,uploads,linked,roles,users,guestUsers,manifest};
 }
 export async function signIn(page,role,next=''){
  const user=users.find(user=>user.role===role);

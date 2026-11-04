@@ -7,6 +7,7 @@ import { connectCloudStore } from './cloud-store.js';
 // Preserve the operational layouts, while removing historical demo copy in cloud mode.
 export function liveCopy(root = document.body) {
  if (document.body.dataset.live !== 'true') return;
+ const guest = document.body.dataset.guest === 'true';
  const walker = document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  let node;
  while ((node=walker.nextNode())) {
@@ -16,7 +17,9 @@ export function liveCopy(root = document.body) {
    .replace(/A live view of the fictional orders, menu and kitchen activity in this browser\./g,'Orders, menu and kitchen activity saved in Supabase.')
    .replace(/Prices and availability change only in this browser demo\./g,'Prices and availability are saved in Supabase.')
    .replace(/These switches update the demo customer menu and administrator view\. The actual restaurant database is unchanged\./g,'Availability changes update the customer menu and administrator view.')
-   .replace(/This is a browser-based simulation[\s\S]*/g,'Your order history is visible only to your account and authorised staff.')
+   .replace(/This is a browser-based simulation[\s\S]*/g,guest?'Your orders are private to this guest session and authorised staff.':'Your order history is visible only to your account and authorised staff.')
+   .replace(/Demo order history/gi,guest?'Guest order history':'Order history')
+   .replace(/Your demonstration order/gi,'Your order').replace(/Follow your demonstration order/g,'Follow your order')
    .replace(/Simple preferences for this demonstration\. Real business settings and SQLite stay unchanged\./g,'Manage ordering and kitchen preparation settings.')
    .replace(/Staff sign-in and server-side role permissions are required before connecting real operations\./g,'Staff sign-in is required. Administrators manage kitchen access in Settings.')
    .replace(/Changes sync between tabs in this browser only\./g,'Updates refresh from Supabase every eight seconds.')
@@ -51,6 +54,7 @@ export async function startOperations(role, render, setup = () => {}) {
   const config=await cloudConfig(); const account=await requireRole(role);
   if(!account) return null;
   if(config.enabled) document.body.dataset.live='true';
+  if(account.guest)document.body.dataset.guest='true';
   await mountRoleNavigation(role,!config.enabled,account.demo?undefined:account);
   store = config.enabled ? await connectCloudStore(role) : await connectDemoStore();
   if(config.enabled){

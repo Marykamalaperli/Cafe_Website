@@ -74,7 +74,7 @@ try {
  form.hidden = false;
  if (!recovery) {
   const account = await identity();
-  if (account) location.replace(safeDestination(new URL(location.href).searchParams.get('next'), account.role));
-  else setMode('signin');
+  if (account && !account.guest) location.replace(safeDestination(new URL(location.href).searchParams.get('next'), account.role));
+  else {setMode('signin');if(account?.guest)$('#auth-description').textContent='You are using guest checkout. Signing in switches accounts; guest orders do not move to the other account.';}
  }
 } catch (error) { message(error.message, true); }

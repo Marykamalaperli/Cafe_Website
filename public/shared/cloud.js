@@ -1,7 +1,7 @@
 // Cloud requests always use the signed-in user's JWT and Postgres RLS. No service key.
 const root = new URL('../', import.meta.url);
 export const rootURL = path => new URL(path.replace(/^\//, ''), root).href;
-let configPromise, clientPromise;
+let configPromise, clientPromise, guestPromise;
 export function cloudConfig() {
  return configPromise ||= fetch(rootURL('supabase-config.json'), { cache: 'no-store', signal: AbortSignal.timeout(12000) }).then(async response => {
   if (!response.ok) throw new Error('Account configuration could not load. Reload to retry.');
@@ -60,7 +60,37 @@ export async function identity() {
  if (error || !data.session) return null;
  // The role comes from a protected DB table, never local storage or user_metadata.
  const role = await rpc('my_role');
- return role ? { user: data.session.user, role } : null;
+ return role ? { user: data.session.user, role, guest: data.session.user.is_anonymous === true } : null;
+}
+export async function ensureGuestCustomer() {
+ if (guestPromise) return guestPromise;
+ const start = async () => {
+  const account = await identity();
+  if (account) return account;
+  const client = await cloudClient();
+  const { data: current } = await client.auth.getSession();
+  if (current.session) throw new Error('Your account access is not ready. Please sign in again.');
+  try {
+   const status = await rpc('get_guest_checkout_status');
+   if (!status.enabled) throw new Error('Guest checkout is unavailable.');
+  } catch {
+   throw new Error('Guest checkout is not available yet. Please try again later or sign in with an existing account.');
+  }
+  // A guest session has no email/password and sends no signup email. Supabase
+  // issues a private UUID/JWT so existing owner-scoped order policies apply.
+  const { error } = await client.auth.signInAnonymously();
+  if (error) {
+   if (error.status === 429) throw new Error('Guest checkout is busy. Please wait before trying again.');
+   if (error.code === 'anonymous_provider_disabled') throw new Error('Guest checkout is not available yet. Please try again later or sign in with an existing account.');
+   throw new Error('Guest checkout could not start. Please check your connection and try again.');
+  }
+  const guest = await identity();
+  if (!guest || guest.role !== 'customer') throw new Error('Guest checkout could not open. Please try again later.');
+  return guest;
+ };
+ // Serialize creation across tabs too, so two checkouts retain one guest owner.
+ guestPromise = (navigator.locks ? navigator.locks.request('bitesbro-guest-checkout', start) : start()).finally(() => { guestPromise = undefined; });
+ return guestPromise;
 }
 export function loginURL(next = location.href) {
  const url = new URL(rootURL('auth/'));
@@ -100,12 +130,13 @@ export async function cloudRequest(path, options = {}) {
  if (url.pathname.endsWith('/api/menu')) return resolveMenu(await rpc('get_menu'));
  if (url.pathname.endsWith('/api/cafe')) return rpc('get_cafe');
  if (/\/api\/(availability|fulfilment)$/.test(url.pathname)) return rpc('get_slots', { p_date: url.searchParams.get('date'), p_reservation: url.pathname.endsWith('/availability') });
- const account = await identity();
- if (!account || account.role !== 'customer') {
+ const ordering = url.pathname.endsWith('/api/orders');
+ const account = ordering ? await ensureGuestCustomer() : await identity();
+ if (!account || account.role !== 'customer' || (!ordering && account.guest)) {
   const error = new Error('Sign in with a customer account to save this request.'); error.signIn = true; throw error;
  }
  const p = JSON.parse(options.body || '{}');
- if (url.pathname.endsWith('/api/orders')) result = await rpc('place_order', { p });
+ if (ordering) result = { ...await rpc('place_order', { p }), guestCheckout: account.guest === true };
  else result = await rpc('submit_customer_form', { p_kind: url.pathname.split('/').at(-1), p: { ...p, name: p.name || account.user.user_metadata?.display_name || 'Customer' } });
  return result;
 }
