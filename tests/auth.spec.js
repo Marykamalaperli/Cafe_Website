@@ -17,6 +17,21 @@ test('signup requires matching passwords and sends customer display name without
  const signup=fixture.calls.find(call=>call.path.endsWith('/signup'));expect(signup.body.data).toEqual({display_name:'New Customer'});expect(signup.body.data.role).toBeUndefined();
 });
 
+for(const failure of[
+ {code:'email_address_not_authorized',status:403,message:'Email address not authorized',expected:'BitesBro needs its signup email service configured'},
+ {code:'over_email_send_rate_limit',status:429,message:'Email rate limit exceeded',expected:'confirmation email limit has been reached'},
+ {code:'weak_password',status:422,message:'Weak password',expected:'Choose a longer, unique password'},
+ {code:'unexpected_failure',status:500,message:'Error sending confirmation email',expected:'confirmation email could not be sent'},
+ {code:'unexpected_failure',status:500,message:'Database error saving new user',expected:'check its account database configuration'}
+])test(`failed signup explains ${failure.code}: ${failure.message} and preserves the form for retry`,async({page,context})=>{
+ const fixture=cloudFixture();await fixture.attach(context);
+ await page.route('**/auth/v1/signup?**',route=>route.fulfill({status:failure.status,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*','X-Supabase-Api-Version':'2024-01-01','Access-Control-Expose-Headers':'X-Supabase-Api-Version'},body:JSON.stringify({code:failure.code,msg:failure.message,message:failure.message})}));
+ await page.goto(SITE+'auth/');await page.getByRole('button',{name:'Create account',exact:true}).first().click();
+ await page.locator('[name=name]').fill('Signup Fixture');await page.locator('[name=email]').fill('signup@bitesbro.invalid');await page.locator('[name=password]').fill(PASSWORD);await page.locator('[name=confirmation]').fill(PASSWORD);await page.locator('[name=consent]').check();await page.locator('#auth-submit').click();
+ await expect(page.locator('#auth-status')).toContainText(failure.expected);await expect(page.locator('#auth-status')).toContainText(`Reference: ${failure.status>=500?'HTTP '+failure.status:failure.code}`);
+ await expect(page.locator('#auth-status')).not.toContainText('Check your email for a confirmation link');await expect(page.locator('[name=email]')).toHaveValue('signup@bitesbro.invalid');await expect(page.locator('#auth-submit')).toBeEnabled();
+});
+
 test('customer sign-in ignores forged metadata and staff destinations; real checkout and private tracking work',async({page,context})=>{
  const fixture=cloudFixture();await fixture.attach(context);
  await signIn(page,'customer','/Cafe_Website/admin/');await expect(page).toHaveURL(SITE);

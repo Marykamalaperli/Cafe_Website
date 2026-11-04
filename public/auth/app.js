@@ -1,4 +1,5 @@
 import { cloudConfig, cloudClient, identity, roleHome, rootURL } from '../shared/cloud.js';
+import { signupErrorMessage } from './errors.js';
 const $ = selector => document.querySelector(selector);
 const form = $('#auth-form'), status = $('#auth-status');
 let mode = 'signin', busy = false, recovery = false;
@@ -42,7 +43,7 @@ form.addEventListener('submit', async event => {
   const client = await cloudClient(); const redirectTo = rootURL('auth/');
   if (mode === 'signup') {
    const { error } = await client.auth.signUp({ email: values.email.trim(), password: values.password, options: { data: { display_name: values.name.trim() }, emailRedirectTo: redirectTo } });
-   if (error) throw new Error('The account could not be created. Check the details or try signing in.');
+   if (error) throw new Error(signupErrorMessage(error));
    setMode('signin'); message('Check your email for a confirmation link, then sign in. If you already have an account, use your existing password.');
   } else if (mode === 'reset') {
    const { error } = await client.auth.resetPasswordForEmail(values.email.trim(), { redirectTo });

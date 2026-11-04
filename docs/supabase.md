@@ -16,6 +16,10 @@ The source migrations are [001_bitesbro.sql](../supabase/migrations/001_bitesbro
 
 In **Authentication → Providers / Email**, enable email/password signup and email confirmation. Configure the project's email delivery/SMTP as appropriate. Supabase manages confirmation and recovery emails; the app does not send order confirmations.
 
+The built-in Supabase mail sender restricts delivery to approved project-team recipients and has a low sending limit. For customer signup, configure a custom SMTP provider in the project's **Authentication → Email / SMTP Settings**, including a verified sender domain. Signup needs an actual inbox that can receive the confirmation link. Do not disable email confirmation or role checks to work around a mail configuration error.
+
+If signup fails, the website displays a specific safe error and a provider reference code. In **Supabase → Logs → Auth**, inspect the matching failed request: `email_address_not_authorized` needs email-provider setup; `over_email_send_rate_limit` requires waiting or configuring appropriate SMTP limits; `weak_password` needs a stronger password. For `unexpected_failure`, the log distinguishes confirmation-email delivery from a database trigger/permission failure. Public Auth settings cannot reveal SMTP configuration or account-write errors. Do not rerun baseline SQL to guess at an Auth failure; diagnose the log first.
+
 In **Authentication → URL Configuration**, set the Site URL to your frontend, and allow its exact auth callback:
 
 ```text
