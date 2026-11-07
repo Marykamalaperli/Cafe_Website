@@ -22,6 +22,7 @@
 - Use the café timezone for booking dates, not the visitor's or server's local timezone.
 - Supabase writes require authenticated customer/staff roles as appropriate. Node's unconfigured SQLite preview retains the earlier public forms; never use it as a fallback after a Cloud failure. No anonymous endpoint may expose customer records.
 - The owner authorised guest food ordering. Read `docs/guest-checkout.md`: Supabase guest Auth sessions provide private UUID/JWT ownership without signup emails. Guests receive only customer access; admin/chef roles always require confirmed non-guest accounts. Contact email never determines ownership. Apply forward migration 006 manually and enable Anonymous Sign-Ins; do not claim local tests activated Cloud or disable registered-user confirmation. The baseline must not overwrite upgraded permission functions.
+- Read `docs/order-history.md` for migration 007: show guests three recent orders and older active tickets until finished; hide older completed guest data through RPC/RLS while retaining staff records. Members see five per page and retain search/pagination access to all their records. Never delete orders to enforce display limits. Delivery dispatch/arrival is administrator-recorded and does not book a courier. Publish frontend separately from owner-run Cloud SQL.
 - Validate request shape, types, length, dates, availability, and consent on the server. Preserve SQL parameterisation, body limits, same-origin checks, rate limits, and security headers.
 
 ## Interface

@@ -1,4 +1,4 @@
-import { DEMO_BUSINESS, INSTRUCTIONS, STATUS_LABELS, STATUSES, allowedNextStatuses } from './demo-model.js?v=three-roles-2';
+import { DEMO_BUSINESS, INSTRUCTIONS, STATUS_LABELS, STATUSES, allowedNextStatuses } from './demo-model.js?v=history-7';
 import { cloudConfig, identity, signOut, loginURL } from './cloud.js';
 
 export const $ = (selector, root = document) => root.querySelector(selector);
@@ -10,6 +10,8 @@ export const icon = name => `<svg class="icon" aria-hidden="true"><use href="${e
 export const localTime = value => new Intl.DateTimeFormat('en-IN', { timeZone: DEMO_BUSINESS.timezone, hour: 'numeric', minute: '2-digit' }).format(new Date(value));
 export const localDate = value => new Intl.DateTimeFormat('en-IN', { timeZone: DEMO_BUSINESS.timezone, day: 'numeric', month: 'short' }).format(new Date(value));
 export const badge = status => `<span class="status-chip status-${escape(status)}"><span aria-hidden="true"></span>${escape(STATUS_LABELS[status])}</span>`;
+export const orderStatus = order => order.status!=='cancelled'&&order.fulfilment==='delivery'&&['out_for_delivery','delivered'].includes(order.delivery?.status)?order.delivery.status:order.status;
+export const orderBadge = order => badge(orderStatus(order));
 export const optionsText = item => [item.options.variant.label, ...(item.options.spice === 'none' ? [] : [item.options.spice + ' spice']), ...item.options.addons.map(addon => addon.label)].join(' · ');
 
 export async function mountRoleNavigation(role = 'customer', demo = true, knownAccount) {
@@ -48,18 +50,26 @@ export function orderItems(order, images = false) {
 }
 export function orderTimeline(order) {
  if (order.status === 'cancelled') return `<div class="cancelled-note">Cancelled · ${localTime(order.timeline.at(-1).at)}.${document.body.dataset.live==='true'?'':' No payment or refund occurred.'}</div>`;
- return `<ol class="order-timeline">${STATUSES.filter(status => status !== 'cancelled').map(status => {
-  const event = order.timeline.find(event => event.status === status);
-  return `<li class="${event ? 'complete' : ''}" ${order.status === status ? 'aria-current="step"' : ''}><span class="timeline-dot" aria-hidden="true">${event ? '✓' : '○'}</span><strong>${STATUS_LABELS[status]}</strong><small>${event ? localTime(event.at) : 'Waiting for kitchen action'}</small></li>`;
+ const delivery=order.fulfilment==='delivery'&&order.delivery;
+ const stages=delivery?['received','preparing','ready','out_for_delivery','delivered']:STATUSES.filter(status=>status!=='cancelled');
+ return `<ol class="order-timeline ${delivery?'delivery-timeline':''}">${stages.map(status => {
+  const event = [...order.timeline,...(order.delivery?.timeline||[])].find(event => event.status === status);
+  return `<li class="${event ? 'complete' : ''}" ${orderStatus(order) === status ? 'aria-current="step"' : ''}><span class="timeline-dot" aria-hidden="true">${event ? '✓' : '○'}</span><strong>${STATUS_LABELS[status]}</strong><small>${event ? localTime(event.at) : ['out_for_delivery','delivered'].includes(status)?'Waiting for a delivery update':'Waiting for kitchen action'}</small></li>`;
  }).join('')}</ol>`;
 }
 export const actionLabel = status => ({ preparing: 'Start preparing', ready: 'Mark ready', collected: 'Mark collected', cancelled: document.body.dataset.live==='true'?'Cancel order':'Cancel demo order' }[status]);
 export function orderActions(order, role) {
- return allowedNextStatuses(order.status, role).filter(status => role !== 'customer' || order.origin === 'customer').map(status => `<button type="button" class="ops-button ${status === 'cancelled' ? 'ops-button-quiet' : 'ops-button-primary'}" data-order-action="${status}" data-reference="${escape(order.reference)}">${actionLabel(status)}</button>`).join('');
+ const delivery=order.fulfilment==='delivery'&&order.delivery;
+ let actions=allowedNextStatuses(order.status, role).filter(status => (role !== 'customer' || order.origin === 'customer')&&!(delivery&&status==='collected')).map(status => `<button type="button" class="ops-button ${status === 'cancelled' ? 'ops-button-quiet' : 'ops-button-primary'}" data-order-action="${status}" data-reference="${escape(order.reference)}">${actionLabel(status)}</button>`).join('');
+ if(role==='admin'&&delivery&&!order.courier&&order.status!=='cancelled'){
+  const next=order.delivery.status==='out_for_delivery'?'delivered':['unassigned','assigned','failed'].includes(order.delivery.status)&&['ready','collected'].includes(order.status)?'out_for_delivery':null;
+  if(next)actions+=`<button class="ops-button ops-button-primary" type="button" data-delivery-action="${next}" data-reference="${escape(order.reference)}">${next==='delivered'?'Mark delivered':'Mark out for delivery'}</button>`;
+ }
+ return actions;
 }
 export function detailMarkup(order, role) {
- if (document.body.dataset.live === 'true') return `<div class="order-detail-meta">${badge(order.status)}<span>${localDate(order.createdAt)} · ${localTime(order.createdAt)} · ${escape(order.fulfilment)}</span></div><p class="ops-muted">Scheduled: ${escape(order.date)} · ${escape(order.time)} Bangalore time</p>${orderItems(order,true)}<p class="ticket-instructions"><strong>Preparation note</strong>${escape(order.instructions || 'Standard preparation')}</p>${order.name ? `<p>${escape(order.name)} · ${escape(order.email)} · ${escape(order.phone)}</p>${order.fulfilment==='delivery'?`<p>${escape(order.address)} · ${escape(order.postcode)}</p>`:''}` : ''}<dl class="ticket-totals"><div><dt>Food subtotal</dt><dd>${money(order.subtotal)}</dd></div><div><dt>Delivery fee</dt><dd>${money(order.deliveryFee)}</dd></div><div><dt>Order total</dt><dd>${money(order.total)}</dd></div></dl>${orderTimeline(order)}<div class="order-detail-actions">${orderActions(order,role)}</div><p class="ops-muted">Saved in Supabase. No online payment, delivery dispatch or email confirmation is connected.</p>`;
- return `<div class="order-detail-meta">${badge(order.status)}<span>${localDate(order.createdAt)} · ${localTime(order.createdAt)} · ${escape(order.fulfilment)}</span></div>${orderItems(order, true)}<p class="ticket-instructions"><strong>Preparation note</strong>${escape(INSTRUCTIONS[order.instruction])}</p><dl class="ticket-totals"><div><dt>Food subtotal</dt><dd>${money(order.subtotal)}</dd></div><div><dt>Demo delivery</dt><dd>${money(order.deliveryFee)}</dd></div><div><dt>Demonstration total</dt><dd>${money(order.total)}</dd></div></dl>${orderTimeline(order)}<div class="order-detail-actions">${orderActions(order, role)}</div><p class="ops-muted">Fictional demo guest. No contact, address or payment information is stored. Changes sync between tabs in this browser only.</p>`;
+ if (document.body.dataset.live === 'true') return `<div class="order-detail-meta">${orderBadge(order)}<span>${localDate(order.createdAt)} · ${localTime(order.createdAt)} · ${escape(order.fulfilment)}</span></div><p class="ops-muted">Scheduled: ${escape(order.date)} · ${escape(order.time)} Bangalore time</p>${orderItems(order,true)}<p class="ticket-instructions"><strong>Preparation note</strong>${escape(order.instructions || 'Standard preparation')}</p>${order.name ? `<p>${escape(order.name)} · ${escape(order.email)} · ${escape(order.phone)}</p>${order.fulfilment==='delivery'?`<p>${escape(order.address)} · ${escape(order.postcode)}</p>`:''}` : ''}<dl class="ticket-totals"><div><dt>Food subtotal</dt><dd>${money(order.subtotal)}</dd></div><div><dt>Delivery fee</dt><dd>${money(order.deliveryFee)}</dd></div><div><dt>Order total</dt><dd>${money(order.total)}</dd></div></dl>${orderTimeline(order)}<div class="order-detail-actions">${orderActions(order,role)}</div><p class="ops-muted">${order.delivery?'Delivery updates are recorded by restaurant staff. No automatic courier booking or online payment is connected.':'Saved in Supabase. No online payment or email confirmation is connected.'}</p>`;
+ return `<div class="order-detail-meta">${orderBadge(order)}<span>${localDate(order.createdAt)} · ${localTime(order.createdAt)} · ${escape(order.fulfilment)}</span></div>${orderItems(order, true)}<p class="ticket-instructions"><strong>Preparation note</strong>${escape(INSTRUCTIONS[order.instruction])}</p><dl class="ticket-totals"><div><dt>Food subtotal</dt><dd>${money(order.subtotal)}</dd></div><div><dt>Demo delivery</dt><dd>${money(order.deliveryFee)}</dd></div><div><dt>Demonstration total</dt><dd>${money(order.total)}</dd></div></dl>${orderTimeline(order)}<div class="order-detail-actions">${orderActions(order, role)}</div><p class="ops-muted">Fictional demo guest. No contact, address or payment information is stored. Changes sync between tabs in this browser only.</p>`;
 }
 export function setKitchenIndicator(state) {
  const target = $('#kitchen-indicator'); if (target) { target.textContent = state.settings.acceptingOrders ? `${state.live?'Kitchen':'Demo kitchen'} accepting · ~${state.settings.prepMinutes} min` : `${state.live?'Kitchen':'Demo kitchen'} paused`; target.classList.toggle('paused', !state.settings.acceptingOrders); }

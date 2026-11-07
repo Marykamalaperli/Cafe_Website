@@ -8,10 +8,10 @@ async function guestOrder(page){
 
 test('guest orders without signup/password, tracks and cancels privately, and cannot enter staff pages',async({page,context})=>{
  const fixture=cloudFixture();await fixture.attach(context);await guestOrder(page);
- await expect(page.locator('#cart-content')).toContainText('Guest order');
+ await expect(page).toHaveURL(SITE+'orders/?order=BB-ORDER-TEST1');
  const signup=fixture.calls.filter(call=>call.path==='/auth/v1/signup');expect(signup).toHaveLength(1);expect(signup[0].body.email).toBeUndefined();expect(signup[0].body.password).toBeUndefined();expect(signup[0].apikey).toBe('sb_publishable_browser_fixture');expect(fixture.guestUsers).toHaveLength(1);
  const placed=fixture.calls.find(call=>call.path.endsWith('/place_order'));expect(placed.role).toBe('customer');expect(placed.body.p.email).toBe('shared-contact@bitesbro.invalid');
- await page.getByRole('link',{name:'Track my order',exact:false}).click();await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await expect(page.locator('#demo-role-nav')).toContainText('Guest checkout');await expect(page.locator('#demo-role-nav')).toContainText('track using this browser');await expect(page.getByRole('heading',{name:'Guest order history',exact:true})).toBeVisible();await expect(page.locator('#order-history')).not.toContainText('BB-ORDER-OTHER');
+ await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await expect(page.locator('#demo-role-nav')).toContainText('Guest checkout');await expect(page.locator('#demo-role-nav')).toContainText('track using this browser');await expect(page.getByRole('heading',{name:'Recent guest orders',exact:true})).toBeVisible();await expect(page.locator('#order-history')).not.toContainText('BB-ORDER-OTHER');
  await page.reload();await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await page.getByRole('button',{name:'Cancel order',exact:true}).click();await expect(page.locator('#tracking-detail .status-chip')).toHaveText('Cancelled');
  await page.setViewportSize({width:360,height:800});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await page.screenshot({path:'test-results/guest-tracking-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1000});
  expect(await page.evaluate(()=>localStorage.getItem('bitesbro.demo.v1'))).toBeNull();
@@ -31,8 +31,8 @@ test('two independent guests using the same contact email never share order hist
  const first=await browser.newContext(),second=await browser.newContext(),fixture=cloudFixture();
  try{
   await fixture.attach(first);await fixture.attach(second);const a=await first.newPage(),b=await second.newPage();
-  await guestOrder(a);await a.getByRole('link',{name:'Track my order',exact:false}).click();await expect(a.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');
-  await guestOrder(b);await b.getByRole('link',{name:'Track my order',exact:false}).click();await expect(b.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST2');
+  await guestOrder(a);await expect(a.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');
+  await guestOrder(b);await expect(b.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST2');
   await expect(b.locator('#order-history')).not.toContainText('BB-ORDER-TEST1');await a.reload();await expect(a.locator('#order-history')).not.toContainText('BB-ORDER-TEST2');expect(fixture.guestUsers).toHaveLength(2);
  }finally{await first.close();await second.close();}
 });

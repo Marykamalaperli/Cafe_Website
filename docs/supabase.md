@@ -12,6 +12,8 @@ The source migrations are [001_bitesbro.sql](../supabase/migrations/001_bitesbro
 
 The combined file is the version-2 baseline. The [guest-checkout extension](guest-checkout.md) uses forward migration **006_guest_checkout.sql**, which can run directly after version 2. After any newer migration, the baseline refuses to run so it cannot overwrite upgraded permission functions. Use forward migrations rather than resetting tables or deleting migration markers.
 
+For the existing working guest project, run [007_order_history_delivery.sql](../supabase/migrations/007_order_history_delivery.sql) next. It adds server-enforced guest/member history windows and manual administrator delivery updates, preserving all staff records. [Activation, history limits and delivery steps](order-history.md).
+
 `npm run supabase:prepare` regenerates the seed and combined SQL. If a local SQLite file exists, the generator reads **menu rows only** in a read-only transaction, including paused dishes and edited prices; otherwise it uses the sample catalogue. Custom images require their licence/hash in the photo manifest first. It never exports customer tables. The local database inspected for this change contained 50 dishes and no customer records. Future SQLite customer-history transfers need a separate, private migration with explicit account ownership; never infer ownership from an unverified email or publish an export in `public/`.
 
 ## 2. Configure email authentication
@@ -46,8 +48,8 @@ For chefs: create/confirm their accounts normally, then sign in as administrator
 | Visitor | Public menu, recommendations, auth | Create account / request password reset |
 | Guest (after activation) | Customer menu and that guest session's own order history | Place food orders without signup; cancel own received orders |
 | Customer | Customer site and their own `/orders/` history | Place orders, cancel own received orders, submit own forms |
-| Chef | `/kitchen/`; preparation tickets without contact/address fields | Received → Preparing → Ready → Collected; dish availability |
-| Administrator | `/admin/` and `/kitchen/`; operational and customer records | Kitchen actions, permitted cancellations, menu editing/archive, settings, staff roles, photo uploads |
+| Chef | `/kitchen/`; preparation tickets without contact/address fields | Received → Preparing → Ready; pickup collection; dish availability |
+| Administrator | `/admin/` and `/kitchen/`; operational and customer records | Kitchen actions, permitted cancellations, manual delivery updates (007), menu editing/archive, settings, staff roles, photo uploads |
 
 New signups always get `customer`, even if a caller supplies `role: admin` in user metadata. Roles live in a protected `user_roles` table, not editable profile fields. No public role picker or `?demo=1` parameter can override Supabase access.
 
@@ -94,6 +96,8 @@ Alternatively, run `npm run supabase:photos` in an interactive terminal. It asks
 | `orders` | Owner ID, reference, contact/fulfilment/date/time, delivery fields, instructions, status, authoritative totals, consent, unique retry ID |
 | `order_items` | Order/dish IDs, immutable name/image/price/option snapshots, quantity |
 | `order_events` | Order, status, actor ID, timestamp; created atomically with transitions |
+| `delivery_assignments` (007) | Order ID, delivery status and dispatch/arrival timestamps; administrator-controlled |
+| `delivery_events` (007) | Append-only delivery progression, actor ID and timestamp |
 | `reservations` | Owner, contact, sitting, guests, notes, consent; locked capacity checks |
 | `messages` | Owner, contact, subject/message, consent, reference |
 | `newsletter_subscriptions` | Owner, verified account email, consent |

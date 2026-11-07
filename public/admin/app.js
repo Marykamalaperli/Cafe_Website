@@ -1,6 +1,6 @@
-import { startOperations, statCard, liveCopy } from '../shared/operations.js?v=three-roles-2';
-import { $, $$, escape, money, badge, localDate, localTime, siteURL, announce, showDialog, icon } from '../shared/ui.js?v=three-roles-2';
-import { demoMetrics, STATUSES, STATUS_LABELS } from '../shared/demo-model.js?v=three-roles-2';
+import { startOperations, statCard, liveCopy } from '../shared/operations.js?v=history-7';
+import { $, $$, escape, money, orderBadge, orderStatus, localDate, localTime, siteURL, announce, showDialog, icon } from '../shared/ui.js?v=history-7';
+import { demoMetrics, STATUSES, STATUS_LABELS } from '../shared/demo-model.js?v=history-7';
 import {rpc} from '../shared/cloud.js';
 import {uploadMenuPhotos} from '../shared/photo-upload.js';
 
@@ -22,9 +22,9 @@ function selectPanel() {
 
 function renderOrders(state) {
  const query = $('#admin-order-search').value.trim().toLowerCase(), status = $('#admin-order-status').value;
- const orders = state.orders.filter(order => order.reference.toLowerCase().includes(query) && (status === 'all' || order.status === status)).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+ const orders = state.orders.filter(order => order.reference.toLowerCase().includes(query) && (status === 'all' || orderStatus(order) === status)).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
  $('#admin-order-count').textContent = `${orders.length} demonstration orders`;
- $('#admin-orders').innerHTML = orders.length ? `<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th scope="col">Order</th><th scope="col">Placed</th><th scope="col">Status</th><th scope="col">Demo total</th><th scope="col">Action</th></tr></thead><tbody>${orders.map(order => `<tr data-order-row="${escape(order.reference)}"><td><strong>${escape(order.reference)}</strong><small>${order.origin === 'sample' ? 'Fictional sample' : 'Customer demo'} · ${escape(order.fulfilment)}</small></td><td>${localDate(order.createdAt)}<small>${localTime(order.createdAt)}</small></td><td>${badge(order.status)}</td><td>${money(order.total)}</td><td><button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}" aria-label="View ${escape(order.reference)}">View order ${icon('arrow')}</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="ops-empty"><h2>No orders in this view.</h2><p>Try another reference or status.</p></div>';
+ $('#admin-orders').innerHTML = orders.length ? `<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th scope="col">Order</th><th scope="col">Placed</th><th scope="col">Status</th><th scope="col">Demo total</th><th scope="col">Action</th></tr></thead><tbody>${orders.map(order => `<tr data-order-row="${escape(order.reference)}"><td><strong>${escape(order.reference)}</strong><small>${order.origin === 'sample' ? 'Fictional sample' : 'Customer demo'} · ${escape(order.fulfilment)}</small></td><td>${localDate(order.createdAt)}<small>${localTime(order.createdAt)}</small></td><td>${orderBadge(order)}</td><td>${money(order.total)}</td><td><button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}" aria-label="View ${escape(order.reference)}">View order ${icon('arrow')}</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="ops-empty"><h2>No orders in this view.</h2><p>Try another reference or status.</p></div>';
 }
 function renderMenu(state) {
  const query = $('#admin-menu-search').value.trim().toLowerCase(), filter = $('#admin-menu-status').value;

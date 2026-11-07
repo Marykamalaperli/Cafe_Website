@@ -1,4 +1,4 @@
-import { createDemoStore, DEMO_KEY } from './demo-model.js?v=three-roles-2';
+import { createDemoStore, DEMO_KEY } from './demo-model.js?v=history-7';
 
 let connection;
 export function connectDemoStore() {

@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import catalogue from '../../public/menu.json' with {type:'json'};
 import manifest from '../../public/photo-credits.json' with {type:'json'};
+import { orderHistory } from '../../public/shared/order-history.js';
 
 export const SITE='https://bitesbro.test/Cafe_Website/';
 export const CLOUD='https://bitesbro-test.supabase.co';
@@ -11,7 +12,7 @@ const users=[['customer','customer@bitesbro.invalid'],['chef','chef@bitesbro.inv
  user_metadata:{display_name:role==='customer'?'Test Customer':'Test Staff',role:'admin'},email_confirmed_at:'2026-01-01T00:00:00Z',aud:'authenticated'
 }));
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'};
-export function cloudFixture({guestReady=true,guestAuthEnabled=true}={}){
+export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady=true}={}){
  const roles=new Map(users.map(user=>[user.id,user.role])),tokens=new Map(),uploads=new Map(),linked=new Map();
  const calls=[],orders=[],guestUsers=[];let sequence=1,settings={acceptingOrders:true,prepMinutes:25};
  function session(user){
@@ -57,7 +58,15 @@ export function cloudFixture({guestReady=true,guestAuthEnabled=true}={}){
      if(name==='get_slots')return respond({slots:['10:00','10:30','11:30','18:00'].map(time=>({time,available:true,past:false,seatsLeft:24}))});
      if(name==='get_guest_checkout_status')return respond({enabled:guestReady});
      if(!role)return denied();
-     if(name==='get_operations')return respond({categories:catalogue.categories,menu:menu(),orders:orders.filter(order=>role!=='customer'||order.owner===user.id).map(order=>publicOrder(order,role)),settings,activity:[]});
+     if(name==='get_order_history'&&!historyReady)return respond({code:'PGRST202',message:'History migration is not applied.'},404);
+     if(name==='get_operations'&&role==='customer'&&!historyReady)return respond({categories:catalogue.categories,menu:menu(),orders:orders.filter(order=>order.owner===user.id).map(order=>publicOrder(order,role)),settings,activity:[]});
+     if(name==='get_order_history'||name==='get_operations'&&role==='customer'){
+      if(role!=='customer')return denied();
+      if(user.is_anonymous&&body?.p_page>0)return respond({code:'22023',message:'Guest history contains only the latest three orders.'},400);
+      const data=orderHistory(orders.filter(order=>order.owner===user.id).map(order=>publicOrder(order,role)),{guest:!!user.is_anonymous,page:body?.p_page||0,search:body?.p_search||'',reference:body?.p_reference});
+      return respond({categories:catalogue.categories,menu:menu(),orders:data.history.items,...data,historyVersion:7,settings,activity:[]});
+     }
+     if(name==='get_operations')return respond({categories:catalogue.categories,menu:menu(),orders:orders.map(order=>publicOrder(order,role)),settings,activity:[],historyVersion:7});
      if(name==='place_order'){
       if(role!=='customer')return denied();
       const p=body.p,previous=orders.find(order=>order.owner===user.id&&order.requestId===p.requestId);
@@ -65,15 +74,25 @@ export function cloudFixture({guestReady=true,guestAuthEnabled=true}={}){
       const items=p.items.map(line=>{const item=catalogue.items.find(item=>item.id===line.id),variant=item.variants.find(v=>v.id===line.variant)||item.variants[0],addons=item.addons.filter(a=>line.addons?.includes(a.id));return{id:item.id,name:item.name,image:item.image,quantity:line.quantity,unitPrice:item.price+variant.price+addons.reduce((n,a)=>n+a.price,0),options:{variant,spice:line.spice||item.spice,addons}};});
       const subtotal=items.reduce((sum,item)=>sum+item.quantity*item.unitPrice,0),deliveryFee=p.fulfilment==='delivery'&&subtotal<49900?4000:0,createdAt=new Date().toISOString();
       const order={reference:'BB-ORDER-TEST'+sequence++,owner:user.id,requestId:p.requestId,origin:'customer',name:p.name,email:user.is_anonymous?p.email:user.email,phone:p.phone,address:p.address||'',postcode:p.postcode||'',date:p.date,time:p.time,fulfilment:p.fulfilment,instructions:p.instructions||'',status:'received',createdAt,subtotal,deliveryFee,total:subtotal+deliveryFee,items,timeline:[{status:'received',at:createdAt}]};
+      if(order.fulfilment==='delivery')order.delivery={status:'unassigned',timeline:[]};
       orders.push(order);return respond({...publicOrder(order,role),message:'Your food order is saved. No payment is taken.'});
+     }
+     if(name==='update_order_delivery'){
+      if(role!=='admin')return denied();const order=orders.find(order=>order.reference===body.p_reference);
+      if(!order||order.fulfilment!=='delivery'||order.status==='cancelled')return respond({code:'22023',message:'Choose an active delivery order.'},400);
+      order.delivery ||= {status:'unassigned',timeline:[]};if(order.delivery.status===body.p_status)return respond(publicOrder(order,role));
+      if(body.p_status==='out_for_delivery'&&['ready','collected'].includes(order.status)&&['unassigned','assigned','failed'].includes(order.delivery.status)){
+       if(order.status==='ready'){order.status='collected';order.timeline.push({status:'collected',at:new Date().toISOString()});}
+      }else if(!(body.p_status==='delivered'&&order.delivery.status==='out_for_delivery'))return respond({code:'22023',message:'Wait for the preceding delivery step.'},400);
+      order.delivery.status=body.p_status;order.delivery.timeline.push({status:body.p_status,at:new Date().toISOString()});return respond(publicOrder(order,role));
      }
      if(name==='transition_order'){
       const order=orders.find(order=>order.reference===body.p_reference);
       const next={received:'preparing',preparing:'ready',ready:'collected'}[order?.status];
       if(!order||(role==='customer'&&order.owner!==user.id))return denied();
       const allowed=role==='customer'?order.status==='received'&&body.p_status==='cancelled':body.p_status===next||(role==='admin'&&body.p_status==='cancelled'&&['received','preparing'].includes(order.status));
-      if(!allowed)return respond({code:'22023',message:'That status change is not allowed.'},400);
-      order.status=body.p_status;order.timeline.push({status:order.status,at:new Date().toISOString()});return respond(publicOrder(order,role));
+      if(!allowed||order.delivery&&body.p_status==='collected')return respond({code:'22023',message:'That status change is not allowed.'},400);
+      order.status=body.p_status;if(order.delivery&&order.status==='cancelled')order.delivery.status='cancelled';order.timeline.push({status:order.status,at:new Date().toISOString()});return respond(publicOrder(order,role));
      }
      if(name==='save_kitchen_settings'){if(role!=='admin')return denied();settings={acceptingOrders:body.p_accepting,prepMinutes:body.p_prep};return respond(null);}
      if(name==='set_staff_role'){if(role!=='admin')return denied();const target=users.find(u=>u.email===body.p_email);if(target)roles.set(target.id,body.p_role);return respond(null);}

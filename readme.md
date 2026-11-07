@@ -32,6 +32,8 @@ Email/password signup, confirmation, sign-in, recovery and sign-out are implemen
 
 **Guest checkout:** Customers can order without signup or email confirmation after the owner runs [006_guest_checkout.sql](supabase/migrations/006_guest_checkout.sql) and enables Supabase **Anonymous Sign-Ins**. Their private guest session controls order tracking; admin/kitchen access still requires confirmed staff credentials. Domain and SMTP setup can wait. [Guest setup and verification](docs/guest-checkout.md).
 
+**Order history:** Successful checkout opens tracking immediately. After the owner applies [007_order_history_delivery.sql](supabase/migrations/007_order_history_delivery.sql), guests see their latest three orders plus older orders still in progress; signed-in customers see five per page with older/newer navigation and reference search. Older guest records remain available to staff. Administrators can record delivery dispatch and arrival manually. [Activation and behaviour](docs/order-history.md).
+
 The SDK is served locally. Generated browser configuration intentionally includes only the public project URL/publishable key. Secret/service-role keys are rejected, `.env.local` stays ignored, and no management token is required. Start/dev/build commands load `.env.local`. A failed Cloud request never saves to SQLite or the fictional browser store.
 
 ## Local three-role demonstration

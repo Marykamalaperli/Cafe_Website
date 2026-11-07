@@ -22,6 +22,7 @@ public/
   admin/, kitchen/, orders/ Protected operational views and own-order tracking
   shared/cloud.js          Runtime config, SDK client, auth, guards and RPC adapter
   shared/cloud-store.js    In-memory operational state; authenticated polling
+  shared/order-history.js  Pure recent-history window for demo/older-server presentation
   shared/photo-upload.js   Verified, resumable administrator upload
   shared/ui.js, operations.js  Shared rendering and controllers
   shared/demo-*.js          Opt-in fictional local preview / pure helpers
@@ -43,6 +44,8 @@ supabase/
   migrations/001_bitesbro.sql, 002_catalogue.sql
   setup.sql                Combined owner-run migration
   bootstrap-admin.sql      Confirmed admin@bitesbro.com role only
+  migrations/006_guest_checkout.sql   Private guest Auth ordering
+  migrations/007_order_history_delivery.sql  History visibility and manual delivery tracking
   tests/security.sql       Rollback-only actual Postgres/RLS checks
 ```
 
@@ -80,6 +83,8 @@ Money is integer paise. `place_order` checks the customer role, consent, verifie
 Order transitions lock rows and verify role/ownership. Customers can cancel only their received orders. Chefs progress one step at a time; administrators can also cancel received/preparing orders. Terminal orders cannot reopen. Reservation capacity and inserts share one locked transaction; sittings never overlap or span the afternoon closure. All date calculations use Asia/Kolkata.
 
 Settings and all operational data persist in Postgres and work across devices. Dashboards poll every eight seconds and customer menus every fifteen seconds; no Realtime publication is required. Payments, delivery dispatch and order-confirmation email remain unconnected and are described honestly.
+
+Forward migration 007 adds owner-scoped `get_order_history`: guests receive three recent orders plus older active orders, while members receive five per page and can search/retrieve earlier records. RLS also denies hidden completed guest records, including line/event reads. Staff records are never deleted. `delivery_assignments`/`delivery_events` track manual administrator dispatch and arrival, while canonical kitchen statuses remain compatible with existing reports. No courier is booked. Checkout redirects to history and customer tracking refreshes from Supabase. See [order-history activation and limits](order-history.md).
 
 ## Images and builds
 

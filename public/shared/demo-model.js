@@ -1,7 +1,7 @@
 // Fictional browser demonstration only. Never an authority for live orders.
 export const DEMO_KEY = 'bitesbro.demo.v1';
 export const STATUSES = ['received', 'preparing', 'ready', 'collected', 'cancelled'];
-export const STATUS_LABELS = { received: 'Received', preparing: 'Preparing', ready: 'Ready', collected: 'Collected', cancelled: 'Cancelled' };
+export const STATUS_LABELS = { received: 'Received', preparing: 'Preparing', ready: 'Ready', collected: 'Collected', cancelled: 'Cancelled', out_for_delivery: 'Out for delivery', delivered: 'Delivered' };
 export const INSTRUCTIONS = { standard: 'Standard preparation', mild: 'Please keep the heat mild', separate: 'Pack chutneys separately', cutlery: 'No cutlery, please' };
 export const DEMO_BUSINESS = { name: 'BitesBro', city: 'Bangalore', timezone: 'Asia/Kolkata', hours: '10am–3pm & 6pm–11pm', deliveryFee: 4000, freeDeliveryFrom: 49900 };
 const clone = value => structuredClone(value);
@@ -106,14 +106,27 @@ export function applyDemoAction(current, action, now = new Date()) {
   require(state.orders.length < 250, 'The demo has reached 250 orders. Reset it to start a new session.');
   // Deliberately construct a snapshot from allowed fields. Never copy contact or address fields.
   result = makeOrder(state, action.items, { reference: `BB-DEMO-${state.nextOrder++}`, fulfilment: action.fulfilment, instruction: action.instruction || 'standard', createdAt: at });
+  if(result.fulfilment==='delivery')result.delivery={status:'unassigned',timeline:[]};
   state.orders.unshift(result); activity = { kind: 'order', text: `${result.reference} received`, role: 'customer' };
  } else if (action.type === 'order.transition') {
   const order = state.orders.find(order => order.reference === action.reference);
   require(order, 'That demonstration order no longer exists.');
   require(allowedNextStatuses(order.status, action.role).includes(action.status), `Cannot change ${STATUS_LABELS[order.status]} to ${STATUS_LABELS[action.status] || action.status}.`);
   require(action.role !== 'customer' || order.origin === 'customer', 'Only your own demonstration order can be cancelled here.');
+  require(!(order.delivery&&action.status==='collected'),'Use administrator delivery actions for this order.');
   order.status = action.status; order.timeline.push({ status: action.status, at }); result = order;
+  if(order.delivery&&action.status==='cancelled')order.delivery.status='cancelled';
   activity = { kind: 'order', text: `${order.reference} · ${STATUS_LABELS[action.status]}`, role: action.role };
+ } else if(action.type==='order.delivery'){
+  const order=state.orders.find(order=>order.reference===action.reference);
+  require(action.role==='admin'&&order?.fulfilment==='delivery'&&order.status!=='cancelled','An administrator must update delivery.');
+  order.delivery ||= {status:'unassigned',timeline:[]};
+  if(action.status==='out_for_delivery'){
+   require(order.status==='ready'&&order.delivery.status==='unassigned','Wait until this order is ready.');
+   order.status='collected';order.timeline.push({status:'collected',at});
+  }else require(action.status==='delivered'&&order.delivery.status==='out_for_delivery','Mark the order out for delivery first.');
+  order.delivery.status=action.status;order.delivery.timeline.push({status:action.status,at});result=order;
+  activity={kind:'order',text:`${order.reference} · ${STATUS_LABELS[action.status]}`,role:'admin'};
  } else if (action.type === 'menu.save') {
   const previous = action.id ? state.menu.find(item => item.id === action.id) : null;
   require(!action.id || previous, 'That dish no longer exists.');
@@ -176,6 +189,7 @@ export function validateDemoState(state) {
   require(/^BB-DEMO-\d+$/.test(order.reference) && order.guest === 'Demo guest' && ['sample', 'customer'].includes(order.origin), 'Invalid fictional order identity.');
   require(STATUSES.includes(order.status) && ['pickup', 'delivery'].includes(order.fulfilment) && Object.hasOwn(INSTRUCTIONS, order.instruction), 'Invalid saved order status.');
   require(Number.isFinite(Date.parse(order.createdAt)) && Array.isArray(order.timeline) && order.timeline.length > 0 && order.timeline.length <= 5 && order.timeline.every(event => STATUSES.includes(event.status) && Number.isFinite(Date.parse(event.at))), 'Invalid saved timeline.');
+  if(order.delivery)require(Object.keys(order.delivery).every(key=>['status','timeline'].includes(key))&&order.fulfilment==='delivery'&&['unassigned','out_for_delivery','delivered','cancelled'].includes(order.delivery.status)&&Array.isArray(order.delivery.timeline)&&order.delivery.timeline.length<=2&&order.delivery.timeline.every(event=>Object.keys(event).every(key=>['status','at'].includes(key))&&['out_for_delivery','delivered'].includes(event.status)&&Number.isFinite(Date.parse(event.at))),'Invalid fictional delivery progress.');
   require(Array.isArray(order.items) && order.items.length > 0 && order.items.length <= 30, 'Invalid saved order items.');
   for (const item of order.items) require(shortText(item.name) && shortText(item.id) && integer(item.quantity, 1, 10) && integer(item.unitPrice, 1, 1000000) && photoPath(item.image) && shortText(item.options?.variant?.label) && ['none', 'mild', 'medium', 'hot'].includes(item.options.spice) && Array.isArray(item.options.addons) && item.options.addons.every(option => shortText(option.label) && money(option.price)), 'Invalid saved dish snapshot.');
   require(money(order.subtotal) && money(order.deliveryFee) && order.total === order.subtotal + order.deliveryFee && order.subtotal === order.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0), 'Invalid saved order totals.');

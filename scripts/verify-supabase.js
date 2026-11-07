@@ -24,5 +24,10 @@ try {
   if(settings.external?.anonymous_users===true)console.log('Guest checkout SQL ready; Supabase anonymous sign-ins enabled.');
   else{console.log('Guest checkout SQL ready. Pending: enable Anonymous Sign-Ins under Authentication > Sign In / Providers.');process.exitCode=1;}
  }else console.log('Guest checkout pending: apply 006_guest_checkout.sql and enable Anonymous Sign-Ins.');
+ if(data.schemaVersion>=7){
+  const{error:historyError}=await client.rpc('get_order_history');
+  if(historyError?.code!=='42501')throw new Error('The unauthenticated order-history permission check did not pass.');
+  console.log('Order history v7 ready; unauthenticated history reads denied.');
+ }else{console.log('Order history pending: run 007_order_history_delivery.sql for guest visibility limits and manual delivery tracking.');process.exitCode=1;}
  if (data.uploadedPhotos !== data.photos) { console.log('Pending: sign in as administrator and upload menu photographs from Settings.'); process.exitCode=1; }
 } catch (error) { console.error(error.message); process.exitCode=1; }

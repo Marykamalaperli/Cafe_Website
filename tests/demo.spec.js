@@ -24,18 +24,28 @@ async function addDosa(page, customised = true) {
  if (customised) { await page.locator('#dish-variant').selectOption('ghee-roast'); await page.locator('#dish-spice').selectOption('mild'); await page.getByLabel('Extra sambar', { exact: false }).check(); }
  await page.locator('#dish-add').click();
 }
-async function placeDemo(page, customised = true) {
+async function placeDemo(page, customised = true, fulfilment = 'pickup') {
  await addDosa(page, customised); await page.getByRole('button', { name: 'Open bag, 1 item', exact: true }).click();
  await page.getByRole('button', { name: 'Demo checkout', exact: false }).click();
  await expect(page.locator('#demo-checkout-dialog')).toBeVisible();
+ await page.locator('#demo-fulfilment').selectOption(fulfilment);
  await page.locator('#demo-instruction').selectOption('mild');
  await page.getByRole('button', { name: 'Place demo order', exact: true }).click();
- await expect(page.locator('#track-new-demo-order')).toBeVisible();
- const reference = new URL(await page.locator('#track-new-demo-order').getAttribute('href')).searchParams.get('order');
- await page.locator('#track-new-demo-order').click();
+ await expect(page).toHaveURL(/\/orders\/\?order=BB-DEMO-/);
+ const reference = new URL(page.url()).searchParams.get('order');
  await expect(page.locator('#tracking-reference')).toHaveText(reference);
  return reference;
 }
+
+test('fictional guests retain three recent orders and keep an older active delivery until administrator completion',async({page:customer,context})=>{
+ await pages(context);let reference;
+ for(let i=0;i<4;i++){await customer.goto(base+'?demo=1');const placed=await placeDemo(customer,false,i===0?'delivery':'pickup');reference ||= placed;}
+ await expect(customer.locator('#order-history > li')).toHaveCount(3);await expect(customer.locator('#order-history')).not.toContainText(reference);await customer.locator('#active-order-history a').click();await expect(customer.locator('#tracking-reference')).toHaveText(reference);
+ const admin=await context.newPage();await admin.goto(base+'admin/#orders');await admin.getByRole('button',{name:'View '+reference,exact:true}).click();
+ for(const name of['Start preparing','Mark ready','Mark out for delivery','Mark delivered'])await admin.getByRole('button',{name,exact:true}).click();
+ await expect(admin.locator('#order-dialog-content .status-chip')).toHaveText('Delivered');await expect(customer.locator('#active-history-section')).toBeHidden();await expect(customer.locator('#tracking-detail')).toContainText('outside your available history');await expect(customer.locator('#order-history > li')).toHaveCount(3);
+ const saved=await customer.evaluate(()=>JSON.parse(localStorage.getItem('bitesbro.demo.v1')));expect(saved.orders).toHaveLength(10);expect(saved.orders.find(order=>order.reference===reference).delivery.status).toBe('delivered');
+});
 
 test('GitHub Pages customer, kitchen and admin complete one connected fictional order across tabs', async ({ page: customer, context }) => {
  await pages(context); const errors = [], writes = [];
@@ -125,7 +135,7 @@ test('demo kitchen preferences control checkout and customer cancellation stays 
  await expect(customer.locator('#place-demo-order')).toBeDisabled(); await expect(customer.locator('#demo-checkout-result')).toContainText('paused');
  await admin.locator('#demo-accepting').check(); await admin.locator('#demo-prep').fill('35'); await admin.getByRole('button', { name: 'Save demo preferences' }).click();
  await expect(customer.locator('#place-demo-order')).toBeEnabled(); await expect(customer.locator('#demo-checkout-summary')).toContainText('35 minutes');
- await customer.locator('#place-demo-order').click(); await customer.locator('#track-new-demo-order').click();
+ await customer.locator('#place-demo-order').click(); await expect(customer).toHaveURL(/\/orders\/\?order=BB-DEMO-/);
  await customer.getByRole('button', { name: 'Cancel demo order', exact: true }).click();
  await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Cancelled'); await expect(customer.locator('.cancelled-note')).toContainText('No payment or refund occurred');
  await expect(customer.getByRole('button', { name: 'Cancel demo order', exact: true })).toHaveCount(0);

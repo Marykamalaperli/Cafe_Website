@@ -28,6 +28,20 @@ test('demo checkout recalculates portions, add-ons and delivery charges from the
  assert.equal(priceDemoBag(initial(), { items: [selection({ quantity: 4 })], fulfilment: 'delivery' }).deliveryFee, 0);
 });
 
+test('fictional delivery requires kitchen readiness and administrator dispatch before arrival',()=>{
+ let {state,result}=applyDemoAction(initial(),{type:'order.place',fulfilment:'delivery',items:[selection()]},fixed);
+ const reference=result.reference,delivery=(status,role='admin')=>({type:'order.delivery',reference,status,role});
+ assert.throws(()=>applyDemoAction(state,delivery('delivered'),fixed),/out for delivery first/);
+ assert.throws(()=>applyDemoAction(state,delivery('out_for_delivery'),fixed),/ready/);
+ for(const status of['preparing','ready'])({state}=applyDemoAction(state,{type:'order.transition',reference,status,role:'kitchen'},fixed));
+ assert.throws(()=>applyDemoAction(state,{type:'order.transition',reference,status:'collected',role:'kitchen'},fixed),/administrator delivery/);
+ assert.throws(()=>applyDemoAction(state,delivery('out_for_delivery','customer'),fixed),/administrator/);
+ ({state}=applyDemoAction(state,delivery('out_for_delivery'),fixed));({state}=applyDemoAction(state,delivery('delivered'),fixed));
+ const order=state.orders.find(order=>order.reference===reference);assert.equal(order.delivery.status,'delivered');assert.equal(order.delivery.timeline.length,2);assert.equal(validateDemoState(state),state);
+ assert.throws(()=>applyDemoAction(state,delivery('out_for_delivery'),fixed),/ready/);
+ order.delivery.riderPhone='9000000000';assert.throws(()=>validateDemoState(state),/fictional delivery/);
+});
+
 test('unavailable dishes, bad quantities and invalid customisations cannot create demo tickets', () => {
  const state = initial();
  for (const item of [selection({ quantity: 0 }), selection({ quantity: 11 }), selection({ variant: 'free' }), selection({ addons: ['unknown'] }), selection({ addons: ['extra-sambar', 'extra-sambar'] }), selection({ spice: 'extreme' })]) {

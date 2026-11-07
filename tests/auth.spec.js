@@ -41,9 +41,9 @@ test('customer sign-in ignores forged metadata and staff destinations; real chec
  await expect(page.locator('#demo-checkout-panel')).toBeHidden();await expect(page.locator('.menu-card')).toHaveCount(12);
  await page.getByRole('button',{name:'Add Bangalore Masala Dosa to bag',exact:true}).click();await page.locator('#dish-add').click();await page.getByRole('button',{name:'Open bag, 1 item',exact:true}).click();
  const form=page.locator('#order-form');await expect(form.locator('[name=email]')).toHaveValue('customer@bitesbro.invalid');await form.locator('[name=phone]').fill('9000000000');await form.locator('[name=date]').fill('2030-06-01');await form.locator('[name=time]').selectOption('10:00');await form.locator('[name=consent]').check();await form.getByRole('button',{name:'Place food order',exact:false}).click();
- await expect(page.locator('#cart-content')).toContainText('BB-ORDER-TEST1');
+ await expect(page).toHaveURL(SITE+'orders/?order=BB-ORDER-TEST1');
  const placed=fixture.calls.find(call=>call.path.endsWith('place_order'));expect(placed.role).toBe('customer');expect(placed.body.p.requestId).toMatch(/^[a-f0-9-]{36}$/);expect(placed.apikey).toBe('sb_publishable_browser_fixture');expect(placed.authorization).toMatch(/^Bearer /);expect(placed.authorization).not.toBe('Bearer sb_publishable_browser_fixture');
- await page.getByRole('link',{name:'Track my order',exact:false}).click();await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await expect(page.locator('#order-history')).not.toContainText('BB-ORDER-OTHER');
+ await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await expect(page.locator('#order-history')).not.toContainText('BB-ORDER-OTHER');
  await expect(page.locator('#tracking-detail')).toContainText('₹120');await page.getByRole('button',{name:'Cancel order',exact:true}).click();await expect(page.locator('#tracking-detail .status-chip')).toHaveText('Cancelled');
  const stored=await page.evaluate(()=>localStorage.getItem('bitesbro.demo.v1'));expect(stored).toBeNull();
 });

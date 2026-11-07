@@ -1,7 +1,7 @@
 import {mealRecommendations} from './recommendations.js';
-import {connectDemoStore,clearDamagedDemo} from './shared/demo-store.js?v=three-roles-2';
-import {priceDemoBag,DEMO_BUSINESS} from './shared/demo-model.js?v=three-roles-2';
-import {mountRoleNavigation,siteURL} from './shared/ui.js?v=three-roles-2';
+import {connectDemoStore,clearDamagedDemo} from './shared/demo-store.js?v=history-7';
+import {priceDemoBag,DEMO_BUSINESS} from './shared/demo-model.js?v=history-7';
+import {mountRoleNavigation,siteURL} from './shared/ui.js?v=history-7';
 import {cloudConfig,cloudRequest,requireRole,cloudClient,loginURL} from './shared/cloud.js';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:n%100?2:0}).format(n/100);
@@ -202,7 +202,7 @@ connectForm('order-form', '/api/orders', values => ({ ...values, items: state.ca
   saveCart();
   $('#cart-checkout').hidden = true;
   $('#cart-content').innerHTML = `<div class="cart-empty">${icon('check')}<h3>A little good, all saved.</h3><p>Your demo food order is saved in the database.<br><strong>${escape(data.reference)}</strong></p><p>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}<br>No payment is taken, no delivery is dispatched and no email is sent.<br>Please wait for our location announcement before visiting.</p><button class="button button-orange close-dialog">Lovely, thank you ${icon('heart')}</button></div>`;
-  if(cloudEnabled){$('#cart-content').innerHTML=`<div class="cart-empty">${icon('check')}<h3>Your order is saved.</h3><p><strong>${escape(data.reference)}</strong><br>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}</p>${data.guestCheckout?'<p>Guest order · Track it in this browser. Clearing site data or switching accounts removes access to this guest history.</p>':''}<p>No online payment, delivery dispatch or email confirmation is connected.</p><a class="button button-orange" href="${escape(siteURL('orders/?order='+encodeURIComponent(data.reference)))}">Track my order ${icon('arrow')}</a></div>`;}
+  if(cloudEnabled)location.assign(siteURL('orders/?order='+encodeURIComponent(data.reference)));
 });
 
 const navToggle = $('#nav-toggle');
@@ -361,8 +361,7 @@ $('#demo-checkout-form').addEventListener('submit',async event=>{
  try{
   const order=await demoStore.dispatch({type:'order.place',items:state.cart.map(({id,quantity,variant,spice,addons})=>({id,quantity,variant,spice,addons})),fulfilment:$('#demo-fulfilment').value,instruction:$('#demo-instruction').value});
   state.cart=[];saveCart();$('#demo-checkout-dialog').close();$('#cart-checkout').hidden=true;
-  $('#cart-content').innerHTML=`<div class="demo-confirmation"><p class="eyebrow">A LITTLE GOOD, SIMULATED.</p><h3>Your demo ticket is in.</h3><p><strong>${escape(order.reference)}</strong><br>${money(order.total)} · Received<br>Fictional order saved in this browser only.</p><a class="button button-orange" id="track-new-demo-order" href="${escape(siteURL('orders/?order='+encodeURIComponent(order.reference)))}">Track demo order ${icon('arrow')}</a><p><a class="text-link" href="${escape(siteURL('kitchen/'))}" target="_blank" rel="noopener">Open the Kitchen Display in another tab ${icon('arrow')}</a></p></div>`;
-  $('#track-new-demo-order').focus();
+  location.assign(siteURL('orders/?order='+encodeURIComponent(order.reference)));
  }catch(error){$('#demo-checkout-result').textContent=error.message;$('#place-demo-order').disabled=false;}
  finally{delete form.dataset.submitting;}
 });

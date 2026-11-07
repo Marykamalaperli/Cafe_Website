@@ -1,8 +1,8 @@
-import { connectDemoStore, clearDamagedDemo } from './demo-store.js?v=three-roles-2';
-import { $, $$, escape, mountRoleNavigation, wireDialogs, localTime, announce, showDialog, detailMarkup, setKitchenIndicator } from './ui.js?v=three-roles-2';
-import { STATUS_LABELS } from './demo-model.js?v=three-roles-2';
+import { connectDemoStore, clearDamagedDemo } from './demo-store.js?v=history-7';
+import { $, $$, escape, mountRoleNavigation, wireDialogs, localTime, announce, showDialog, detailMarkup, setKitchenIndicator } from './ui.js?v=history-7';
+import { STATUS_LABELS } from './demo-model.js?v=history-7';
 import { cloudConfig, requireRole } from './cloud.js';
-import { connectCloudStore } from './cloud-store.js';
+import { connectCloudStore } from './cloud-store.js?v=history-7';
 
 // Preserve the operational layouts, while removing historical demo copy in cloud mode.
 export function liveCopy(root = document.body) {
@@ -90,11 +90,13 @@ export async function startOperations(role, render, setup = () => {}) {
     selectedReference = order.reference; $('#order-dialog-title').textContent = order.reference;
     $('#order-dialog-content').innerHTML = detailMarkup(order, role); showDialog($('#order-dialog'));
    }
-   const action = event.target.closest('[data-order-action]'); if (!action) return;
+   const delivery=event.target.closest('[data-delivery-action]');
+   const action = delivery||event.target.closest('[data-order-action]'); if (!action) return;
    action.disabled = true;
    try {
-    await store.dispatch({ type: 'order.transition', reference: action.dataset.reference, status: action.dataset.orderAction, role });
-    announce(`${action.dataset.reference} is now ${STATUS_LABELS[action.dataset.orderAction]}.`);
+    const status=delivery?action.dataset.deliveryAction:action.dataset.orderAction;
+    await store.dispatch({ type: delivery?'order.delivery':'order.transition', reference: action.dataset.reference, status, role });
+    announce(`${action.dataset.reference} is now ${STATUS_LABELS[status]}.`);
    } catch (error) { announce(error.message, true); }
    finally { if (action.isConnected) action.disabled = false; }
   });
