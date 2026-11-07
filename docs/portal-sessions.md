@@ -10,7 +10,7 @@ On a shared computer, sign out of each portal you signed into before leaving it.
 | Administrator | `/admin/` | An account with the protected administrator role |
 | Kitchen | `/kitchen/` | A chef or administrator account |
 
-Open a staff page to reach its own sign-in, or choose **Customer**, **Administrator**, or **Kitchen display** on the account page. This chooses a sign-in destination; it does not assign a role. Staff signup is not offered, and normal signup continues to create only customer accounts. An administrator can sign into both staff portals independently with the same credentials. Opening the other portal requires its own sign-in once if it is not already signed in.
+Open a staff page to reach its own sign-in, or use the normal account form. There is no customer/admin/kitchen chooser on the sign-in page. The destination page and verified credentials select the session automatically; they do not assign a role. Staff signup is not offered, and normal signup continues to create only customer accounts. An administrator can sign into both staff portals independently with the same credentials. Opening the other portal requires its own sign-in once if it is not already signed in.
 
 ## Apply the frontend update
 

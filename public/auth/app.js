@@ -39,7 +39,6 @@ $('#show-signup').hidden=sessionPortal!=='customer';
 document.querySelector('.auth-tabs').hidden=sessionPortal!=='customer';
 $('#auth-portal-label').textContent=sessionPortal==='admin'?'ADMINISTRATOR ACCESS':sessionPortal==='kitchen'?'KITCHEN ACCESS':'A SEAT AT OUR TABLE';
 document.title=sessionPortal==='admin'?'Administrator sign in — BitesBro':sessionPortal==='kitchen'?'Kitchen sign in — BitesBro':'Your account — BitesBro';
-document.querySelectorAll('[data-auth-portal]').forEach(link=>{const portal=link.dataset.authPortal,url=new URL(rootURL('auth/'));url.searchParams.set('portal',portal);url.searchParams.set('next',new URL(rootURL(portalPath(portal))).pathname);link.href=url;link.toggleAttribute('aria-current',portal===sessionPortal);if(portal===sessionPortal)link.setAttribute('aria-current','page');});
 $('#show-signin').addEventListener('click', () => { if (!busy) setMode('signin'); });
 $('#show-signup').addEventListener('click', () => { if (!busy) setMode('signup'); });
 $('#forgot-password').addEventListener('click', () => setMode('reset'));

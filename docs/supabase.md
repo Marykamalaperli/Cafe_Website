@@ -43,7 +43,7 @@ Then run [supabase/bootstrap-admin.sql](../supabase/bootstrap-admin.sql) in SQL 
 
 For chefs: create/confirm their accounts normally, then sign in as administrator and use **Settings → Staff access → Chef**. The same form can assign administrators or return a staff account to customer access. Administrators cannot change their own role through this form. Role changes take effect on the next data/page refresh without waiting for JWT expiry.
 
-Customer, administrator and kitchen logins now use [independent portal sessions](portal-sessions.md). You can use all three in the same browser/profile; signing out of one keeps the others signed in. Open `/admin/` or `/kitchen/` and sign into each staff portal once. The account page also links to each portal. An administrator can use the same credentials for both staff sign-ins. After deploying this update, hard-refresh existing tabs once; no SQL or callback-setting changes are needed.
+Customer, administrator and kitchen logins now use [independent portal sessions](portal-sessions.md). You can use all three in the same browser/profile; signing out of one keeps the others signed in. Open `/admin/` or `/kitchen/` and sign into each staff portal once, or use the normal account form. The sign-in page has no role-selection buttons. An administrator can use the same credentials for both staff sign-ins. After deploying this update, hard-refresh existing tabs once; no SQL or callback-setting changes are needed.
 
 | Account | Pages and data | Changes allowed |
 | --- | --- | --- |
