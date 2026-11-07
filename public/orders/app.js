@@ -1,8 +1,8 @@
-import { startOperations } from '../shared/operations.js?v=history-nav-1';
-import { $, escape, orderBadge, orderStatus, money, localTime, siteURL, orderItems, orderTimeline, orderActions, icon, announce, mountRoleNavigation } from '../shared/ui.js?v=history-nav-1';
-import { INSTRUCTIONS } from '../shared/demo-model.js?v=history-nav-1';
+import { startOperations } from '../shared/operations.js?v=portal-auth-1';
+import { $, escape, orderBadge, orderStatus, money, localTime, siteURL, orderItems, orderTimeline, orderActions, icon, announce, mountRoleNavigation } from '../shared/ui.js?v=portal-auth-1';
+import { INSTRUCTIONS } from '../shared/demo-model.js?v=portal-auth-1';
 import { orderHistory, visibleOrders } from '../shared/order-history.js';
-import { cloudConfig, identity, cloudClient, loginURL } from '../shared/cloud.js';
+import { cloudConfig, identity, cloudClient, loginURL } from '../shared/cloud.js?v=portal-auth-1';
 import { wireCustomerNavigation } from '../shared/customer-nav.js';
 
 let reference=new URL(location.href).searchParams.get('order'),query='',page=0,store,redraw,busy=false,searchTimer;
@@ -17,7 +17,7 @@ function configurePage({live,guest=true,visitor=false}) {
  $('#history-session-info').textContent=visitor
   ?'Guest history belongs to the browser that placed the order. Sign in to open your registered account history.'
   :!live?'Fictional demo history stays in this browser. No real orders or payments are involved.'
-  :guest?'Guest history stays in this browser. Signing into another account or clearing site data removes access to that guest session.'
+  :guest?'Guest history stays in this browser. Signing into another customer account or clearing site data removes access to that guest session. Staff sign-ins stay separate.'
   :'Your history stays with your account. Open older pages or search a reference to revisit an earlier order.';
  $('#history-refresh-note').textContent=visitor?'Place an order to start tracking':live?'Updates refresh every 8 seconds':'Updates sync between tabs';
  $('#history-service-note').textContent=live
@@ -49,7 +49,7 @@ function emptyDetail({visitor=false,guest=true}={}) {
  const unavailable=!visitor&&Boolean(reference||query);
  const title=visitor?'No orders in this browser yet.':unavailable?'This order is outside your available history.':'Your first bite starts here.';
  const description=visitor?'Place a guest order to start tracking, or sign in to see the orders saved to your account.':unavailable?(guest?'Choose one of your three recent orders or an order still in progress.':'Choose an order from your history or search for its reference.'):'Find something delicious on the menu. Your order and its progress will appear here after checkout.';
- return `<div class="history-empty"><div class="history-empty-art" aria-hidden="true">${icon('bag')}<span>${icon('spark')}</span></div><p class="eyebrow">A LITTLE ROOM FOR GOOD FOOD</p><h2>${title}</h2><p>${description}</p><div class="history-empty-actions"><a class="ops-button ops-button-orange" href="${escape(siteURL(document.body.dataset.live==='true'?'#menu':'?demo=1#menu'))}">Browse the menu ${icon('arrow')}</a>${visitor?`<a class="ops-button" href="${escape(loginURL())}">Sign in to your account</a>`:''}</div>${visitor?'<p class="history-empty-footnote">Already ordered as a guest? Use the same browser and profile. Switching accounts or clearing site data removes access to the original guest session.</p>':''}</div>`;
+ return `<div class="history-empty"><div class="history-empty-art" aria-hidden="true">${icon('bag')}<span>${icon('spark')}</span></div><p class="eyebrow">A LITTLE ROOM FOR GOOD FOOD</p><h2>${title}</h2><p>${description}</p><div class="history-empty-actions"><a class="ops-button ops-button-orange" href="${escape(siteURL(document.body.dataset.live==='true'?'#menu':'?demo=1#menu'))}">Browse the menu ${icon('arrow')}</a>${visitor?`<a class="ops-button" href="${escape(loginURL())}">Sign in to your account</a>`:''}</div>${visitor?'<p class="history-empty-footnote">Already ordered as a guest? Use the same browser and profile. Switching customer accounts or clearing site data removes access to the original guest session. Staff sign-ins stay separate.</p>':''}</div>`;
 }
 
 function render(state) {

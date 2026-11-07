@@ -1,4 +1,4 @@
-import { cloudClient, rootURL, rpc } from './cloud.js';
+import { cloudClient, rootURL, rpc } from './cloud.js?v=portal-auth-1';
 
 export const photoObjectPath = photo => `files/${photo.id}-${photo.sha256.slice(0,12)}.jpg`;
 async function digest(bytes) { return [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(byte => byte.toString(16).padStart(2,'0')).join(''); }

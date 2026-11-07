@@ -35,9 +35,10 @@ for(const failure of[
 
 test('customer sign-in ignores forged metadata and staff destinations; real checkout and private tracking work',async({page,context})=>{
  const fixture=cloudFixture();await fixture.attach(context);
- await signIn(page,'customer','/Cafe_Website/admin/');await expect(page).toHaveURL(SITE);
+ await signIn(page,'customer','/Cafe_Website/admin/');await expect(page.locator('#auth-status')).toContainText('does not have administrator access');
+ await signIn(page,'customer');await expect(page).toHaveURL(SITE);
  await expect(page.getByRole('navigation',{name:'Account navigation'})).toContainText('My orders');await expect(page.getByRole('navigation',{name:'Account navigation'})).not.toContainText('Administrator');
- await page.goto(SITE+'kitchen/?demo=1');await expect(page).toHaveURL(SITE);
+ await page.goto(SITE+'kitchen/?demo=1');await expect(page).toHaveURL(/\/auth\/\?portal=kitchen/);await page.goto(SITE);
  await expect(page.locator('#demo-checkout-panel')).toBeHidden();await expect(page.locator('.menu-card')).toHaveCount(12);
  await page.getByRole('button',{name:'Add Bangalore Masala Dosa to bag',exact:true}).click();await page.locator('#dish-add').click();await page.getByRole('button',{name:'Open bag, 1 item',exact:true}).click();
  const form=page.locator('#order-form');await expect(form.locator('[name=email]')).toHaveValue('customer@bitesbro.invalid');await form.locator('[name=phone]').fill('9000000000');await form.locator('[name=date]').fill('2030-06-01');await form.locator('[name=time]').selectOption('10:00');await form.locator('[name=consent]').check();await form.getByRole('button',{name:'Place food order',exact:false}).click();
@@ -53,20 +54,20 @@ test('chef credentials open only the kitchen; tickets omit contacts and permit p
  await expect(page.locator('[data-ticket="BB-ORDER-OTHER"]')).toBeVisible();await expect(page.locator('main')).not.toContainText('private@bitesbro.invalid');await expect(page.locator('main')).not.toContainText('Private address');
  const navigation=page.getByRole('navigation',{name:'Account navigation'});await expect(navigation).toContainText('Kitchen Display');await expect(navigation).not.toContainText('Administrator');
  await page.locator('[data-ticket="BB-ORDER-OTHER"]').getByRole('button',{name:'Start preparing',exact:true}).click();await expect(page.locator('[data-ticket="BB-ORDER-OTHER"] .status-chip')).toHaveText('Preparing');
- await page.goto(SITE+'admin/');await expect(page).toHaveURL(SITE+'kitchen/');
+ await page.goto(SITE+'admin/');await expect(page).toHaveURL(/\/auth\/\?portal=admin/);await expect(page.locator('#auth-form')).toBeVisible();
 });
 
 test('admin can enter the kitchen, assign staff and upload every licensed photo to Supabase files',async({page,context})=>{
  const fixture=cloudFixture();await fixture.attach(context);await signIn(page,'admin','https://outside.invalid/admin/');await expect(page).toHaveURL(SITE+'admin/');
  await expect(page.getByRole('navigation',{name:'Account navigation'})).toContainText('Kitchen Display');
- await page.getByRole('link',{name:'Open kitchen',exact:false}).click();await expect(page).toHaveURL(SITE+'kitchen/');await page.goto(SITE+'admin/#settings');
+ await page.getByRole('link',{name:'Open kitchen',exact:false}).click();await expect(page).toHaveURL(/\/auth\/\?portal=kitchen/);await signIn(page,'admin','/Cafe_Website/kitchen/');await expect(page).toHaveURL(SITE+'kitchen/');await page.goto(SITE+'admin/#settings');
  await expect(page.locator('#upload-menu-photos')).toBeVisible();await expect(page.locator('.reset-panel')).toBeHidden();
  await page.locator('#staff-access-form [name=email]').fill('chef@bitesbro.invalid');await page.locator('#staff-access-form [name=role]').selectOption('chef');await page.getByRole('button',{name:'Update account access',exact:true}).click();await expect(page.locator('#staff-access-result')).toContainText('Account access updated');
  await page.getByRole('button',{name:'Upload menu photographs',exact:true}).click();await expect(page.locator('#photo-upload-result')).toContainText('40 licensed photos stored in Supabase');
  expect(fixture.uploads.size).toBe(40);expect(fixture.linked.size).toBe(40);expect([...fixture.uploads.keys()].every(path=>/^files\/[a-z0-9-]+-[a-f0-9]{12}\.jpg$/.test(path))).toBe(true);
  await page.getByRole('button',{name:'Upload menu photographs',exact:true}).click();await expect(page.locator('#photo-upload-result')).toContainText('40 licensed photos stored in Supabase');expect(fixture.uploads.size).toBe(40);
  await page.goto(SITE+'admin/#menu');await expect(page.locator('.table-dish img').first()).toHaveAttribute('src',new RegExp(CLOUD.replaceAll('.','\\.')+'/storage/v1/object/public/menu-images/files/'));
- await page.getByRole('button',{name:'Sign out',exact:true}).click();await expect(page).toHaveURL(SITE+'auth/');await expect(page.locator('#auth-form')).toBeVisible();
+ await page.getByRole('button',{name:'Sign out',exact:true}).click();await expect(page).toHaveURL(/\/auth\/\?portal=admin/);await expect(page.locator('#auth-form')).toBeVisible();
 });
 
 test('changed database roles override an existing login session on the next page load',async({page,context})=>{

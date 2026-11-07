@@ -1,4 +1,4 @@
-import { rpc, resolveMenu, requireRole, cloudClient } from './cloud.js';
+import { rpc, resolveMenu, requireRole, cloudClient } from './cloud.js?v=portal-auth-1';
 import { orderHistory, visibleOrders } from './order-history.js';
 
 // Cloud operational data stays in memory. Never copy real records to the demo/local store.

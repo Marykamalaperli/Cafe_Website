@@ -12,13 +12,14 @@ const users=[['customer','customer@bitesbro.invalid'],['chef','chef@bitesbro.inv
  user_metadata:{display_name:role==='customer'?'Test Customer':'Test Staff',role:'admin'},email_confirmed_at:'2026-01-01T00:00:00Z',aud:'authenticated'
 }));
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'};
-export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady=true}={}){
- const roles=new Map(users.map(user=>[user.id,user.role])),tokens=new Map(),uploads=new Map(),linked=new Map();
+export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady=true,callbackRole='customer'}={}){
+ const roles=new Map(users.map(user=>[user.id,user.role])),tokens=new Map(),uploads=new Map(),linked=new Map(),families=new Map(),tokenFamilies=new Map(),refreshFamilies=new Map();
  const calls=[],orders=[],guestUsers=[];let sequence=1,settings={acceptingOrders:true,prepMinutes:25};
- function session(user){
+ function session(user,family=crypto.randomUUID()){
   const exp=Math.floor(Date.now()/1000)+3600;
-  const token=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp,aud:'authenticated'}].map(value=>Buffer.from(JSON.stringify(value)).toString('base64url')).join('.')+'.test-signature';
-  tokens.set(token,user);return{access_token:token,refresh_token:'test-refresh-token',token_type:'bearer',expires_in:3600,expires_at:exp,user};
+  const token=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp,aud:'authenticated',session_id:family,jti:crypto.randomUUID()}].map(value=>Buffer.from(JSON.stringify(value)).toString('base64url')).join('.')+'.test-signature';
+  const refresh='test-refresh-'+crypto.randomUUID();families.set(family,user);tokens.set(token,user);tokenFamilies.set(token,family);refreshFamilies.set(refresh,family);
+  return{access_token:token,refresh_token:refresh,token_type:'bearer',expires_in:3600,expires_at:exp,user};
  }
  const menu=()=>catalogue.items.map(item=>({...structuredClone(item),available:true,archived:false,storagePath:linked.get(item.photo.id)||null}));
  const publicOrder=(order,role)=>{const copy=structuredClone(order);delete copy.owner;if(role==='chef')for(const key of ['name','email','phone','address','postcode'])delete copy[key];return copy;};
@@ -34,10 +35,11 @@ export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady
     if(request.method()==='OPTIONS')return route.fulfill({status:204,headers});
     const token=request.headers().authorization?.replace(/^Bearer /,''),user=tokens.get(token),role=user?roles.get(user.id):null;
     let body;try{body=request.postDataJSON();}catch{body={};}
-    calls.push({path:url.pathname,method:request.method(),body,role,apikey:request.headers().apikey,authorization:request.headers().authorization});
+    calls.push({path:url.pathname,query:Object.fromEntries(url.searchParams),method:request.method(),body,role,apikey:request.headers().apikey,authorization:request.headers().authorization});
     const denied=()=>respond({code:'42501',message:'permission denied'},403);
     if(url.pathname==='/auth/v1/token'){
-     if(url.searchParams.get('grant_type')==='pkce')return respond(session(users[0]));
+     if(url.searchParams.get('grant_type')==='refresh_token'){const family=refreshFamilies.get(body.refresh_token),owner=families.get(family);return owner?respond(session(owner,family)):respond({code:'refresh_token_not_found',message:'Invalid refresh token'},400);}
+     if(url.searchParams.get('grant_type')==='pkce')return respond(session(users.find(user=>user.role===callbackRole)));
      const found=users.find(user=>user.email===body?.email);
      return found&&body.password===PASSWORD?respond(session(found)):respond({error:'invalid_grant',error_description:'Invalid login credentials'},400);
     }
@@ -49,7 +51,14 @@ export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady
      }
      return respond({id:'new-customer',email:body.email,user_metadata:body.data});
     }
-    if(url.pathname==='/auth/v1/recover'||url.pathname==='/auth/v1/logout')return respond({});
+    if(url.pathname==='/auth/v1/recover')return respond({});
+    if(url.pathname==='/auth/v1/logout'){
+     const family=tokenFamilies.get(token),removed=new Set([...families].filter(([id,owner])=>id===family||(url.searchParams.get('scope')!=='local'&&owner.id===user?.id)).map(([id])=>id));
+     for(const id of removed)families.delete(id);
+     for(const [access,id]of tokenFamilies)if(removed.has(id)){tokenFamilies.delete(access);tokens.delete(access);}
+     for(const [refresh,id]of refreshFamilies)if(removed.has(id))refreshFamilies.delete(refresh);
+     return respond({});
+    }
     if(url.pathname.startsWith('/rest/v1/rpc/')){
      const name=url.pathname.split('/').at(-1);
      if(name==='my_role')return respond(role);
@@ -118,7 +127,7 @@ export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady
    try{return route.fulfill({status:200,contentType:mime[extname(file)]||'application/octet-stream',body:await readFile(file)});}catch{return respond({error:'not found'},404);}
   });
  }
- return{attach,calls,orders,uploads,linked,roles,users,guestUsers,manifest};
+ return{attach,calls,orders,uploads,linked,roles,users,guestUsers,manifest,sessionFor:role=>session(users.find(user=>user.role===role))};
 }
 export async function signIn(page,role,next=''){
  const user=users.find(user=>user.role===role);

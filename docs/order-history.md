@@ -4,7 +4,7 @@ Successful Supabase checkout redirects immediately to `/orders/?order=<reference
 
 **My orders** is available in the main customer navbar on desktop and in its mobile menu. The history page shares the customer header, Fraunces/DM Sans typography, ivory/forest/terracotta palette, food photographs and footer. Recent-order cards show food previews, references, dates, status and totals. The selected order includes a progress timeline, dish/options snapshots, totals, fulfilment details and permitted cancellation. **View order progress** jumps directly to the selected ticket on smaller screens.
 
-Visitors without a current guest/account session receive an empty history page with menu and account sign-in links. Opening history does not create an anonymous account or request private order data. Guest sessions are created only at checkout; switching accounts still does not restore or merge an earlier guest identity. Empty registered-account histories, unavailable references and connection failures have distinct messages.
+Visitors without a current guest/account session receive an empty history page with menu and account sign-in links. Opening history does not create an anonymous account or request private order data. Guest sessions are created only at checkout; switching customer accounts still does not restore or merge an earlier guest identity. Empty registered-account histories, unavailable references and connection failures have distinct messages.
 
 ## Activate on the existing project
 
@@ -21,7 +21,7 @@ GitHub Pages deployment publishes the frontend only. It cannot apply SQL with th
 
 The owner chose to hide older guest history and retain staff records. No automatic deletion runs. Administrators retain the operational history; chefs retain preparation tickets without customer contact/address fields. Guest visibility is enforced using protected Auth identity and RLS, not email matching or a browser-only filter. Matching contact emails never share order history.
 
-Guest tracking stays with the current browser's private Supabase session. Clearing site data, using another browser, or signing in to a different account removes access to that guest session; it does not erase staff records. Real orders are held in Supabase and memory, never copied into the fictional demo store. The fictional demo shows the same three-order window over its fictional customer tickets and retains its staff dataset.
+Guest tracking stays with the current browser's private customer session. Clearing site data, using another browser, or signing in to a different customer account removes access to that guest session; it does not erase staff records. [Independent portal sessions](portal-sessions.md) keep staff login/logout separate from customer history. Real orders are held in Supabase and memory, never copied into the fictional demo store. The fictional demo shows the same three-order window over its fictional customer tickets and retains its staff dataset.
 
 ## Fulfilment updates
 

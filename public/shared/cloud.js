@@ -1,7 +1,13 @@
 // Cloud requests always use the signed-in user's JWT and Postgres RLS. No service key.
+import { PORTALS, portalForPage, portalForRole, portalAllows, portalPath, portalStorageKey, isAuthCallback } from './session-scope.js?v=portal-auth-1';
 const root = new URL('../', import.meta.url);
 export const rootURL = path => new URL(path.replace(/^\//, ''), root).href;
-let configPromise, clientPromise, guestPromise;
+const callbackKey='bitesbro-auth-callback:'+root.pathname;
+function storedCallbackPortal(){try{return localStorage.getItem(callbackKey);}catch{return null;}}
+export const sessionPortal=portalForPage(location.href,root,storedCallbackPortal());
+const initialCallback=isAuthCallback(location.href);
+let configPromise, sdkPromise, guestPromise, migrationPromise;
+const clients=new Map();
 export function cloudConfig() {
  return configPromise ||= fetch(rootURL('supabase-config.json'), { cache: 'no-store', signal: AbortSignal.timeout(12000) }).then(async response => {
   if (!response.ok) throw new Error('Account configuration could not load. Reload to retry.');
@@ -10,10 +16,8 @@ export function cloudConfig() {
   return config;
  });
 }
-export async function cloudClient() {
- return clientPromise ||= (async () => {
-  const config = await cloudConfig();
-  if (!config.enabled) throw new Error('Supabase accounts are not configured on this deployment yet.');
+async function loadSDK() {
+ return sdkPromise ||= (async()=>{
   // The official browser build declares `var supabase`; load it as a classic
   // same-origin script so its namespace is available on globalThis.
   await new Promise((resolve,reject)=>{
@@ -23,8 +27,12 @@ export async function cloudClient() {
    script.onerror=()=>reject(new Error('The account SDK could not load. Reload to retry.'));
    document.head.append(script);
   });
-  return globalThis.supabase.createClient(config.url, config.publishableKey, {
-   auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+ })();
+}
+function createClient(config,portal,temporary=false) {
+ return globalThis.supabase.createClient(config.url, config.publishableKey, {
+   auth: { flowType: 'pkce', persistSession: !temporary, autoRefreshToken: !temporary, detectSessionInUrl: !temporary&&portal===sessionPortal,
+    storageKey:temporary?'bitesbro-login-check-'+crypto.randomUUID():portalStorageKey(config.url,root,portal) },
    global: { fetch: (url, options) => {
     const target = new URL(url instanceof Request ? url.url : url);
     const project = new URL(config.url);
@@ -35,8 +43,71 @@ export async function cloudClient() {
     if (target.origin === project.origin) headers.set('apikey', config.publishableKey);
     return fetch(url, { ...options, headers, signal: options?.signal || AbortSignal.timeout(20000) });
    } }
-  });
- })();
+ });
+}
+async function portalClient(portal) {
+ if(!PORTALS.includes(portal))throw new Error('Choose a supported sign-in portal.');
+ if(!clients.has(portal))clients.set(portal,(async()=>{
+  const config=await cloudConfig();if(!config.enabled)throw new Error('Supabase accounts are not configured on this deployment yet.');
+  await loadSDK();return createClient(config,portal);
+ })());
+ return clients.get(portal);
+}
+
+async function migrateLegacyStaff() {
+ if(initialCallback)return;
+ return migrationPromise ||= (async()=>{
+  const config=await cloudConfig(),key=portalStorageKey(config.url,root,'customer'),marker=key+'-bitesbro-staff-migrated';
+  const move=async()=>{
+   const source=await portalClient('customer'),{data,error}=await source.auth.getSession();
+   if(error)throw new Error('Your previous session could not load. Reload to retry.');
+   if(!data.session)return;
+   let retired=[];try{const saved=JSON.parse(localStorage.getItem(marker)||'[]');if(Array.isArray(saved))retired=saved.filter(value=>typeof value==='string');}catch{/* Ignore damaged migration metadata, never account roles. */}
+   let sessionId;try{sessionId=JSON.parse(atob(data.session.access_token.split('.')[1].replaceAll('-','+').replaceAll('_','/'))).session_id;}catch{/* Auth and the database still validate this token. */}
+   const clearSource=()=>{const stored=JSON.parse(localStorage.getItem(key)||'null');if(stored?.access_token===data.session.access_token&&stored?.refresh_token===data.session.refresh_token)localStorage.removeItem(key);};
+   if(sessionId&&retired.includes(sessionId)){clearSource();return;}
+   const {data:role,error:roleError}=await source.rpc('my_role');
+   if(roleError)throw new Error('Your previous account access could not be checked. Reload to retry.');
+   const portal=portalForRole(role);if(!portal||portal==='customer')return;
+   // Move only a database-verified legacy staff session. Guest/customer sessions
+   // stay at their original key. Never overwrite a newer portal login.
+   const target=await portalClient(portal),existing=await target.auth.getSession();
+   if(existing.error)throw new Error('The staff session could not load. Reload to retry.');
+   if(!existing.data.session){const imported=await target.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});if(imported.error)throw new Error('The staff session could not be moved. Sign in again.');}
+   // Remember the migrated session family, not credentials, so a stale old tab
+   // cannot restore it after the staff portal signs out.
+   if(sessionId)localStorage.setItem(marker,JSON.stringify([...new Set([...retired,sessionId])]));
+   clearSource();
+  };
+  if(navigator.locks)await navigator.locks.request('bitesbro-staff-session-migration:'+key,move);else await move();
+ })().catch(error=>{migrationPromise=null;throw error;});
+}
+
+export async function cloudClient(portal=sessionPortal) {
+ const client=await portalClient(portal);await migrateLegacyStaff();return client;
+}
+
+export function rememberAuthCallback() {
+ // Keep the existing allowlisted /auth/ callback. PKCE remains in the selected
+ // portal's SDK storage; the latest email flow records only its portal name here.
+ try{localStorage.setItem(callbackKey,sessionPortal);}catch{throw new Error('Enable browser site storage before requesting an account email.');}
+}
+
+export async function signInAccount(email,password) {
+ const config=await cloudConfig();await cloudClient();
+ // Check credentials/DB role without replacing a guest or another portal login.
+ const probe=createClient(config,sessionPortal,true);
+ const {data,error}=await probe.auth.signInWithPassword({email,password});
+ if(error)throw new Error('Sign-in failed. Check your email and password, and confirm your email first.');
+ const {data:role,error:roleError}=await probe.rpc('my_role');
+ const portal=sessionPortal==='customer'?portalForRole(role):sessionPortal;
+ if(roleError||!portal||!portalAllows(portal,role)){
+  await probe.auth.signOut({scope:'local'}).catch(()=>{});
+  throw new Error(roleError||!role?'Your account role is not ready. Confirm your email and check the database setup.':`This account does not have ${portal==='admin'?'administrator':'kitchen'} access. Use its authorised sign-in portal.`);
+ }
+ const client=await portalClient(portal),saved=await client.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
+ if(saved.error)throw new Error('Your sign-in could not be saved. Please try again.');
+ return{user:saved.data.user,role,guest:false,portal};
 }
 export async function rpc(name, parameters = {}) {
  const client = await cloudClient();
@@ -95,7 +166,9 @@ export async function ensureGuestCustomer() {
 export function loginURL(next = location.href) {
  const url = new URL(rootURL('auth/'));
  const target = new URL(next, root);
- if (target.origin === root.origin && target.pathname.startsWith(root.pathname)) url.searchParams.set('next', target.pathname + target.search + target.hash);
+ if (target.origin === root.origin && target.pathname.startsWith(root.pathname)){
+  url.searchParams.set('portal',portalForPage(target,root));url.searchParams.set('next', target.pathname + target.search + target.hash);
+ }else url.searchParams.set('portal',sessionPortal);
  return url.href;
 }
 export async function requireRole(pageRole, { optional = false } = {}) {
@@ -117,7 +190,7 @@ export async function requireRole(pageRole, { optional = false } = {}) {
 export async function signOut() {
  const client = await cloudClient(); const { error } = await client.auth.signOut({ scope: 'local' });
  if (error) throw new Error('Sign-out could not finish. Please retry.');
- location.replace(rootURL('auth/'));
+ location.replace(loginURL(rootURL(portalPath(sessionPortal))));
 }
 export async function resolveMenu(catalogue) {
  const client = await cloudClient();

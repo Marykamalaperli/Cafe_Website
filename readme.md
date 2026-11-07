@@ -19,6 +19,8 @@ Run these commands from `/workspace/Cafe_Website` in this cloud workspace, or fr
 
 Email/password signup, confirmation, sign-in, recovery and sign-out are implemented with the official Supabase SDK. Customers use the customer site and their own order history; chefs use the Kitchen Display; administrators manage operations and can also open the kitchen. Postgres roles, RLS and transactional functions enforce these permissions, including calls made outside the UI.
 
+Customer, administrator and kitchen sessions are independent in the same browser. Sign into each staff portal once; signing out there keeps the other portals signed in and preserves the customer guest session. [Portal sign-in and refresh instructions](docs/portal-sessions.md).
+
 **The owner chose to run SQL manually. Cloud migration and photo upload are pending until these steps are completed:**
 
 1. Run [supabase/setup.sql](supabase/setup.sql) in **Bites_Bro_Website → SQL Editor**. It creates the protected tables, functions, 50-dish catalogue, photo credits and `menu-images` bucket.

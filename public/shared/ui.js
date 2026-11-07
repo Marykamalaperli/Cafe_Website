@@ -1,5 +1,5 @@
-import { DEMO_BUSINESS, INSTRUCTIONS, STATUS_LABELS, STATUSES, allowedNextStatuses } from './demo-model.js?v=history-nav-1';
-import { cloudConfig, identity, signOut, loginURL } from './cloud.js';
+import { DEMO_BUSINESS, INSTRUCTIONS, STATUS_LABELS, STATUSES, allowedNextStatuses } from './demo-model.js?v=portal-auth-1';
+import { cloudConfig, identity, signOut, loginURL } from './cloud.js?v=portal-auth-1';
 
 export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];

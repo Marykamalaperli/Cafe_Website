@@ -1,4 +1,4 @@
-import { createDemoStore, DEMO_KEY } from './demo-model.js?v=history-nav-1';
+import { createDemoStore, DEMO_KEY } from './demo-model.js?v=portal-auth-1';
 
 let connection;
 export function connectDemoStore() {

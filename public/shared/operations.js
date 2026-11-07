@@ -1,8 +1,8 @@
-import { connectDemoStore, clearDamagedDemo } from './demo-store.js?v=history-nav-1';
-import { $, $$, escape, mountRoleNavigation, wireDialogs, localTime, announce, showDialog, detailMarkup, setKitchenIndicator } from './ui.js?v=history-nav-1';
-import { STATUS_LABELS } from './demo-model.js?v=history-nav-1';
-import { cloudConfig, requireRole } from './cloud.js';
-import { connectCloudStore } from './cloud-store.js?v=history-nav-1';
+import { connectDemoStore, clearDamagedDemo } from './demo-store.js?v=portal-auth-1';
+import { $, $$, escape, mountRoleNavigation, wireDialogs, localTime, announce, showDialog, detailMarkup, setKitchenIndicator } from './ui.js?v=portal-auth-1';
+import { STATUS_LABELS } from './demo-model.js?v=portal-auth-1';
+import { cloudConfig, requireRole, loginURL } from './cloud.js?v=portal-auth-1';
+import { connectCloudStore } from './cloud-store.js?v=portal-auth-1';
 
 // Preserve the operational layouts, while removing historical demo copy in cloud mode.
 export function liveCopy(root = document.body) {
@@ -107,7 +107,7 @@ export async function startOperations(role, render, setup = () => {}) {
   const live=document.body.dataset.live==='true';
   const target = role === 'admin' ? $('.admin-main') : $('main');
   if(live || !(await cloudConfig().catch(()=>({}))).demoEnabled){
-   target.innerHTML=`<div class="ops-error-state"><h1>This page could not open.</h1><p>${escape(error.message)}</p><a class="ops-button" href="${escape(new URL('../auth/',import.meta.url).href)}">Sign in</a><button class="ops-button" id="retry-cloud">Try again</button></div>`;
+   target.innerHTML=`<div class="ops-error-state"><h1>This page could not open.</h1><p>${escape(error.message)}</p><a class="ops-button" href="${escape(loginURL())}">Sign in</a><button class="ops-button" id="retry-cloud">Try again</button></div>`;
    $('#retry-cloud').addEventListener('click',()=>location.reload()); delete document.body.dataset.accessPending; return null;
   }
   target.innerHTML = `<div class="ops-error-state"><h2>The demo couldn’t open.</h2><p>${escape(error.message)}</p><div class="ops-form-actions"><button class="ops-button ops-button-primary" id="retry-demo">Try again</button><button class="ops-button" id="recover-demo">Reset fictional demo data</button></div><p class="ops-muted">Only this browser’s demo namespace is cleared. The restaurant database and saved food bag are unaffected.</p><p class="ops-form-result" id="recovery-error" role="status"></p></div>`;

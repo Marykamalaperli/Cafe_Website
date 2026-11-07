@@ -21,6 +21,7 @@ public/
   auth.css                 Account styles and pending-access visibility
   admin/, kitchen/, orders/ Protected operational views and own-order tracking
   shared/cloud.js          Runtime config, SDK client, auth, guards and RPC adapter
+  shared/session-scope.js  Customer/admin/kitchen session selection and storage keys
   shared/cloud-store.js    In-memory operational state; authenticated polling
   shared/order-history.js  Pure recent-history window for demo/older-server presentation
   shared/customer-nav.js   Shared desktop/mobile customer navbar behaviour
@@ -62,6 +63,8 @@ After forward migration 006 and enabling Anonymous Sign-Ins, guests can order wi
 All application tables enable RLS. Customer reads are restricted by authenticated owner ID. Chef views use a checked ticket projection without name/email/phone/address/postcode fields. Administrators can read operational records. Clients have no direct writes to orders, events, roles, settings or menu. Definer functions use an empty search path, qualified references and explicit execution grants. PostgreSQL default PUBLIC execution is revoked. The SQL and field table in [Supabase setup](supabase.md) are authoritative.
 
 Pages serves public HTML shells; route guards control application navigation and RLS protects data/actions independently. Supplying `?demo=1`, forging metadata or calling REST directly does not grant staff access. Real data is held in memory and Supabase, not in the fictional browser store. Protected views hide on logout/back navigation and reload persisted pages before displaying records.
+
+Customer, administrator and kitchen pages use independent SDK sessions, so staff login/logout cannot replace a guest's identity or sign out another portal. Same-portal tabs continue to synchronise logout. Credential checks use an in-memory probe and a database role check before persisting the permitted destination session. The original customer SDK key is retained; verified legacy staff sessions migrate once without resetting order data. Auth email callbacks retain the existing `/auth/` URL. See [portal-session operation and verification](portal-sessions.md).
 
 ## Data and consistency
 
