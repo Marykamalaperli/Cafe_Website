@@ -10,9 +10,9 @@
  <link rel="stylesheet" href="../styles.css?v=customer-nav-1">
  <link rel="stylesheet" href="../operations.css?v=portal-auth-1">
  <link rel="stylesheet" href="../auth.css">
- <link rel="stylesheet" href="./history.css?v=portal-auth-1">
- <script type="module" src="./app.js?v=payments-1"></script>
-<link rel="stylesheet" href="../shared/customer-nav.css?v=customer-nav-1"><link rel="stylesheet" href="../shared/payments.css?v=payments-1"></head>
+ <link rel="stylesheet" href="./history.css?v=customer-flow-1">
+ <script type="module" src="./app.js?v=customer-flow-1"></script>
+<link rel="stylesheet" href="../shared/customer-nav.css?v=customer-nav-1"><link rel="stylesheet" href="../shared/payments.css?v=payments-1"><link rel="stylesheet" href="../shared/customer-flow.css?v=customer-flow-1"></head>
 <body data-access-pending="true" class="ops-app history-page" data-role="orders">
  <a class="skip-link" href="#main">Skip to content</a>
  <div class="announcement"><span>SOUTH INDIAN AT HEART. EVERY CRAVING WELCOME.</span><span class="announcement-right">Bangalore · 10am–3pm &amp; 6pm–11pm</span></div>
@@ -20,12 +20,13 @@
 
  <main class="ops-content history-content" id="main">
   <section class="history-masthead" aria-labelledby="history-page-title">
-   <div><p class="eyebrow"><span class="eyebrow-line"></span>GOOD FOOD. ONE LITTLE HISTORY.</p><h1 id="history-page-title">Your orders,<br><em>served together.</em></h1><p>Revisit a favourite. Follow your next bite from our kitchen to you.</p></div>
+   <div><p class="eyebrow"><span class="eyebrow-line"></span>GOOD FOOD. ONE LITTLE HISTORY.</p><h1 id="history-page-title">Your orders,<br><em>served together.</em></h1><p>Follow your food. Find a favourite. Order again.</p></div>
    <div class="history-summary"><div class="history-food-stack" aria-hidden="true"><img src="/assets/images/photos/masala-dosa.jpg" alt="" width="96" height="96"><img src="/assets/images/photos/biryani.jpg" alt="" width="96" height="96"><img src="/assets/images/photos/south-indian-meals.jpg" alt="" width="96" height="96"></div><div><p class="eyebrow">STILL IN PROGRESS</p><p class="history-active-total"><span id="history-active-count">—</span> <span id="history-active-label">orders</span></p><p id="history-refresh-note">Checking your order history…</p></div></div>
   </section>
   <p class="ops-notice" id="ops-notice" role="status" hidden></p>
-  <div class="history-session-note"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#book"/></svg><p id="history-session-info">Opening your private order history…</p><a class="history-jump" id="history-jump" href="#tracking-detail" hidden>View order progress <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#arrow"/></svg></a></div>
+  <div class="history-tools"><details class="history-session-note"><summary><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#book"/></svg><span id="history-session-label">Your private order history</span><svg class="icon history-info-chevron" aria-hidden="true"><use href="/assets/icons.svg#arrow"/></svg></summary><p id="history-session-info">Opening your private order history…</p></details><div class="history-tool-links"><a class="history-saved-link" href="../?favourites=1#menu" data-customer-favourites><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#heart"/></svg>Favourites</a><a class="history-jump" id="history-jump" href="#tracking-detail" hidden>View order progress <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#arrow"/></svg></a></div></div>
   <div class="tracking-layout">
+   <section class="ops-panel tracking-detail" id="tracking-detail" aria-label="Order tracking" aria-live="polite"><p class="ops-skeleton">Opening your order…</p></section>
    <aside class="tracking-history" aria-labelledby="history-title">
     <div class="history-section-heading"><span class="eyebrow">THE FOOD YOU CAME BACK FOR</span><h2 id="history-title">Order history</h2><p class="ops-muted" id="history-policy"></p></div>
     <label class="ops-field history-search" id="history-search-field">Find an order<span><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#search"/></svg><input id="history-search" type="search" maxlength="80" placeholder="Search your order reference"></span></label>
@@ -34,7 +35,6 @@
     <div class="history-pagination" id="history-pagination" hidden><button class="ops-button ops-button-small" id="history-newer" type="button">Newer orders</button><button class="ops-button ops-button-small" id="history-older" type="button">Older orders</button></div>
     <section id="active-history-section" hidden aria-label="Other orders still in progress"><h3>Still in progress</h3><p class="ops-muted">Older orders stay here while preparation, delivery or payment review is unfinished.</p><ul class="history-list" id="active-order-history"></ul></section>
    </aside>
-   <section class="ops-panel tracking-detail" id="tracking-detail" aria-label="Order tracking" aria-live="polite"><p class="ops-skeleton">Opening your order…</p></section>
   </div>
   <p class="tracking-note" id="history-service-note">Follow preparation, pickup and delivery updates here.</p>
  </main>

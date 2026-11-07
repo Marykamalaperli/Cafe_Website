@@ -1,15 +1,20 @@
 // Bag storage contains selections only. Menu prices and order totals stay authoritative.
 export const BAG_KEY = 'bitesbro.food-bag.v2';
 export const LEGACY_BAG_KEY = 'bitesbro.bag.v1';
+export const BAG_LIMITS = Object.freeze({ lines: 20, items: 30, quantity: 10 });
 export const bagLineKey = line => JSON.stringify([line.id, line.variant, line.spice, [...line.addons].sort()]);
 
-export function readBag(menu) {
+export function readSavedBag() {
  try {
   const saved = JSON.parse(localStorage.getItem(BAG_KEY) || localStorage.getItem(LEGACY_BAG_KEY) || '[]');
+  return Array.isArray(saved) ? saved : [];
+ } catch { return []; }
+}
+export function normaliseBag(menu, saved) {
   if (!Array.isArray(saved)) return [];
   const result = [], keys = new Set(); let total = 0;
   for (const entry of saved) {
-   if (!entry || !Number.isInteger(entry.quantity) || entry.quantity < 1 || entry.quantity > 10 || total + entry.quantity > 30) continue;
+   if (!entry || !Number.isInteger(entry.quantity) || entry.quantity < 1 || entry.quantity > BAG_LIMITS.quantity || total + entry.quantity > BAG_LIMITS.items || result.length >= BAG_LIMITS.lines) continue;
    const item = menu.find(item => item.id === entry.id); if (!item) continue;
    const variant = entry.variant || item.variants[0].id, spice = entry.spice || item.spice, addons = entry.addons || [];
    if (!item.variants.some(option => option.id === variant) || !Array.isArray(addons) || new Set(addons).size !== addons.length || addons.some(id => !item.addons.some(option => option.id === id)) || !(item.spice === 'none' ? ['none'] : ['mild', 'medium', 'hot']).includes(spice)) continue;
@@ -18,8 +23,8 @@ export function readBag(menu) {
    keys.add(line.key); total += line.quantity; result.push(line);
   }
   return result;
- } catch { return []; }
 }
+export const readBag = menu => normaliseBag(menu, readSavedBag());
 
 export function writeBag(lines) {
  // Explicit allowlist: never persist prices, menu snapshots or checkout contact details.

@@ -4,8 +4,10 @@ import { INSTRUCTIONS } from '../shared/demo-model.js?v=portal-auth-1';
 import { orderHistory, visibleOrders } from '../shared/order-history.js';
 import { cloudConfig, identity, cloudClient, loginURL } from '../shared/cloud.js?v=portal-auth-1';
 import { wireCustomerNavigation } from '../shared/customer-nav.js?v=customer-nav-1';
-import { wireCustomerBag } from '../shared/customer-bag.js?v=customer-nav-1';
+import { wireCustomerBag } from '../shared/customer-bag.js?v=customer-flow-1';
 import { paymentMarkup, wireCustomerPayments } from '../shared/payments.js?v=payments-1';
+import {wireReordering} from '../shared/reorder-ui.js?v=customer-flow-1';
+import {cloudRequest} from '../shared/cloud.js?v=portal-auth-1';
 
 let reference=new URL(location.href).searchParams.get('order'),query='',page=0,store,redraw,busy=false,searchTimer;
 const orderDate=value=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'numeric',month:'short',year:'numeric'}).format(new Date(value));
@@ -23,6 +25,8 @@ function configurePage({live,guest=true,visitor=false}) {
   :guest?'Guest history stays in this browser. Signing into another customer account or clearing site data removes access to that guest session. Staff sign-ins stay separate.'
   :'Your history stays with your account. Open older pages or search a reference to revisit an earlier order.';
  $('#history-refresh-note').textContent=visitor?'Place an order to start tracking':live?'Updates refresh every 8 seconds':'Updates sync between tabs';
+ $('#history-session-label').textContent=visitor?'Your guest history · this browser':!live?'Fictional demo history':guest?'Guest history · this browser':'Your account history';
+ for(const link of document.querySelectorAll('[data-customer-favourites]'))link.href=siteURL(live?'?favourites=1#menu':'?demo=1&favourites=1#menu');
  $('#history-service-note').textContent=live
   ?'Order progress is updated by restaurant staff. Online payment, automatic courier booking and confirmation emails are not connected.'
   :'Fictional demo only. Order updates are shared between tabs in this browser; nothing is sent to a real kitchen.';
@@ -30,7 +34,7 @@ function configurePage({live,guest=true,visitor=false}) {
 
 function historyItem(order) {
  const first=order.items[0],count=order.items.reduce((sum,item)=>sum+item.quantity,0);
- return `<li><a href="?order=${encodeURIComponent(order.reference)}" data-track-order="${escape(order.reference)}" ${reference===order.reference?'aria-current="true"':''}><div class="history-card-top">${first?`<img src="${escape(siteURL(first.image))}" alt="" width="54" height="54" loading="lazy">`:''}<div><strong>${escape(order.reference)}</strong><small>${escape(orderDate(order.createdAt))} · ${localTime(order.createdAt)}</small></div>${icon('arrow')}</div><p class="history-card-food">${escape(first?.name||'Food order')}${count>1?` <span>+ ${count-1} more</span>`:''}</p><div class="history-item-bottom">${orderBadge(order)}<span>${money(order.total)}</span></div></a></li>`;
+ return `<li class="history-entry ${reference===order.reference?'is-selected':''}"><a href="?order=${encodeURIComponent(order.reference)}" data-track-order="${escape(order.reference)}" ${reference===order.reference?'aria-current="true"':''}><div class="history-card-top">${first?`<img src="${escape(siteURL(first.image))}" alt="" width="54" height="54" loading="lazy">`:''}<div><strong>${escape(order.reference)}</strong><small>${escape(orderDate(order.createdAt))} · ${localTime(order.createdAt)}</small></div>${icon('arrow')}</div><p class="history-card-food">${escape(first?.name||'Food order')}${count>1?` <span>+ ${count-1} more</span>`:''}</p><div class="history-item-bottom">${orderBadge(order)}<span>${money(order.total)}</span></div></a><button type="button" class="history-repeat" data-reorder-order="${escape(order.reference)}" aria-label="Order again ${escape(order.reference)}">Order again ${icon('arrow')}</button></li>`;
 }
 
 function customerDetail(order,live) {
@@ -42,7 +46,7 @@ function customerDetail(order,live) {
   :updates[status]||updates.received;
  const latest=order.delivery?.timeline?.at(-1)?.at||order.timeline.at(-1)?.at||order.createdAt;
  const instructions=live?order.instructions||'Standard preparation':INSTRUCTIONS[order.instruction];
- return `<div class="ops-panel-header"><div><p class="eyebrow">${live?'YOUR ORDER':'YOUR FICTIONAL DEMO ORDER'}</p><h2 id="tracking-reference" tabindex="-1">${escape(order.reference)}</h2></div><span class="history-fulfilment">${icon(delivery?'pin':'bag')}${delivery?'Delivery':'Pickup'}</span></div>
+ return `<div class="ops-panel-header"><div><p class="eyebrow">${live?'YOUR ORDER':'YOUR FICTIONAL DEMO ORDER'}</p><h2 id="tracking-reference" tabindex="-1">${escape(order.reference)}</h2></div><div class="history-ticket-meta"><span class="history-fulfilment">${icon(delivery?'pin':'bag')}${delivery?'Delivery':'Pickup'}</span><button type="button" class="ops-button ops-button-small history-repeat-primary" data-reorder-order="${escape(order.reference)}">Order again ${icon('arrow')}</button></div></div>
  <div class="history-progress-heading"><div class="history-progress-icon">${icon(status==='delivered'||status==='collected'?'check':status==='cancelled'?'close':'plate')}</div><div>${orderBadge(order)}<h3>${title}</h3><p>${description}</p><small>Updated ${escape(orderDate(latest))} · ${localTime(latest)}</small></div></div>
  ${orderTimeline(order)}${paymentMarkup(order)}
  <div class="history-detail-grid"><section class="history-food-detail" aria-labelledby="order-food-title"><h3 id="order-food-title">A bag full of good.</h3><p class="ops-muted">${count} ${count===1?'dish':'dishes'} · ordered ${escape(orderDate(order.createdAt))}</p>${orderItems(order,true)}<dl class="ticket-totals"><div><dt>Food subtotal</dt><dd>${money(order.subtotal)}</dd></div><div><dt>Delivery fee</dt><dd>${money(order.deliveryFee)}</dd></div><div><dt>Order total</dt><dd>${money(order.total)}</dd></div></dl></section>
@@ -61,7 +65,7 @@ function render(state) {
  const ids=new Set(history.items.map(order=>order.reference));
  const active=(data.activeOrders||[]).filter(order=>!ids.has(order.reference)&&order.reference.toLowerCase().includes(query.toLowerCase()));
  page=history.page;
- if(!reference)reference=history.items[0]?.reference||active[0]?.reference;
+ if(!reference)reference=(!query&&history.page===0?(data.activeOrders||[])[0]?.reference:null)||history.items[0]?.reference||active[0]?.reference;
  const available=state.history?state.orders:visibleOrders(data);
  const order=data.selectedOrder?.reference===reference?data.selectedOrder:available.find(order=>order.reference===reference);
  $('#history-title').textContent=history.guest?'Recent guest orders':'Order history';
@@ -72,7 +76,7 @@ function render(state) {
  $('#history-pagination').hidden=history.guest||history.total<=history.pageSize;
  $('#history-newer').disabled=busy||!history.hasNewer;$('#history-older').disabled=busy||!history.hasOlder;
  $('#active-history-section').hidden=!active.length;$('#active-order-history').innerHTML=active.map(historyItem).join('');
- $('#history-active-count').textContent=(data.activeOrders||[]).length;$('#history-active-label').textContent=data.activeOrders?.length===1?'order':'orders';
+ $('#history-active-count').textContent=(data.activeOrders||[]).length;$('#history-active-label').textContent=data.activeOrders?.length===1?'active order':'active orders';
  $('#tracking-detail').innerHTML=order?customerDetail(order,state.live):emptyDetail({guest:history.guest});
  if(state.live&&state.orders.some(order=>order.payment))$('#history-service-note').textContent='Follow payment, kitchen and delivery updates here. UPI receipts are verified by the restaurant. Automatic courier booking and order emails are not connected.';
  $('#history-jump').hidden=!order;
@@ -104,9 +108,10 @@ async function boot() {
   await startOperations('customer',render,async(connection,refresh)=>{
    store=connection;redraw=refresh;configurePage({live:connection.live===true,guest:connection.account?.guest??true});
    wireCustomerPayments({getOrder:reference=>store.read().orders.find(order=>order.reference===reference),refresh:()=>store.refresh()});
+   wireReordering({getOrder:reference=>store.read().orders.find(order=>order.reference===reference),loadMenu:async()=>connection.live?(await cloudRequest('/api/menu')).items:store.read().menu.filter(item=>item.available&&!item.archived),checkoutURL:siteURL(connection.live?'?bag=1':'?demo=1&bag=1'),menuURL:siteURL(connection.live?'#menu':'?demo=1#menu')});
    $('.tracking-history').addEventListener('click',async event=>{
     const link=event.target.closest('[data-track-order]');if(!link)return;
-    event.preventDefault();reference=link.dataset.trackOrder;await load({reference});
+    event.preventDefault();reference=link.dataset.trackOrder;await load({reference});if(matchMedia('(max-width:900px)').matches){$('#tracking-detail').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});$('#tracking-reference')?.focus({preventScroll:true});}
    });
    $('#history-search').addEventListener('input',event=>{
     query=event.target.value.trim();page=0;reference=null;clearTimeout(searchTimer);

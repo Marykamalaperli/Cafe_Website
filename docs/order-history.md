@@ -6,6 +6,8 @@ Successful Supabase checkout redirects immediately to `/orders/?order=<reference
 
 Visitors without a current guest/account session receive an empty history page with menu and account sign-in links. Opening history does not create an anonymous account or request private order data. Guest sessions are created only at checkout; switching customer accounts still does not restore or merge an earlier guest identity. Empty registered-account histories, unavailable references and connection failures have distinct messages.
 
+Mobile history puts the selected ticket before the card list and defaults to an active order when no reference/search/page has been requested. **Order again** on a ticket or card opens a current-menu preview and returns selected food to the bag without creating an order. A smaller masthead, compact timeline and expandable history explanation reduce scrolling. [Repeat-order and customer-flow details](customer-ordering.md).
+
 ## Activate on the existing project
 
 Guest checkout is already working on the owner's project. In **Supabase → SQL Editor**, run the complete [007_order_history_delivery.sql](../supabase/migrations/007_order_history_delivery.sql) once. It requires the existing baseline and migration 006; the separate payment-preview migrations 003–005 are not required. Do not rerun `setup.sql`, reset tables, or delete migration markers. This migration can safely be rerun and does not delete order records, change menu prices, or assign staff roles.

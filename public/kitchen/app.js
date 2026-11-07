@@ -1,12 +1,14 @@
 import { startOperations, statCard } from '../shared/operations.js?v=payments-1';
 import { $, $$, escape, badge, orderBadge, localTime, localDate, orderItems, orderActions, announce } from '../shared/ui.js?v=customer-nav-1';
 import { demoMetrics, STATUS_LABELS, INSTRUCTIONS } from '../shared/demo-model.js?v=portal-auth-1';
+import {mountKitchenAlerts} from '../shared/kitchen-alerts.js?v=customer-flow-1';
 
-let store, queue = 'active', sort = 'oldest', search = '';
+let store, alerts, queue = 'active', sort = 'oldest', search = '';
 function ticket(order) {
  return `<article class="ticket-card" data-ticket="${escape(order.reference)}"><div class="ticket-card-header"><div><h3>${escape(order.reference)}</h3><p>${localDate(order.createdAt)} · ${localTime(order.createdAt)}<br>${escape(order.fulfilment)} · ${store?.live ? escape(order.date+' '+order.time) : order.origin === 'sample' ? 'Sample ticket' : 'Customer demo'}</p></div>${orderBadge(order)}</div><div class="ticket-card-body">${orderItems(order)}<p class="ticket-instructions"><strong>Preparation note</strong>${escape(store?.live ? order.instructions||'Standard preparation' : INSTRUCTIONS[order.instruction])}</p><div class="ticket-actions">${orderActions(order, 'kitchen')}<button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}">Details</button></div></div></article>`;
 }
 function render(state) {
+ alerts?.update(state.orders);
  const { counts } = demoMetrics(state);
  $('#kitchen-stats').innerHTML = statCard('received', 'Just received', counts.received, 'Ready to start', true) + statCard('preparing', 'On the stove', counts.preparing, 'Currently preparing') + statCard('ready', 'Ready to collect', counts.ready, 'Waiting at the counter') + statCard('collected', 'Collected', counts.collected, `${counts.cancelled} cancelled demo orders`);
  const statuses = queue === 'active' ? ['received', 'preparing', 'ready'] : queue === 'history' ? ['collected', 'cancelled'] : [queue];
@@ -22,6 +24,7 @@ function render(state) {
 
 await startOperations('kitchen', render, async (connection, redraw) => {
  store = connection;
+ alerts=mountKitchenAlerts({initialOrders:store.read().orders,notify:announce,showReceived:()=>{queue='received';$$('[data-queue]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.queue==='received')));redraw();$('#kitchen-queue').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}});
  if(store.live && store.account.role==='chef') document.querySelector('a[href="../admin/#orders"]')?.remove();
  $('#queue-filters').addEventListener('click', event => {
   const button = event.target.closest('[data-queue]'); if (!button) return;

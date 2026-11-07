@@ -1,5 +1,5 @@
 import { wireCustomerNavigation } from './customer-nav.js?v=customer-nav-1';
-import { wireCustomerBag } from './customer-bag.js?v=customer-nav-1';
+import { wireCustomerBag } from './customer-bag.js?v=customer-flow-1';
 import { mountRoleNavigation } from './ui.js?v=customer-nav-1';
 
 wireCustomerNavigation();

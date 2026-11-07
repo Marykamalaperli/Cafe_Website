@@ -46,6 +46,8 @@ The earlier fictional customer/kitchen/admin workflow remains available only whe
 
 ## Food ordering
 
+**Everyday ordering:** **Order again** previews current prices and preserves available customisations before adding to/replacing the bag. Menu/recommendation hearts save dish favourites on this browser. Mobile history shows the selected active ticket before the history list; checkout retains a visible total/action. Kitchen displays can opt into new-order sounds and visible arrival notices. These improvements use the current backend and need no new SQL or live payment setup. [Behaviour and verification](docs/customer-ordering.md).
+
 - South Indian: masala/Mysore/ghee/rava/set/cheese dosas, podi idli, idli sambar, medu vada, pongal, uttapam, appam and stew, puttu and kadala, bisi bele bath, thali and Chettinad chicken dosa.
 - Other cuisines: curries and naan, four biryanis, Indo-Chinese favourites, pizza, burgers, pasta, street snacks, Indian desserts and drinks. Original café products retain their IDs for previous orders and saved bags.
 - Filter by cuisine or vegetarian/non-vegetarian/plant-based preferences; search names, descriptions and ingredients; sort by price; load more dishes as needed.

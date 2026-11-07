@@ -40,6 +40,7 @@
 - Keep content readable without reveal animations. The HTML is visible without JavaScript; `.motion-ready` activates progressive enhancements.
 - Avoid dummy links, fake maps/ratings/contact details, or claiming emails/payments are connected. Address/email/phone are pending the user's details. Preserve clear demo status until live operations are intentionally configured.
 - Bag storage holds only dish IDs, quantities and selected option IDs/spice. The separate demo namespace holds fictional order snapshots, demo menu/preferences and activity, never customer contact information or delivery addresses. Server-side totals must include validated portion/add-on prices and delivery fees.
+- Read `docs/customer-ordering.md` for repeat ordering, favourites and kitchen arrivals. Fetch the current menu before repeat-order previews; never silently substitute retired options, reuse old prices, copy contact/payment/schedule data, or place an order from the repeat button. Preserve merge/replace review and bag limits. Browser favourites hold folder-scoped dish IDs only and must not claim account sync. Kitchen audio is opt-in and must not replay the initial queue or expose data outside the existing role guards.
 
 ## Verify changes
 

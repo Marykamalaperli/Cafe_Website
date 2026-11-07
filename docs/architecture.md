@@ -27,6 +27,11 @@ public/
   shared/customer-nav.js   Shared desktop/mobile customer navbar behaviour
   shared/customer-nav.css  Responsive customer navbar/account and bag presentation
   shared/bag.js            Validated, selection-only bag storage shared by customer pages
+  shared/reorder.js        Pure current-menu repeat-order planner
+  shared/reorder-ui.js     Review/merge/replace preview before returning to checkout
+  shared/favourites.js     Folder-scoped browser preferences containing dish IDs only
+  shared/kitchen-alerts.js Opt-in sound and visible new-ticket arrival notices
+  shared/customer-flow.css Shared repeat/favourite/checkout and kitchen control styles
   shared/customer-bag.js    Secondary-page bag drawer; returns to the full menu checkout
   shared/customer-page.js   Public photo-credit navigation/account bootstrap
   shared/payments.js        Optional YouPI checkout and customer payment tracking

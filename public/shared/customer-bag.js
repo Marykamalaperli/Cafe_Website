@@ -1,5 +1,5 @@
 import { cloudConfig, cloudRequest, rootURL } from './cloud.js?v=portal-auth-1';
-import { BAG_KEY, LEGACY_BAG_KEY, readBag, writeBag, updateBagButton } from './bag.js?v=customer-nav-1';
+import { BAG_KEY, LEGACY_BAG_KEY, readBag, writeBag, updateBagButton } from './bag.js?v=customer-flow-1';
 import { escape, money, icon } from './ui.js?v=customer-nav-1';
 
 // Secondary customer pages use the same saved selections as the menu's full checkout.

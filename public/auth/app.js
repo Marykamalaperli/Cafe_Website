@@ -2,7 +2,7 @@ import { cloudConfig, cloudClient, identity, roleHome, rootURL, sessionPortal, s
 import { portalPath, portalAllows } from '../shared/session-scope.js?v=portal-auth-1';
 import { signupErrorMessage } from './errors.js';
 import { wireCustomerNavigation } from '../shared/customer-nav.js?v=customer-nav-1';
-import { wireCustomerBag } from '../shared/customer-bag.js?v=customer-nav-1';
+import { wireCustomerBag } from '../shared/customer-bag.js?v=customer-flow-1';
 const $ = selector => document.querySelector(selector);
 const form = $('#auth-form'), status = $('#auth-status');
 const authButtons=[...document.querySelectorAll('.auth-card button')];
