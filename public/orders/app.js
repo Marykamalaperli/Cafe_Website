@@ -1,10 +1,11 @@
-import { startOperations } from '../shared/operations.js?v=customer-nav-1';
+import { startOperations } from '../shared/operations.js?v=payments-1';
 import { $, escape, orderBadge, orderStatus, money, localTime, siteURL, orderItems, orderTimeline, orderActions, icon, announce, mountRoleNavigation } from '../shared/ui.js?v=customer-nav-1';
 import { INSTRUCTIONS } from '../shared/demo-model.js?v=portal-auth-1';
 import { orderHistory, visibleOrders } from '../shared/order-history.js';
 import { cloudConfig, identity, cloudClient, loginURL } from '../shared/cloud.js?v=portal-auth-1';
 import { wireCustomerNavigation } from '../shared/customer-nav.js?v=customer-nav-1';
 import { wireCustomerBag } from '../shared/customer-bag.js?v=customer-nav-1';
+import { paymentMarkup, wireCustomerPayments } from '../shared/payments.js?v=payments-1';
 
 let reference=new URL(location.href).searchParams.get('order'),query='',page=0,store,redraw,busy=false,searchTimer;
 const orderDate=value=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'numeric',month:'short',year:'numeric'}).format(new Date(value));
@@ -35,14 +36,15 @@ function historyItem(order) {
 function customerDetail(order,live) {
  const status=orderStatus(order),delivery=order.fulfilment==='delivery',count=order.items.reduce((sum,item)=>sum+item.quantity,0);
  const updates={received:['We’ve got your order.','Your next good meal is waiting for the kitchen to get started.'],preparing:['Good things are cooking.','The kitchen is preparing your food. We’ll keep its progress right here.'],ready:[delivery?'Packed and ready to go.':'Ready when you are.',delivery?'Your food is ready. Waiting for a delivery update from the restaurant.':'Your food is ready for pickup.'],out_for_delivery:['Your meal is on its way.','The restaurant has marked your order out for delivery.'],delivered:['Delivered. Enjoy every bite.','The restaurant has confirmed delivery. Thanks for ordering with BitesBro.'],collected:['Picked up. Dig in.','Your order has been collected. We hope it made your day a little better.'],cancelled:['This order was cancelled.','This order is no longer being prepared.']};
- const [title,description]=status==='collected'&&delivery
+ const paymentWaiting=status==='received'&&order.payment?.method==='youpi'&&order.payment.status!=='paid';
+ const [title,description]=paymentWaiting?['Waiting for payment verification.','Your order is saved. The kitchen receives it after the restaurant verifies the bank credit.']:status==='collected'&&delivery
   ?['Waiting for a delivery update.','The kitchen has handed off this order. Delivery has not yet been confirmed by the restaurant.']
   :updates[status]||updates.received;
  const latest=order.delivery?.timeline?.at(-1)?.at||order.timeline.at(-1)?.at||order.createdAt;
  const instructions=live?order.instructions||'Standard preparation':INSTRUCTIONS[order.instruction];
  return `<div class="ops-panel-header"><div><p class="eyebrow">${live?'YOUR ORDER':'YOUR FICTIONAL DEMO ORDER'}</p><h2 id="tracking-reference" tabindex="-1">${escape(order.reference)}</h2></div><span class="history-fulfilment">${icon(delivery?'pin':'bag')}${delivery?'Delivery':'Pickup'}</span></div>
  <div class="history-progress-heading"><div class="history-progress-icon">${icon(status==='delivered'||status==='collected'?'check':status==='cancelled'?'close':'plate')}</div><div>${orderBadge(order)}<h3>${title}</h3><p>${description}</p><small>Updated ${escape(orderDate(latest))} · ${localTime(latest)}</small></div></div>
- ${orderTimeline(order)}
+ ${orderTimeline(order)}${paymentMarkup(order)}
  <div class="history-detail-grid"><section class="history-food-detail" aria-labelledby="order-food-title"><h3 id="order-food-title">A bag full of good.</h3><p class="ops-muted">${count} ${count===1?'dish':'dishes'} · ordered ${escape(orderDate(order.createdAt))}</p>${orderItems(order,true)}<dl class="ticket-totals"><div><dt>Food subtotal</dt><dd>${money(order.subtotal)}</dd></div><div><dt>Delivery fee</dt><dd>${money(order.deliveryFee)}</dd></div><div><dt>Order total</dt><dd>${money(order.total)}</dd></div></dl></section>
  <section class="history-fulfilment-detail" aria-labelledby="order-fulfilment-title"><p class="eyebrow">${delivery?'TO YOUR DOOR':'FROM OUR COUNTER'}</p><h3 id="order-fulfilment-title">${delivery?'Delivery details':'Pickup details'}</h3>${live&&order.date?`<p class="history-schedule">${icon('clock')}<span><strong>${escape(order.date)} · ${escape(order.time)}</strong><small>Bangalore time</small></span></p>`:'<p class="ops-muted">Fictional fulfilment for this browser demo.</p>'}${live&&delivery?`<p class="history-address">${icon('pin')}<span>${escape(order.address)}<br>${escape(order.postcode)}</span></p>`:''}<div class="history-preparation"><strong>Preparation note</strong><p>${escape(instructions||'Standard preparation')}</p></div><div class="order-detail-actions">${orderActions(order,'customer')}</div></section></div>`;
 }
@@ -72,6 +74,7 @@ function render(state) {
  $('#active-history-section').hidden=!active.length;$('#active-order-history').innerHTML=active.map(historyItem).join('');
  $('#history-active-count').textContent=(data.activeOrders||[]).length;$('#history-active-label').textContent=data.activeOrders?.length===1?'order':'orders';
  $('#tracking-detail').innerHTML=order?customerDetail(order,state.live):emptyDetail({guest:history.guest});
+ if(state.live&&state.orders.some(order=>order.payment))$('#history-service-note').textContent='Follow payment, kitchen and delivery updates here. UPI receipts are verified by the restaurant. Automatic courier booking and order emails are not connected.';
  $('#history-jump').hidden=!order;
  const url=new URL(location.href);if(reference)url.searchParams.set('order',reference);else url.searchParams.delete('order');window.history.replaceState(null,'',url);
 }
@@ -100,6 +103,7 @@ async function boot() {
   if(config.enabled&&!await identity()){await showVisitorHistory();return;}
   await startOperations('customer',render,async(connection,refresh)=>{
    store=connection;redraw=refresh;configurePage({live:connection.live===true,guest:connection.account?.guest??true});
+   wireCustomerPayments({getOrder:reference=>store.read().orders.find(order=>order.reference===reference),refresh:()=>store.refresh()});
    $('.tracking-history').addEventListener('click',async event=>{
     const link=event.target.closest('[data-track-order]');if(!link)return;
     event.preventDefault();reference=link.dataset.trackOrder;await load({reference});

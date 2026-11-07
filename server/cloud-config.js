@@ -1,4 +1,4 @@
-// Only these two intentionally public settings may cross the server/browser boundary.
+// Only public Supabase settings and an explicit payment-UI feature flag cross this boundary.
 export function publicCloudConfig(env = process.env) {
  const url = (env.VITE_SUPABASE_URL || env.SUPABASE_URL || '').trim();
  const publishableKey = (env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY || '').trim();
@@ -11,5 +11,5 @@ export function publicCloudConfig(env = process.env) {
   try { isPublic = JSON.parse(Buffer.from(publishableKey.split('.')[1], 'base64url')).role === 'anon'; } catch { /* Invalid keys are rejected below. */ }
  }
  if (!isPublic) throw new Error('Browser configuration requires a publishable key, never a secret or service-role key.');
- return { enabled: true, demoEnabled: false, url: parsed.origin, publishableKey };
+ return { enabled: true, demoEnabled: false, url: parsed.origin, publishableKey, ...(env.APP_PAYMENTS_ENABLED === 'true' ? { paymentsEnabled: true } : {}) };
 }

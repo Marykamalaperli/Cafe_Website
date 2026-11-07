@@ -1,0 +1,26 @@
+.payment-panel{margin-top:28px;padding:23px;background:var(--sage);border:1px solid var(--line);border-radius:8px}
+.review-banner{padding:12px 20px;background:#eed5bd;color:#473326;text-align:center;font-size:12px;line-height:1.7}
+.review-banner a{text-decoration:underline;font-weight:600;text-underline-offset:3px}
+.payment-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.payment-panel p{font-size:13px;line-height:1.8;margin:9px 0}
+.payment-panel .ops-button{margin-top:12px}
+.payment-status{font-size:11px;font-weight:600;border:1px solid currentColor;padding:6px 10px;border-radius:20px;line-height:1.5}
+.payment-pending,.payment-submitted,.payment-refund_pending{color:#70551d}
+.payment-paid,.payment-refunded{color:var(--ink)}
+.payment-failed,.payment-expired,.payment-cancelled,.payment-review-note{color:var(--orange)}
+.payment-dialog{width:min(580px,calc(100% - 28px))}
+.payment-dialog>p{margin-block:17px;line-height:1.8}
+#youpi-hosted-checkout{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:20px}
+.payments-admin{margin-top:24px}
+.payment-enable{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:20px 0}
+.payment-enable .settings-check{flex:1}
+.payment-review-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-block:20px}
+.payment-review-card{padding:22px;border:1px solid var(--line);border-radius:7px;min-width:0}
+.payment-review-card h3{font-size:20px;overflow-wrap:anywhere}
+.payment-review-card p,.payments-admin>.ops-muted,.payment-cash-list{font-size:13px;line-height:1.8}
+.payment-review-card .staff-access-form{padding-bottom:0}
+.payment-review-card .settings-check{font-size:13px;align-items:flex-start}
+.payment-cash-list summary{cursor:pointer;padding:14px 0;font-weight:600}
+.payment-cash-list form{display:flex;gap:15px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding-block:16px}
+@media(max-width:800px){.payment-review-list{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:540px){.payment-panel{padding:18px}.payment-dialog{padding:22px}.payment-review-card{padding:17px}.payment-review-card .ops-button{white-space:normal}}

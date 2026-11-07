@@ -29,6 +29,8 @@ public/
   shared/bag.js            Validated, selection-only bag storage shared by customer pages
   shared/customer-bag.js    Secondary-page bag drawer; returns to the full menu checkout
   shared/customer-page.js   Public photo-credit navigation/account bootstrap
+  shared/payments.js        Optional YouPI checkout and customer payment tracking
+  shared/payments-admin.js  Administrator bank-receipt/cash/refund recording
   orders/history.css       Customer-facing recent-order cards and progress layout
   shared/photo-upload.js   Verified, resumable administrator upload
   shared/ui.js, operations.js  Shared rendering and controllers
@@ -53,6 +55,9 @@ supabase/
   bootstrap-admin.sql      Confirmed admin@bitesbro.com role only
   migrations/006_guest_checkout.sql   Private guest Auth ordering
   migrations/007_order_history_delivery.sql  History visibility and manual delivery tracking
+  migrations/008_youpi_payments.sql  Forward-only payment state, RLS and kitchen gates
+  functions/payments/       Server-only YouPI orchestration and signed webhooks
+review/, scripts/build-payment-review.js  Isolated PostgreSQL payment demo for Pages
   tests/security.sql       Rollback-only actual Postgres/RLS checks
 ```
 
@@ -91,7 +96,7 @@ Money is integer paise. `place_order` checks the customer role, consent, verifie
 
 Order transitions lock rows and verify role/ownership. Customers can cancel only their received orders. Chefs progress one step at a time; administrators can also cancel received/preparing orders. Terminal orders cannot reopen. Reservation capacity and inserts share one locked transaction; sittings never overlap or span the afternoon closure. All date calculations use Asia/Kolkata.
 
-Settings and all operational data persist in Postgres and work across devices. Dashboards poll every eight seconds and customer menus every fifteen seconds; no Realtime publication is required. Payments, delivery dispatch and order-confirmation email remain unconnected and are described honestly.
+Settings and all operational data persist in Postgres and work across devices. Dashboards poll every eight seconds and customer menus every fifteen seconds; no Realtime publication is required. The optional YouPI adapter is gated by version 8, an explicit public UI flag, server configuration and restaurant preference. Manual UPI requires administrator bank verification before chef release. The separately built `/review/` demo uses real PostgreSQL and the same handler with simulated Auth/YouPI; production credentials and orders never enter it. Automatic courier dispatch and order-confirmation email remain unconnected. See [payment activation and verification boundaries](payments.md).
 
 Forward migration 007 adds owner-scoped `get_order_history`: guests receive three recent orders plus older active orders, while members receive five per page and can search/retrieve earlier records. RLS also denies hidden completed guest records, including line/event reads. Staff records are never deleted. `delivery_assignments`/`delivery_events` track manual administrator dispatch and arrival, while canonical kitchen statuses remain compatible with existing reports. No courier is booked. Checkout redirects to history and customer tracking refreshes from Supabase. See [order-history activation and limits](order-history.md).
 

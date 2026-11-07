@@ -42,6 +42,13 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           REQUIRE_SUPABASE: 'true'
+          APP_PAYMENTS_ENABLED: ${{ vars.APP_PAYMENTS_ENABLED || 'false' }}
+      - name: Build isolated YouPI payment review
+        run: npm run build:review
+        env:
+          REVIEW_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/review/
+      - name: Include the payment demo under review
+        run: node --input-type=module -e "import {cpSync} from 'node:fs'; cpSync('_payment_review_site','_site/review',{recursive:true});"
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 

@@ -1,0 +1,3 @@
+# Browser JWTs are verified by the handler. YouPI webhooks use raw-body HMAC.
+[functions.payments]
+verify_jwt = false

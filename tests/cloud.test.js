@@ -18,6 +18,8 @@ test('only publishable configuration can reach browser builds; demo cannot overr
  for(const key of ['sb_secret_do_not_expose','not-a-publishable-key','x.'+Buffer.from(JSON.stringify({role:'service_role'})).toString('base64url')+'.x'])assert.throws(()=>publicCloudConfig({VITE_SUPABASE_URL:config.url,VITE_SUPABASE_PUBLISHABLE_KEY:key}),/never a secret/);
  for(const url of ['http://example.com','https://user:password@example.com','https://example.com/?token=x'])assert.throws(()=>publicCloudConfig({VITE_SUPABASE_URL:url,VITE_SUPABASE_PUBLISHABLE_KEY:config.publishableKey}));
  assert.deepEqual(Object.keys(config).sort(),['enabled','demoEnabled','url','publishableKey'].sort());
+ const payments=publicCloudConfig({VITE_SUPABASE_URL:config.url,VITE_SUPABASE_PUBLISHABLE_KEY:config.publishableKey,APP_PAYMENTS_ENABLED:'true',YOUPI_MERCHANT_API_KEY:'server-only-fixture'});
+ assert.equal(payments.paymentsEnabled,true);assert.ok(!JSON.stringify(payments).includes('server-only-fixture'));
 });
 
 test('cloud API rejects missing/invalid tokens before RPC writes and passes valid caller JWTs through',async()=>{

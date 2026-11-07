@@ -11,9 +11,9 @@ export function liveCopy(root = document.body) {
  const walker = document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  let node;
  while ((node=walker.nextNode())) {
-  if (node.parentElement.closest('script,style,.table-dish,.ticket-items,.popular-list,.ticket-instructions')) continue;
+  if (node.parentElement.closest('script,style,.table-dish,.ticket-items,.popular-list,.ticket-instructions,.payment-panel,.payments-admin')) continue;
   node.textContent=node.textContent
-   .replace(/Demo Mode — No real orders or payments\. Shared in this browser only\./g,'Orders saved in Supabase · no online payments.')
+   .replace(/Demo Mode — No real orders or payments\. Shared in this browser only\./g,'Orders saved in Supabase.')
    .replace(/A live view of the fictional orders, menu and kitchen activity in this browser\./g,'Orders, menu and kitchen activity saved in Supabase.')
    .replace(/Prices and availability change only in this browser demo\./g,'Prices and availability are saved in Supabase.')
    .replace(/These switches update the demo customer menu and administrator view\. The actual restaurant database is unchanged\./g,'Availability changes update the customer menu and administrator view.')

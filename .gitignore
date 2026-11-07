@@ -9,6 +9,7 @@ test-results/
 .DS_Store
 
 _site/
+_payment_review_site/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal

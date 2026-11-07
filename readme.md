@@ -36,7 +36,9 @@ Customer, administrator and kitchen sessions are independent in the same browser
 
 **Order history:** Successful checkout opens tracking immediately. After the owner applies [007_order_history_delivery.sql](supabase/migrations/007_order_history_delivery.sql), guests see their latest three orders plus older orders still in progress; signed-in customers see five per page with older/newer navigation and reference search. Older guest records remain available to staff. Administrators can record delivery dispatch and arrival manually. [Activation and behaviour](docs/order-history.md).
 
-The SDK is served locally. Generated browser configuration intentionally includes only the public project URL/publishable key. Secret/service-role keys are rejected, `.env.local` stays ignored, and no management token is required. Start/dev/build commands load `.env.local`. A failed Cloud request never saves to SQLite or the fictional browser store.
+**YouPI payments:** An isolated [payment review](https://marykamalaperli.github.io/Cafe_Website/review/review.html) demonstrates guest UPI checkout, administrator bank verification, chef release, failure/correction and refund tracking. Real payments stay disabled until the owner applies forward migration **008**, hosts/configures YouPI and the Supabase function, and enables the public payment-UI flag. The manual gateway never marks a bank reference paid automatically. [Demo and activation instructions](docs/payments.md).
+
+The SDK is served locally. Generated browser configuration includes only public Supabase settings and the optional payment-UI flag. Secret/service-role keys are rejected, `.env.local` stays ignored, and no management token is required at runtime. Start/dev/build commands load `.env.local`. A failed Cloud request never saves to SQLite or the fictional browser store.
 
 ## Local three-role demonstration
 
@@ -54,7 +56,7 @@ The earlier fictional customer/kitchen/admin workflow remains available only whe
 - The server recalculates dish prices, portion surcharges, add-ons and delivery fees from authoritative data. Prices are integer paise. Client-supplied totals are ignored.
 - Orders and option/price snapshots, contact messages, newsletter subscriptions and reservations persist in Supabase when configured. SQLite remains the local unconfigured preview. Public endpoints do not expose customer records.
 
-**Requests save in Supabase after setup, or in SQLite in the local preview.** Payment processing, email delivery and delivery dispatch are not integrated. Forms explicitly describe demo requests and do not claim a confirmed visit or fulfilment from an unannounced business address. Recipe labels are samples, not guarantees about allergen handling.
+**Requests save in Supabase after setup, or in SQLite in the local preview.** The optional YouPI payment integration needs the activation steps above; live payments, email delivery and automatic courier dispatch are not enabled by a frontend deployment. Forms do not claim fulfilment from an unannounced business address. Recipe labels are samples, not guarantees about allergen handling.
 
 ## Time-based recommendations and photographs
 

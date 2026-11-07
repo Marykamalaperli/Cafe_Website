@@ -5,6 +5,7 @@ import {mountRoleNavigation,siteURL} from './shared/ui.js?v=customer-nav-1';
 import {cloudConfig,cloudRequest,requireRole,cloudClient,loginURL} from './shared/cloud.js?v=portal-auth-1';
 import {wireCustomerNavigation} from './shared/customer-nav.js?v=customer-nav-1';
 import {BAG_KEY,LEGACY_BAG_KEY,bagLineKey,readBag,writeBag,updateBagButton} from './shared/bag.js?v=customer-nav-1';
+import {configurePaymentChoice} from './shared/payments.js?v=payments-1';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:n%100?2:0}).format(n/100);
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -193,7 +194,7 @@ connectForm('order-form', '/api/orders', values => ({ ...values, items: state.ca
   saveCart();
   $('#cart-checkout').hidden = true;
   $('#cart-content').innerHTML = `<div class="cart-empty">${icon('check')}<h3>A little good, all saved.</h3><p>Your demo food order is saved in the database.<br><strong>${escape(data.reference)}</strong></p><p>${money(data.total)} · ${escape(data.date)} at ${formatTime(data.time)}<br>No payment is taken, no delivery is dispatched and no email is sent.<br>Please wait for our location announcement before visiting.</p><button class="button button-orange close-dialog">Lovely, thank you ${icon('heart')}</button></div>`;
-  if(cloudEnabled)location.assign(siteURL('orders/?order='+encodeURIComponent(data.reference)));
+  if(cloudEnabled)location.assign(siteURL('orders/?order='+encodeURIComponent(data.reference)+(data.payment?.method==='youpi'?'&pay=1':'')));
 });
 
 wireCustomerNavigation();
@@ -225,7 +226,7 @@ async function boot(){
   account=await requireRole('customer',{optional:true});
   if(account&&!account.demo&&account.role!=='customer')return;
   await mountRoleNavigation('customer',demoMode,account?.demo?undefined:account);
-  if(cloudEnabled) configureCloudCustomer();
+  if(cloudEnabled){configureCloudCustomer();await configurePaymentChoice($('#order-form'));}
   else if(!config.demoEnabled){$('#demo-checkout-panel').hidden=true;$('.demo-workflow').hidden=true;}
  }catch(error){$('#menu-status').textContent=error.message;$('#demo-checkout-panel').hidden=true;$('.demo-workflow').hidden=true;state.browseOnly=true;for(const form of $$('form'))$('button[type=submit]',form)?.setAttribute('disabled','');return;}
  if(demoMode){try{await activateDemo();openRequestedBag();}catch(error){$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML=`<div class="empty-state"><h3>The demo couldn’t open.</h3><p>${escape(error.message)}</p><button class="button button-outline" id="recover-customer-demo">Reset fictional demo data</button></div>`;}return;}
