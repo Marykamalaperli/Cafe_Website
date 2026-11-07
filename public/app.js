@@ -1,9 +1,10 @@
 import {mealRecommendations} from './recommendations.js';
 import {connectDemoStore,clearDamagedDemo} from './shared/demo-store.js?v=portal-auth-1';
 import {priceDemoBag,DEMO_BUSINESS} from './shared/demo-model.js?v=portal-auth-1';
-import {mountRoleNavigation,siteURL} from './shared/ui.js?v=portal-auth-1';
+import {mountRoleNavigation,siteURL} from './shared/ui.js?v=customer-nav-1';
 import {cloudConfig,cloudRequest,requireRole,cloudClient,loginURL} from './shared/cloud.js?v=portal-auth-1';
-import {wireCustomerNavigation} from './shared/customer-nav.js';
+import {wireCustomerNavigation} from './shared/customer-nav.js?v=customer-nav-1';
+import {BAG_KEY,LEGACY_BAG_KEY,bagLineKey,readBag,writeBag,updateBagButton} from './shared/bag.js?v=customer-nav-1';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:n%100?2:0}).format(n/100);
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -12,7 +13,6 @@ const icon=name=>`<svg class="icon" aria-hidden="true"><use href="${asset('asset
 const state={menu:[],categories:[],category:'all',search:'',diet:'all',sort:'recommended',limit:12,cart:[],cafe:null,browseOnly:false};
 const photoAlt=item=>item.photo?'Representative photograph: '+item.photo.title:item.name;
 const photoReference=item=>item.photo?.reference?`<span class="photo-reference">${escape(item.photo.reference)}</span>`:'';
-const CART_KEY='bitesbro.food-bag.v2';
 let toastTimer, selectedDish, recommendationClock;
 let demoMode=false,demoStore,cloudEnabled=false,account,checkoutRequestId;
 async function request(path,options={}){
@@ -26,29 +26,14 @@ function notify(message,error=false){clearTimeout(toastTimer);const t=$('#toast'
 const itemFor=line=>state.menu.find(item=>item.id===line.id);
 function optionsFor(line){const item=itemFor(line);return {item,variant:item?.variants.find(v=>v.id===line.variant),addons:item?.addons.filter(a=>line.addons.includes(a.id))||[]};}
 function unitPrice(line){const {item,variant,addons}=optionsFor(line);return (item?.price||0)+(variant?.price||0)+addons.reduce((n,a)=>n+a.price,0);}
-const lineKey=line=>JSON.stringify([line.id,line.variant,line.spice,[...line.addons].sort()]);
-function readCart(){
- try{
-  const saved=JSON.parse(localStorage.getItem(CART_KEY)||localStorage.getItem('bitesbro.bag.v1')||'[]');
-  if(!Array.isArray(saved)) return [];
-  const result=[],keys=new Set();let total=0;
-  for(const entry of saved){
-   if(!entry||!Number.isInteger(entry.quantity)||entry.quantity<1||entry.quantity>10||total+entry.quantity>30) continue;
-   const item=itemFor(entry);if(!item)continue;
-   const variant=entry.variant||item.variants[0].id,spice=entry.spice||item.spice,addons=entry.addons||[];
-   if(!item.variants.some(v=>v.id===variant)||!Array.isArray(addons)||new Set(addons).size!==addons.length||addons.some(id=>!item.addons.some(a=>a.id===id))||!(item.spice==='none'?['none']:['mild','medium','hot']).includes(spice))continue;
-   const line={id:item.id,variant,spice,addons:[...addons].sort(),quantity:entry.quantity};line.key=lineKey(line);
-   if(keys.has(line.key))continue;keys.add(line.key);total+=line.quantity;result.push(line);
-  }
-  return result;
- }catch{return [];}
-}
+const lineKey=bagLineKey;
+const readCart=()=>readBag(state.menu);
 function subtotal(){return state.cart.reduce((sum,line)=>sum+unitPrice(line)*line.quantity,0);}
 function deliveryFee(){const fulfilment=demoMode?$('#demo-fulfilment').value:$('#fulfilment').value;return fulfilment==='delivery'&&subtotal()<(demoMode?DEMO_BUSINESS.freeDeliveryFrom:state.cafe?.freeDeliveryFrom??49900)?(demoMode?DEMO_BUSINESS.deliveryFee:state.cafe?.deliveryFee??4000):0;}
-function saveCart(){
- try{localStorage.setItem(CART_KEY,JSON.stringify(state.cart));localStorage.removeItem('bitesbro.bag.v1');}catch{}
+function saveCart(persist=true){
+ if(persist)try{writeBag(state.cart);}catch{}
  const count=state.cart.reduce((sum,line)=>sum+line.quantity,0);
- $('#bag-count').textContent=count;$('#open-cart').setAttribute('aria-label',`Open bag, ${count} ${count===1?'item':'items'}`);
+ updateBagButton(state.cart);
  $('#mobile-bag').hidden=!count;$('#mobile-bag-count').textContent=`${count} ${count===1?'dish':'dishes'}`;$('#mobile-bag-total').textContent=money(subtotal());document.body.classList.toggle('has-items',count>0);
 }
 function renderSignature(){const item=state.menu.find(i=>i.id==='masala-dosa');$('#signature').hidden=!item;if(!item)return;$('#signature-name').textContent=item.name;$('#signature-description').textContent=item.description;$('#signature-price').textContent=money(item.price);$('#signature-add').disabled=false;$('#signature-add').setAttribute('aria-label','Customise '+item.name);}
@@ -93,6 +78,11 @@ function renderCart(){
 function updateTotals(){const fee=deliveryFee();$('#cart-subtotal').textContent=money(subtotal());$('#cart-delivery').textContent=(demoMode?$('#demo-fulfilment').value:$('#fulfilment').value)==='pickup'?'Pickup · free':fee?money(fee):'Free';$('#cart-total').textContent=money(subtotal()+fee);}
 function showCart(){renderCart();openDialog($('#cart-dialog'));}
 $('#open-cart').addEventListener('click',showCart);$('#mobile-bag').addEventListener('click',showCart);
+const syncSavedBag=()=>{if(!state.menu.length)return;state.cart=readCart();saveCart(false);if($('#cart-dialog').open)renderCart();};
+window.addEventListener('storage',event=>{if([BAG_KEY,LEGACY_BAG_KEY,null].includes(event.key))syncSavedBag();});
+window.addEventListener('pageshow',syncSavedBag);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncSavedBag();});
+function openRequestedBag(){const url=new URL(location.href);if(url.searchParams.get('bag')!=='1')return;url.searchParams.delete('bag');history.replaceState(null,'',url);showCart();}
 $('#cart-content').addEventListener('click',event=>{
  if(event.target.closest('#browse-menu')){$('#cart-dialog').close();$('#menu').scrollIntoView({behavior:'smooth'});return;}
  const remove=event.target.closest('[data-remove]'),quantity=event.target.closest('[data-quantity]');
@@ -238,7 +228,7 @@ async function boot(){
   if(cloudEnabled) configureCloudCustomer();
   else if(!config.demoEnabled){$('#demo-checkout-panel').hidden=true;$('.demo-workflow').hidden=true;}
  }catch(error){$('#menu-status').textContent=error.message;$('#demo-checkout-panel').hidden=true;$('.demo-workflow').hidden=true;state.browseOnly=true;for(const form of $$('form'))$('button[type=submit]',form)?.setAttribute('disabled','');return;}
- if(demoMode){try{await activateDemo();}catch(error){$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML=`<div class="empty-state"><h3>The demo couldn’t open.</h3><p>${escape(error.message)}</p><button class="button button-outline" id="recover-customer-demo">Reset fictional demo data</button></div>`;}return;}
+ if(demoMode){try{await activateDemo();openRequestedBag();}catch(error){$('#menu-status').textContent='';$('#menu-grid').setAttribute('aria-busy','false');$('#menu-grid').innerHTML=`<div class="empty-state"><h3>The demo couldn’t open.</h3><p>${escape(error.message)}</p><button class="button button-outline" id="recover-customer-demo">Reset fictional demo data</button></div>`;}return;}
  let catalog;
  state.browseOnly=false;
  try{catalog=await request('/api/menu');if(cloudEnabled&&!catalog.items.length)throw new Error('Supabase menu setup is pending.');}
@@ -259,6 +249,7 @@ async function boot(){
   for(const form of [$('#order-form'),$('#reservation-form'),$('#newsletter-form'),$('#contact-form')]){const result=$('.form-result',form);result.className='form-result';result.textContent='Sample site: the ordering server is not connected. Requests cannot be submitted here.';$('button[type=submit]',form).disabled=true;}
  }
  renderRecommendations();
+ openRequestedBag();
  if(cloudEnabled&&!state.browseOnly){
   const timer=setInterval(async()=>{if(document.hidden)return;try{const updated=await request('/api/menu');state.menu=updated.items;state.cart=readCart();renderMenu();renderSignature();renderRecommendations();saveCart();if($('#cart-dialog').open)renderCart();}catch{/* Keep the last menu; checkout still validates authoritative availability. */}},15000);
   window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});

@@ -1,5 +1,5 @@
 import { connectDemoStore, clearDamagedDemo } from './demo-store.js?v=portal-auth-1';
-import { $, $$, escape, mountRoleNavigation, wireDialogs, localTime, announce, showDialog, detailMarkup, setKitchenIndicator } from './ui.js?v=portal-auth-1';
+import { $, $$, escape, mountRoleNavigation, wireDialogs, localTime, announce, showDialog, detailMarkup, setKitchenIndicator } from './ui.js?v=customer-nav-1';
 import { STATUS_LABELS } from './demo-model.js?v=portal-auth-1';
 import { cloudConfig, requireRole, loginURL } from './cloud.js?v=portal-auth-1';
 import { connectCloudStore } from './cloud-store.js?v=portal-auth-1';

@@ -4,6 +4,8 @@ The three portals now keep separate Supabase SDK sessions in the same browser/pr
 
 On a shared computer, sign out of each portal you signed into before leaving it.
 
+Customer sign-in/sign-out is in the main navbar; there is no separate customer account strip. The bag icon stays visible on every customer page. Bag selections sync across customer tabs and do not contain or change account sessions. Staff headers and their sign-out controls remain separate.
+
 | Portal | Page | Account access |
 | --- | --- | --- |
 | Customer | `/` and `/orders/` | Guest checkout or a customer account |

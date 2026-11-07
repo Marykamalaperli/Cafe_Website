@@ -25,6 +25,10 @@ public/
   shared/cloud-store.js    In-memory operational state; authenticated polling
   shared/order-history.js  Pure recent-history window for demo/older-server presentation
   shared/customer-nav.js   Shared desktop/mobile customer navbar behaviour
+  shared/customer-nav.css  Responsive customer navbar/account and bag presentation
+  shared/bag.js            Validated, selection-only bag storage shared by customer pages
+  shared/customer-bag.js    Secondary-page bag drawer; returns to the full menu checkout
+  shared/customer-page.js   Public photo-credit navigation/account bootstrap
   orders/history.css       Customer-facing recent-order cards and progress layout
   shared/photo-upload.js   Verified, resumable administrator upload
   shared/ui.js, operations.js  Shared rendering and controllers

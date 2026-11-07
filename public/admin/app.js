@@ -1,5 +1,5 @@
-import { startOperations, statCard, liveCopy } from '../shared/operations.js?v=portal-auth-1';
-import { $, $$, escape, money, orderBadge, orderStatus, localDate, localTime, siteURL, announce, showDialog, icon } from '../shared/ui.js?v=portal-auth-1';
+import { startOperations, statCard, liveCopy } from '../shared/operations.js?v=customer-nav-1';
+import { $, $$, escape, money, orderBadge, orderStatus, localDate, localTime, siteURL, announce, showDialog, icon } from '../shared/ui.js?v=customer-nav-1';
 import { demoMetrics, STATUSES, STATUS_LABELS } from '../shared/demo-model.js?v=portal-auth-1';
 import {rpc} from '../shared/cloud.js?v=portal-auth-1';
 import {uploadMenuPhotos} from '../shared/photo-upload.js?v=portal-auth-1';

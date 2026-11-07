@@ -66,7 +66,7 @@ test('a legacy staff session moves to its staff portal once and cannot return af
  await page.getByRole('button',{name:'Sign out',exact:true}).click();await authPortal(page,'admin');
  // A stale pre-update tab must not silently restore the migrated login.
  await page.evaluate(({key,session})=>localStorage.setItem(key,JSON.stringify(session)),{key:legacyKey,session});await page.goto(SITE+'admin/');await authPortal(page,'admin');await expect(page.locator('#auth-form')).toBeVisible();
- await page.goto(SITE);await expect(page.locator('#demo-role-nav')).toContainText('Guest checkout');await expect(page.getByRole('navigation',{name:'Account navigation'})).not.toContainText('Administrator');
+ await page.goto(SITE);await expect(page.locator('#demo-role-nav')).toHaveCount(0);await expect(page.locator('.site-header #customer-account')).toContainText('Sign in');await expect(page.getByRole('navigation',{name:'Main navigation'})).not.toContainText('Administrator');
 });
 
 test('kitchen password recovery uses the unchanged callback and leaves customer and admin sessions intact',async({context})=>{

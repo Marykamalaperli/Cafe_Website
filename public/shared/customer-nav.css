@@ -1,0 +1,35 @@
+/* One customer header, with account and bag controls available at every width. */
+.site-header .nav-wrap{gap:20px}
+.site-header .nav-actions{gap:14px}
+.site-header .main-nav{margin-left:0;gap:24px}
+.customer-account{position:relative;flex:none}
+.customer-account .nav-signin{font-size:12px;font-weight:500;white-space:nowrap;padding:10px 15px;min-height:42px}
+.nav-account-error{position:absolute;right:0;top:calc(100% + 12px);width:240px;padding:12px;background:var(--paper);border:1px solid var(--orange);border-radius:6px;font-size:12px}
+.site-header .bag-button{position:relative;justify-content:center;width:44px;height:44px;padding:10px;flex:none}
+.site-header .bag-count{position:absolute;top:0;right:0;width:18px;height:18px;background:var(--ink);color:var(--paper);font-size:9px}
+.site-header .main-nav a[aria-current=page]::after{transform:scaleX(1)}
+.bag-loading{padding:35px 0;color:var(--muted);font-size:14px}
+.bag-feedback{color:var(--orange);font-size:12px;line-height:1.6;margin-block:15px}
+.bag-feedback:empty{display:none}
+.bag-checkout-note{font-size:12px;color:var(--muted);line-height:1.8;margin:16px 0 22px}
+#customer-bag-dialog .cart-item>div{min-width:0}
+#customer-bag-dialog .cart-item h3{overflow-wrap:anywhere}
+.credits-page main{padding-top:55px}
+@media(max-width:1150px){.site-header .main-nav{gap:17px}}
+@media(max-width:1000px){
+ .site-header .mobile-toggle{display:flex}
+ .site-header .main-nav{display:none;position:absolute;top:100%;left:0;right:0;background:var(--cream);padding:12px 25px 25px;box-shadow:0 20px 20px #253f3210;border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;gap:0}
+ .site-header .main-nav.is-open{display:flex}
+ .site-header .main-nav a{font-size:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+ .site-header .main-nav a::after{display:none}
+}
+@media(max-width:640px){
+ .site-header .nav-wrap{gap:8px}
+ .site-header .nav-actions{gap:4px}
+ .site-header .brand{font-size:25px;gap:7px}
+ .customer-account .nav-signin{font-size:11px;padding:10px;min-height:40px}
+ .site-header .mobile-toggle{width:38px;height:42px}
+ .site-header .bag-button{width:40px;height:42px}
+ .site-header .bag-count{width:16px;height:16px}
+}
+@media(max-width:360px){.site-header .brand>.icon{display:none}.site-header .brand-tag{letter-spacing:1px}.credits-page main{padding-top:32px}}

@@ -37,7 +37,7 @@ test('customer sign-in ignores forged metadata and staff destinations; real chec
  const fixture=cloudFixture();await fixture.attach(context);
  await signIn(page,'customer','/Cafe_Website/admin/');await expect(page.locator('#auth-status')).toContainText('does not have administrator access');
  await signIn(page,'customer');await expect(page).toHaveURL(SITE);
- await expect(page.getByRole('navigation',{name:'Account navigation'})).toContainText('My orders');await expect(page.getByRole('navigation',{name:'Account navigation'})).not.toContainText('Administrator');
+ await expect(page.getByRole('navigation',{name:'Main navigation'})).toContainText('My orders');await expect(page.locator('.site-header #account-signout')).toBeVisible();await expect(page.locator('#demo-role-nav')).toHaveCount(0);
  await page.goto(SITE+'kitchen/?demo=1');await expect(page).toHaveURL(/\/auth\/\?portal=kitchen/);await page.goto(SITE);
  await expect(page.locator('#demo-checkout-panel')).toBeHidden();await expect(page.locator('.menu-card')).toHaveCount(12);
  await page.getByRole('button',{name:'Add Bangalore Masala Dosa to bag',exact:true}).click();await page.locator('#dish-add').click();await page.getByRole('button',{name:'Open bag, 1 item',exact:true}).click();
@@ -72,7 +72,7 @@ test('admin can enter the kitchen, assign staff and upload every licensed photo 
 
 test('changed database roles override an existing login session on the next page load',async({page,context})=>{
  const fixture=cloudFixture();await fixture.attach(context);await signIn(page,'chef');await expect(page).toHaveURL(SITE+'kitchen/');await expect(page.locator('[data-ticket]')).toHaveCount(1);
- fixture.roles.set(fixture.users.find(user=>user.role==='chef').id,'customer');await page.reload();await expect(page).toHaveURL(SITE);await expect(page.getByRole('navigation',{name:'Account navigation'})).not.toContainText('Kitchen Display');
+ fixture.roles.set(fixture.users.find(user=>user.role==='chef').id,'customer');await page.reload();await expect(page).toHaveURL(SITE);await expect(page.getByRole('navigation',{name:'Main navigation'})).not.toContainText('Kitchen Display');await expect(page.locator('#demo-role-nav')).toHaveCount(0);
 });
 
 test('password reset requests use the project auth callback and show an honest email notice',async({page,context})=>{

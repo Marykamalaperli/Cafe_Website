@@ -1,10 +1,15 @@
 import { cloudConfig, cloudClient, identity, roleHome, rootURL, sessionPortal, signInAccount, rememberAuthCallback } from '../shared/cloud.js?v=portal-auth-1';
 import { portalPath, portalAllows } from '../shared/session-scope.js?v=portal-auth-1';
 import { signupErrorMessage } from './errors.js';
+import { wireCustomerNavigation } from '../shared/customer-nav.js?v=customer-nav-1';
+import { wireCustomerBag } from '../shared/customer-bag.js?v=customer-nav-1';
 const $ = selector => document.querySelector(selector);
 const form = $('#auth-form'), status = $('#auth-status');
-const authButtons=[...document.querySelectorAll('button')];
+const authButtons=[...document.querySelectorAll('.auth-card button')];
 for(const button of authButtons)button.disabled=true;
+$('#customer-header').hidden=sessionPortal!=='customer';
+$('#staff-auth-header').hidden=sessionPortal==='customer';
+if(sessionPortal==='customer'){wireCustomerNavigation();wireCustomerBag();}
 let mode = 'signin', busy = false, recovery = false;
 
 export function safeDestination(next, role, portal=sessionPortal) {
@@ -47,7 +52,7 @@ form.addEventListener('submit', async event => {
  event.preventDefault(); if (busy || !form.reportValidity()) return;
  const values = Object.fromEntries(new FormData(form));
  if (['signup','update'].includes(mode) && values.password !== values.confirmation) return message('The two passwords must match.', true);
- busy = true; for (const button of document.querySelectorAll('button')) button.disabled = true; message('One little moment…');
+ busy = true; for (const button of authButtons) button.disabled = true; message('One little moment…');
  try {
   const client = await cloudClient(); const redirectTo = rootURL('auth/');
   if (mode === 'signup') {
@@ -70,7 +75,7 @@ form.addEventListener('submit', async event => {
    location.replace(safeDestination(new URL(location.href).searchParams.get('next'),account.role,account.portal));
   }
  } catch (error) { message(error.message, true); }
- finally { busy = false; for (const button of document.querySelectorAll('button')) button.disabled = false; }
+ finally { busy = false; for (const button of authButtons) button.disabled = false; }
 });
 try {
  const config = await cloudConfig();

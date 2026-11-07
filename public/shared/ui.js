@@ -15,8 +15,24 @@ export const orderBadge = order => badge(orderStatus(order));
 export const optionsText = item => [item.options.variant.label, ...(item.options.spice === 'none' ? [] : [item.options.spice + ' spice']), ...item.options.addons.map(addon => addon.label)].join(' · ');
 
 export async function mountRoleNavigation(role = 'customer', demo = true, knownAccount) {
- const target = $('#demo-role-nav'); if (!target) return;
+ const target = $(role === 'customer' ? '#customer-account' : '#demo-role-nav'); if (!target) return;
  const config = await cloudConfig();
+ if (role === 'customer') {
+  const account = knownAccount === undefined && config.enabled ? await identity() : knownAccount;
+  if (!config.enabled && config.demoEnabled && demo) {
+   target.innerHTML = `<a class="button button-small button-outline nav-signin" href="${escape(siteURL(''))}" title="Demo Mode — No real orders or payments.">Leave demo</a>`;
+  } else {
+   target.innerHTML = account && !account.guest
+    ? '<button type="button" class="button button-small button-outline nav-signin" id="account-signout">Sign out</button>'
+    : `<a class="button button-small button-outline nav-signin" href="${escape(loginURL())}">Sign in</a>`;
+   $('#account-signout')?.addEventListener('click', async event => {
+    const button = event.currentTarget; button.disabled = true;
+    try { await signOut(); }
+    catch (error) { button.disabled = false; const message = document.createElement('span'); message.className = 'nav-account-error'; message.setAttribute('role', 'alert'); message.textContent = error.message; target.append(message); }
+   });
+  }
+  return;
+ }
  if (config.enabled || !config.demoEnabled) {
   const account = knownAccount === undefined && config.enabled ? await identity() : knownAccount;
   const links = account?.role === 'admin' ? [['Administrator','admin/'],['Kitchen Display','kitchen/']] : account?.role === 'chef' ? [['Kitchen Display','kitchen/']] : [['Menu','#menu'],...(account ? [['My orders','orders/']] : [])];

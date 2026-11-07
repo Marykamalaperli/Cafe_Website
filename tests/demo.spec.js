@@ -150,7 +150,10 @@ test('nested demo pages, shared assets and navigation work at every required vie
  page.on('request', request => requests.push(new URL(request.url()).pathname));
  await page.emulateMedia({ reducedMotion: 'reduce' });
  for (const path of ['?demo=1', 'kitchen/', 'admin/', 'orders/']) {
-  await page.goto(base + path); await expect(page.locator('#demo-role-nav')).toContainText('Demo Mode — No real orders or payments.');
+  await page.goto(base + path);
+  const customerPage=path==='?demo=1'||path==='orders/';
+  if(customerPage){await expect(page.locator('#demo-role-nav')).toHaveCount(0);await expect(page.locator('#customer-account a')).toHaveText('Leave demo');await expect(page.locator('#customer-account a')).toHaveAttribute('title','Demo Mode — No real orders or payments.');}
+  else await expect(page.locator('#demo-role-nav')).toContainText('Demo Mode — No real orders or payments.');
   await page.evaluate(() => document.fonts.ready);
   if (path === 'kitchen/') await expect(page.locator('.ticket-card').first()).toBeVisible();
   if (path === 'admin/') await expect(page.locator('[data-metric=total] strong')).toHaveText('6');
@@ -158,7 +161,9 @@ test('nested demo pages, shared assets and navigation work at every required vie
    await page.setViewportSize({ width, height: 900 });
    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${path} overflows at ${width}`).toBe(true);
   }
-  await page.reload(); await expect(page.locator('#demo-role-nav a').first()).toHaveAttribute('href', /\/Cafe_Website\/\?demo=1$/);
+  await page.reload();
+  if(customerPage)await expect(page.locator('#customer-account a')).toHaveAttribute('href', /\/Cafe_Website\/$/);
+  else await expect(page.locator('#demo-role-nav a').first()).toHaveAttribute('href', /\/Cafe_Website\/\?demo=1$/);
  }
  expect(errors).toEqual([]);
  expect(requests.filter(path => path.includes('/assets/') || path.endsWith('.js') || path.endsWith('.css')).every(path => path.startsWith(base))).toBe(true);

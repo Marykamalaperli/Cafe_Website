@@ -1,13 +1,15 @@
-import { startOperations } from '../shared/operations.js?v=portal-auth-1';
-import { $, escape, orderBadge, orderStatus, money, localTime, siteURL, orderItems, orderTimeline, orderActions, icon, announce, mountRoleNavigation } from '../shared/ui.js?v=portal-auth-1';
+import { startOperations } from '../shared/operations.js?v=customer-nav-1';
+import { $, escape, orderBadge, orderStatus, money, localTime, siteURL, orderItems, orderTimeline, orderActions, icon, announce, mountRoleNavigation } from '../shared/ui.js?v=customer-nav-1';
 import { INSTRUCTIONS } from '../shared/demo-model.js?v=portal-auth-1';
 import { orderHistory, visibleOrders } from '../shared/order-history.js';
 import { cloudConfig, identity, cloudClient, loginURL } from '../shared/cloud.js?v=portal-auth-1';
-import { wireCustomerNavigation } from '../shared/customer-nav.js';
+import { wireCustomerNavigation } from '../shared/customer-nav.js?v=customer-nav-1';
+import { wireCustomerBag } from '../shared/customer-bag.js?v=customer-nav-1';
 
 let reference=new URL(location.href).searchParams.get('order'),query='',page=0,store,redraw,busy=false,searchTimer;
 const orderDate=value=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'numeric',month:'short',year:'numeric'}).format(new Date(value));
 wireCustomerNavigation();
+wireCustomerBag();
 
 function configurePage({live,guest=true,visitor=false}) {
  document.title=live?'Your orders — BitesBro':'Your orders — BitesBro Demo';

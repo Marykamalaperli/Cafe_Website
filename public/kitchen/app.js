@@ -1,5 +1,5 @@
-import { startOperations, statCard } from '../shared/operations.js?v=portal-auth-1';
-import { $, $$, escape, badge, orderBadge, localTime, localDate, orderItems, orderActions, announce } from '../shared/ui.js?v=portal-auth-1';
+import { startOperations, statCard } from '../shared/operations.js?v=customer-nav-1';
+import { $, $$, escape, badge, orderBadge, localTime, localDate, orderItems, orderActions, announce } from '../shared/ui.js?v=customer-nav-1';
 import { demoMetrics, STATUS_LABELS, INSTRUCTIONS } from '../shared/demo-model.js?v=portal-auth-1';
 
 let store, queue = 'active', sort = 'oldest', search = '';
