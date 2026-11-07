@@ -1,8 +1,9 @@
 import {mealRecommendations} from './recommendations.js';
-import {connectDemoStore,clearDamagedDemo} from './shared/demo-store.js?v=history-7';
-import {priceDemoBag,DEMO_BUSINESS} from './shared/demo-model.js?v=history-7';
-import {mountRoleNavigation,siteURL} from './shared/ui.js?v=history-7';
+import {connectDemoStore,clearDamagedDemo} from './shared/demo-store.js?v=history-nav-1';
+import {priceDemoBag,DEMO_BUSINESS} from './shared/demo-model.js?v=history-nav-1';
+import {mountRoleNavigation,siteURL} from './shared/ui.js?v=history-nav-1';
 import {cloudConfig,cloudRequest,requireRole,cloudClient,loginURL} from './shared/cloud.js';
+import {wireCustomerNavigation} from './shared/customer-nav.js';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:n%100?2:0}).format(n/100);
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -205,12 +206,7 @@ connectForm('order-form', '/api/orders', values => ({ ...values, items: state.ca
   if(cloudEnabled)location.assign(siteURL('orders/?order='+encodeURIComponent(data.reference)));
 });
 
-const navToggle = $('#nav-toggle');
-function closeNav() { $('#main-nav').classList.remove('is-open'); navToggle.setAttribute('aria-expanded', 'false'); navToggle.setAttribute('aria-label', 'Open navigation'); }
-navToggle.addEventListener('click', () => { const expanded = navToggle.getAttribute('aria-expanded') !== 'true'; $('#main-nav').classList.toggle('is-open', expanded); navToggle.setAttribute('aria-expanded', String(expanded)); navToggle.setAttribute('aria-label', expanded ? 'Close navigation' : 'Open navigation'); });
-$$('#main-nav a').forEach(link => link.addEventListener('click', closeNav));
-document.addEventListener('keydown', event => { if (event.key === 'Escape') closeNav(); });
-document.addEventListener('click', event => { if (!event.target.closest('.site-header')) closeNav(); });
+wireCustomerNavigation();
 
 if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   document.documentElement.classList.add('motion-ready');
@@ -220,7 +216,7 @@ if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: re
 if ('IntersectionObserver' in window) {
   const activeSection = new IntersectionObserver(entries => {
     for (const entry of entries) if (entry.isIntersecting) {
-      $$('#main-nav a').forEach(link => { if (link.hash === `#${entry.target.id}`) link.setAttribute('aria-current', 'location'); else link.removeAttribute('aria-current'); });
+      $$('#main-nav a[href^="#"]').forEach(link => { if (link.hash === `#${entry.target.id}`) link.setAttribute('aria-current', 'location'); else link.removeAttribute('aria-current'); });
     }
   }, { rootMargin: '-20% 0px -55% 0px', threshold: 0 });
   $$('main section[id]').forEach(section => activeSection.observe(section));

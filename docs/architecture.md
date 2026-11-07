@@ -23,6 +23,8 @@ public/
   shared/cloud.js          Runtime config, SDK client, auth, guards and RPC adapter
   shared/cloud-store.js    In-memory operational state; authenticated polling
   shared/order-history.js  Pure recent-history window for demo/older-server presentation
+  shared/customer-nav.js   Shared desktop/mobile customer navbar behaviour
+  orders/history.css       Customer-facing recent-order cards and progress layout
   shared/photo-upload.js   Verified, resumable administrator upload
   shared/ui.js, operations.js  Shared rendering and controllers
   shared/demo-*.js          Opt-in fictional local preview / pure helpers

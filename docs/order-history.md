@@ -2,6 +2,10 @@
 
 Successful Supabase checkout redirects immediately to `/orders/?order=<reference>`. The explicit fictional browser demo does the same. A failed checkout keeps the bag and form available.
 
+**My orders** is available in the main customer navbar on desktop and in its mobile menu. The history page shares the customer header, Fraunces/DM Sans typography, ivory/forest/terracotta palette, food photographs and footer. Recent-order cards show food previews, references, dates, status and totals. The selected order includes a progress timeline, dish/options snapshots, totals, fulfilment details and permitted cancellation. **View order progress** jumps directly to the selected ticket on smaller screens.
+
+Visitors without a current guest/account session receive an empty history page with menu and account sign-in links. Opening history does not create an anonymous account or request private order data. Guest sessions are created only at checkout; switching accounts still does not restore or merge an earlier guest identity. Empty registered-account histories, unavailable references and connection failures have distinct messages.
+
 ## Activate on the existing project
 
 Guest checkout is already working on the owner's project. In **Supabase → SQL Editor**, run the complete [007_order_history_delivery.sql](../supabase/migrations/007_order_history_delivery.sql) once. It requires the existing baseline and migration 006; the separate payment-preview migrations 003–005 are not required. Do not rerun `setup.sql`, reset tables, or delete migration markers. This migration can safely be rerun and does not delete order records, change menu prices, or assign staff roles.

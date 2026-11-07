@@ -180,7 +180,10 @@ test('demo role pages open directly without exposing operational APIs', async ()
  for(const path of ['/kitchen/','/admin/','/orders/']) {
   const response=await fetch(base+path);assert.equal(response.status,200);
   assert.match(response.headers.get('Content-Type'),/text\/html/);
-  assert.match(await response.text(),/BitesBro Demo/);
+  const html=await response.text();
+  assert.match(html,path==='/orders/'?/<title>Your orders — BitesBro<\/title>/:/BitesBro Demo/);
+  assert.match(html,/data-access-pending="true"/);
+  if(path==='/orders/')assert.match(html,/<a href="\.\/" aria-current="page">My orders<\/a>/);
   assert.match(response.headers.get('Content-Security-Policy'),/script-src 'self'/);
  }
  const redirect=await fetch(base+'/kitchen?view=active',{redirect:'manual'});

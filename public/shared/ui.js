@@ -1,4 +1,4 @@
-import { DEMO_BUSINESS, INSTRUCTIONS, STATUS_LABELS, STATUSES, allowedNextStatuses } from './demo-model.js?v=history-7';
+import { DEMO_BUSINESS, INSTRUCTIONS, STATUS_LABELS, STATUSES, allowedNextStatuses } from './demo-model.js?v=history-nav-1';
 import { cloudConfig, identity, signOut, loginURL } from './cloud.js';
 
 export const $ = (selector, root = document) => root.querySelector(selector);

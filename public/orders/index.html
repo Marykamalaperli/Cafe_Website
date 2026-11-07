@@ -1,6 +1,52 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="theme-color" content="#253f32"><title>Track your order — BitesBro Demo</title><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../styles.css?v=history-7"><link rel="stylesheet" href="../operations.css?v=history-7"><link rel="stylesheet" href="../auth.css"><script type="module" src="./app.js?v=history-7"></script></head>
-<body data-access-pending="true" class="ops-app " data-role="orders"><a class="skip-link" href="#main">Skip to content</a>
-<header class="ops-header"><a class="ops-brand" href="../?demo=1" aria-label="BitesBro customer demo"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#plate"/></svg><span>BitesBro<small>CUSTOMER ORDER TRACKING · DEMO</small></span></a><div class="ops-header-right"><span class="kitchen-indicator" id="kitchen-indicator">Demo kitchen · loading</span><time class="ops-clock" id="ops-clock">Bangalore<small>10am–3pm &amp; 6pm–11pm</small></time></div></header>
-<div class="role-bar" id="demo-role-nav"></div>
-<main class="ops-content" id="main"><div class="ops-page-heading"><div><p class="eyebrow">FROM OUR COUNTER TO YOUR TABLE</p><h1>Your next bite, <em>on its way.</em></h1><p>Follow preparation, pickup and delivery updates here.</p></div><a class="ops-button ops-button-orange" href="../?demo=1#menu">Find another favourite <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#arrow"/></svg></a></div><p class="ops-notice" id="ops-notice" role="status" hidden></p><div class="tracking-layout"><aside class="tracking-history"><h2 id="history-title">Order history</h2><p class="ops-muted" id="history-policy"></p><label class="ops-field">Find a reference<input id="history-search" type="search" maxlength="80" placeholder="Order reference"></label><ul class="history-list" id="order-history"><li class="ops-skeleton">Loading fictional history…</li></ul><p class="ops-muted" id="history-range" role="status"></p><div class="history-pagination" id="history-pagination" hidden><button class="ops-button ops-button-small" id="history-newer" type="button">Newer orders</button><button class="ops-button ops-button-small" id="history-older" type="button">Older orders</button></div><section id="active-history-section" hidden aria-label="Other orders still in progress"><h3>Still in progress</h3><p class="ops-muted">Older active orders stay available until pickup or delivery is complete.</p><ul class="history-list" id="active-order-history"></ul></section></aside><section class="ops-panel tracking-detail" id="tracking-detail" aria-label="Order tracking" aria-live="polite"><p class="ops-skeleton">Opening your demonstration ticket…</p></section></div><p class="tracking-note">This is a browser-based simulation, shared between tabs on the same browser and origin. Sample tickets are labelled. No payment is collected and nothing is sent to a real kitchen. <a href="../kitchen/" target="_blank" rel="noopener">Open the Kitchen Display <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#arrow"/></svg></a></p></main><footer class="ops-footer"><span>Demo Mode — No real orders or payments. Shared in this browser only.</span><span><a href="../?demo=1">Customer demo</a> · <a href="../photo-credits.html">Photo credits</a> · <a href="../">Leave demo</a></span></footer><noscript><p class="notice">Enable JavaScript to use the connected fictional demonstration. No real customer records are available on these pages.</p></noscript></body></html>
+<html lang="en">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta name="robots" content="noindex"><meta name="theme-color" content="#253f32">
+ <title>Your orders — BitesBro</title>
+ <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+ <link rel="preload" href="/assets/fonts/fraunces-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+ <link rel="preload" href="/assets/fonts/dm-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+ <link rel="stylesheet" href="../styles.css?v=history-nav-1">
+ <link rel="stylesheet" href="../operations.css?v=history-nav-1">
+ <link rel="stylesheet" href="../auth.css">
+ <link rel="stylesheet" href="./history.css?v=history-nav-1">
+ <script type="module" src="./app.js?v=history-nav-1"></script>
+</head>
+<body data-access-pending="true" class="ops-app history-page" data-role="orders">
+ <a class="skip-link" href="#main">Skip to content</a>
+ <div class="announcement"><span>SOUTH INDIAN AT HEART. EVERY CRAVING WELCOME.</span><span class="announcement-right">Bangalore · 10am–3pm &amp; 6pm–11pm</span></div>
+ <header class="site-header" id="top">
+  <div class="nav-wrap container">
+   <a class="brand" href="../" aria-label="BitesBro home"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#plate"/></svg><span>BitesBro<span class="brand-tag">GOOD FOOD. GREAT MOODS.</span></span></a>
+   <nav id="main-nav" class="main-nav" aria-label="Main navigation">
+    <a href="../#menu" data-customer-menu>Order food</a><a href="./" aria-current="page">My orders</a><a href="../#story">Our kitchen</a><a href="../#reserve">Book a table</a><a href="../#visit">Find us</a>
+   </nav>
+   <div class="nav-actions"><a class="button button-small button-orange nav-book" href="../#menu" data-customer-menu>Let’s eat <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#arrow"/></svg></a><button class="mobile-toggle icon-button" id="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Open navigation"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#menu"/></svg></button></div>
+  </div>
+ </header>
+ <div class="role-bar" id="demo-role-nav"></div>
+ <main class="ops-content history-content" id="main">
+  <section class="history-masthead" aria-labelledby="history-page-title">
+   <div><p class="eyebrow"><span class="eyebrow-line"></span>GOOD FOOD. ONE LITTLE HISTORY.</p><h1 id="history-page-title">Your orders,<br><em>served together.</em></h1><p>Revisit a favourite. Follow your next bite from our kitchen to you.</p></div>
+   <div class="history-summary"><div class="history-food-stack" aria-hidden="true"><img src="/assets/images/photos/masala-dosa.jpg" alt="" width="96" height="96"><img src="/assets/images/photos/biryani.jpg" alt="" width="96" height="96"><img src="/assets/images/photos/south-indian-meals.jpg" alt="" width="96" height="96"></div><div><p class="eyebrow">STILL IN PROGRESS</p><p class="history-active-total"><span id="history-active-count">—</span> <span id="history-active-label">orders</span></p><p id="history-refresh-note">Checking your order history…</p></div></div>
+  </section>
+  <p class="ops-notice" id="ops-notice" role="status" hidden></p>
+  <div class="history-session-note"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#book"/></svg><p id="history-session-info">Opening your private order history…</p><a class="history-jump" id="history-jump" href="#tracking-detail" hidden>View order progress <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#arrow"/></svg></a></div>
+  <div class="tracking-layout">
+   <aside class="tracking-history" aria-labelledby="history-title">
+    <div class="history-section-heading"><span class="eyebrow">THE FOOD YOU CAME BACK FOR</span><h2 id="history-title">Order history</h2><p class="ops-muted" id="history-policy"></p></div>
+    <label class="ops-field history-search" id="history-search-field">Find an order<span><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#search"/></svg><input id="history-search" type="search" maxlength="80" placeholder="Search your order reference"></span></label>
+    <ul class="history-list" id="order-history"><li class="ops-skeleton">Loading your orders…</li></ul>
+    <p class="ops-muted" id="history-range" role="status"></p>
+    <div class="history-pagination" id="history-pagination" hidden><button class="ops-button ops-button-small" id="history-newer" type="button">Newer orders</button><button class="ops-button ops-button-small" id="history-older" type="button">Older orders</button></div>
+    <section id="active-history-section" hidden aria-label="Other orders still in progress"><h3>Still in progress</h3><p class="ops-muted">Older active orders stay here until pickup or delivery is complete.</p><ul class="history-list" id="active-order-history"></ul></section>
+   </aside>
+   <section class="ops-panel tracking-detail" id="tracking-detail" aria-label="Order tracking" aria-live="polite"><p class="ops-skeleton">Opening your order…</p></section>
+  </div>
+  <p class="tracking-note" id="history-service-note">Follow preparation, pickup and delivery updates here.</p>
+ </main>
+ <footer class="ops-footer history-footer"><a class="history-footer-brand" href="../#top">BitesBro <span>Good food. Great moods.</span></a><span><a href="../#menu" data-customer-menu>Explore the menu</a> · <a href="../photo-credits.html">Photo credits</a></span></footer>
+ <noscript><p class="notice">Enable JavaScript to load your private order history.</p></noscript>
+</body>
+</html>

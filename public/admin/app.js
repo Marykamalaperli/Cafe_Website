@@ -1,6 +1,6 @@
-import { startOperations, statCard, liveCopy } from '../shared/operations.js?v=history-7';
-import { $, $$, escape, money, orderBadge, orderStatus, localDate, localTime, siteURL, announce, showDialog, icon } from '../shared/ui.js?v=history-7';
-import { demoMetrics, STATUSES, STATUS_LABELS } from '../shared/demo-model.js?v=history-7';
+import { startOperations, statCard, liveCopy } from '../shared/operations.js?v=history-nav-1';
+import { $, $$, escape, money, orderBadge, orderStatus, localDate, localTime, siteURL, announce, showDialog, icon } from '../shared/ui.js?v=history-nav-1';
+import { demoMetrics, STATUSES, STATUS_LABELS } from '../shared/demo-model.js?v=history-nav-1';
 import {rpc} from '../shared/cloud.js';
 import {uploadMenuPhotos} from '../shared/photo-upload.js';
 

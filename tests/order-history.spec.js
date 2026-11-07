@@ -9,6 +9,30 @@ function savedOrder(fixture,{reference,owner,createdAt,status='collected',fulfil
 }
 const refreshVisible=page=>page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
 
+test('main navigation opens a useful guest history page without requiring signup or creating a session',async({page,context})=>{
+ const fixture=cloudFixture();await fixture.attach(context);await page.goto(SITE);
+ const link=page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'My orders',exact:true});
+ await expect(link).toBeVisible();await link.click();await expect(page).toHaveURL(SITE+'orders/');
+ await expect(page).toHaveTitle('Your orders — BitesBro');await expect(page.getByRole('heading',{name:'No orders in this browser yet.',exact:true})).toBeVisible();
+ await expect(page.locator('#history-session-info')).toContainText('browser that placed the order');await expect(page.getByRole('link',{name:'Sign in to your account',exact:true})).toBeVisible();await expect(page.locator('#history-search-field')).toBeHidden();
+ expect(fixture.guestUsers).toHaveLength(0);expect(fixture.calls.some(call=>call.path.endsWith('/get_order_history')||call.path.endsWith('/get_operations'))).toBe(false);
+ await page.emulateMedia({reducedMotion:'reduce'});
+ for(const width of[320,360,768,1024,1440]){
+  await page.setViewportSize({width,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  if(await page.locator('#nav-toggle').isVisible()){
+   await page.getByRole('button',{name:'Open navigation',exact:true}).click();await expect(page.locator('#main-nav a[aria-current=page]')).toHaveText('My orders');await page.keyboard.press('Escape');await expect(page.locator('#nav-toggle')).toBeFocused();await expect(page.locator('#nav-toggle')).toHaveAttribute('aria-expanded','false');
+  }else await expect(page.locator('#main-nav a[aria-current=page]')).toBeVisible();
+ }
+ await page.setViewportSize({width:360,height:900});await page.screenshot({path:'test-results/order-history-visitor-mobile.png',fullPage:true});
+ await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Order food',exact:true}).click();await expect(page).toHaveURL(SITE+'#menu');await expect(page.locator('#menu-count')).toContainText('50 dishes');
+ await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'My orders',exact:true}).click();await expect(page).toHaveURL(SITE+'orders/');await expect(page.locator('#nav-toggle')).toHaveAttribute('aria-expanded','false');
+});
+
+test('registered customers with no orders receive a menu invitation rather than a missing-order error',async({page,context})=>{
+ const fixture=cloudFixture();await fixture.attach(context);await signIn(page,'customer');await expect(page).toHaveURL(SITE);
+ await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'My orders',exact:true}).click();await expect(page.getByRole('heading',{name:'Your first bite starts here.',exact:true})).toBeVisible();await expect(page.locator('#history-title')).toHaveText('Order history');await expect(page.locator('#history-policy')).toContainText('5 orders per page');await expect(page.locator('#history-active-count')).toHaveText('0');await expect(page.getByRole('link',{name:'Sign in to your account',exact:true})).toHaveCount(0);
+});
+
 test('the existing version-six server remains usable while the owner prepares the history migration',async({page,context})=>{
  const fixture=cloudFixture({historyReady:false});await fixture.attach(context);
  const owner=fixture.users.find(user=>user.role==='customer').id;
@@ -31,6 +55,7 @@ test('members see five orders per page and retrieve older history by pagination,
  await page.locator('#history-search').fill('member-01');await expect(page.locator('#order-history > li')).toHaveCount(1);await expect(page.locator('#tracking-reference')).toHaveText('BB-MEMBER-01');await expect(page.locator('#history-pagination')).toBeHidden();
  await page.locator('#history-search').fill('BB-ORDER-OTHER');await expect(page.locator('#order-history')).toHaveText('No matching orders.');await expect(page.locator('#tracking-detail')).toContainText('outside your available history');await expect(page.locator('#active-history-section')).toBeHidden();
  await page.locator('#history-search').fill('');await expect(page.locator('#history-range')).toHaveText('1–5 of 12 orders');
+ await expect(page.locator('.history-footer-brand')).toContainText('BitesBro');await expect(page.locator('#history-jump')).toBeVisible();await page.evaluate(()=>{document.activeElement?.blur();window.scrollTo({top:0,behavior:'instant'});});await page.screenshot({path:'test-results/order-history-member-desktop.png',fullPage:true});
  expect(fixture.orders).toHaveLength(13);expect(await page.evaluate(()=>localStorage.getItem('bitesbro.demo.v1'))).toBeNull();
 });
 
@@ -55,7 +80,7 @@ test('guest redirects after checkout, sees three recent orders, and follows an o
   await signIn(admin,'admin');await expect(admin).toHaveURL(SITE+'admin/');await admin.getByRole('link',{name:/Orders/}).click();await admin.locator('#admin-order-search').fill(active.reference);await admin.getByRole('button',{name:'View '+active.reference,exact:true}).click();
   await admin.getByRole('button',{name:'Mark out for delivery',exact:true}).click();await expect(admin.locator('#order-dialog-content .status-chip')).toHaveText('Out for delivery');await refreshVisible(customer);await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Out for delivery');await expect(customer.locator('.delivery-timeline [aria-current=step]')).toContainText('Out for delivery');
   for(const width of[320,360,768,1440]){await customer.setViewportSize({width,height:1000});expect(await customer.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);}
-  await customer.screenshot({path:'test-results/order-delivery-tracking.png',fullPage:true});
+  await customer.locator('#history-jump').click();await expect(customer).toHaveURL(/#tracking-detail$/);await expect(customer.locator('#tracking-reference')).toBeInViewport();await customer.evaluate(()=>{document.activeElement?.blur();window.scrollTo({top:0,behavior:'instant'});});await customer.screenshot({path:'test-results/order-delivery-tracking.png',fullPage:true});
   await admin.getByRole('button',{name:'Mark delivered',exact:true}).click();await expect(admin.locator('#order-dialog-content .status-chip')).toHaveText('Delivered');await refreshVisible(customer);await expect(customer.locator('#active-history-section')).toBeHidden();await expect(customer.locator('#tracking-detail')).toContainText('outside your available history');await expect(customer.locator('#order-history > li')).toHaveCount(3);
   await customer.goto(SITE+'orders/?order=BB-GUEST-01');await expect(customer.locator('#tracking-detail')).toContainText('outside your available history');
   await admin.locator('#order-dialog [data-close-dialog]').click();await admin.locator('#admin-order-status').selectOption('delivered');await expect(admin.locator('#admin-orders')).toContainText(active.reference);expect(fixture.orders.filter(order=>order.owner===owner)).toHaveLength(5);

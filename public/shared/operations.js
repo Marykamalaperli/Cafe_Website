@@ -1,12 +1,12 @@
-import { connectDemoStore, clearDamagedDemo } from './demo-store.js?v=history-7';
-import { $, $$, escape, mountRoleNavigation, wireDialogs, localTime, announce, showDialog, detailMarkup, setKitchenIndicator } from './ui.js?v=history-7';
-import { STATUS_LABELS } from './demo-model.js?v=history-7';
+import { connectDemoStore, clearDamagedDemo } from './demo-store.js?v=history-nav-1';
+import { $, $$, escape, mountRoleNavigation, wireDialogs, localTime, announce, showDialog, detailMarkup, setKitchenIndicator } from './ui.js?v=history-nav-1';
+import { STATUS_LABELS } from './demo-model.js?v=history-nav-1';
 import { cloudConfig, requireRole } from './cloud.js';
-import { connectCloudStore } from './cloud-store.js?v=history-7';
+import { connectCloudStore } from './cloud-store.js?v=history-nav-1';
 
 // Preserve the operational layouts, while removing historical demo copy in cloud mode.
 export function liveCopy(root = document.body) {
- if (document.body.dataset.live !== 'true') return;
+ if (document.body.dataset.live !== 'true' || document.body.classList.contains('history-page')) return;
  const guest = document.body.dataset.guest === 'true';
  const walker = document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  let node;
