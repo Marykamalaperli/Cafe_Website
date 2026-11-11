@@ -37,3 +37,47 @@ test('two independent guests using the same contact email never share order hist
   await expect(b.locator('#order-history')).not.toContainText('BB-ORDER-TEST1');await a.reload();await expect(a.locator('#order-history')).not.toContainText('BB-ORDER-TEST2');expect(fixture.guestUsers).toHaveLength(2);
  }finally{await first.close();await second.close();}
 });
+
+test('guest checkout requires durable storage before saving an order',async({page,context})=>{
+ const fixture=cloudFixture();await fixture.attach(context);
+ await context.addInitScript(()=>{
+  const original=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(key,value){
+   if(key.includes('auth-token')||key==='supabase.auth.token')throw new DOMException('Storage blocked','SecurityError');
+   return original.call(this,key,value);
+  };
+ });
+ await guestOrder(page);
+ await expect(page.locator('#order-form .form-result')).toContainText('Enable browser site storage');
+ expect(fixture.calls.some(call=>call.path.endsWith('/place_order'))).toBe(false);
+ await expect(page.locator('#cart-content')).toContainText('Bangalore Masala Dosa');
+});
+
+test('returning guests restore only their latest three orders, including after token refresh',async({browser})=>{
+ const fixture=cloudFixture(),first=await browser.newContext(),other=await browser.newContext();let returning;
+ try{
+  await fixture.attach(first);await fixture.attach(other);
+  const page=await first.newPage(),stranger=await other.newPage();
+  for(let i=1;i<=4;i++){
+   await guestOrder(page);await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST'+i);
+  }
+  await guestOrder(stranger);await expect(stranger.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST5');
+  const refs=['BB-ORDER-TEST4','BB-ORDER-TEST3','BB-ORDER-TEST2'];
+  await page.reload();await expect(page.locator('#order-history [data-track-order]')).toHaveText(refs.map(()=>/BB-ORDER-TEST/));
+  expect(await page.locator('#order-history [data-track-order]').evaluateAll(links=>links.map(link=>link.dataset.trackOrder))).toEqual(refs);
+  const storageState=await first.storageState();
+  // Simulate returning after the access token expires; the SDK must retain the
+  // guest owner while exchanging its saved refresh token.
+  for(const origin of storageState.origins)for(const entry of origin.localStorage)if(entry.name.endsWith('-auth-token')){
+   const session=JSON.parse(entry.value);session.expires_at=1;entry.value=JSON.stringify(session);
+  }
+  await first.close();returning=await browser.newContext({storageState});await fixture.attach(returning);
+  const restored=await returning.newPage();await restored.goto(SITE+'orders/');
+  await expect(restored.locator('#order-history [data-track-order]')).toHaveCount(3);
+  expect(await restored.locator('#order-history [data-track-order]').evaluateAll(links=>links.map(link=>link.dataset.trackOrder))).toEqual(refs);
+  await restored.goto(SITE+'orders/?order=BB-ORDER-TEST5');await expect(restored.locator('#tracking-detail')).toContainText('outside your available history');
+  await stranger.reload();await expect(stranger.locator('#order-history')).not.toContainText('BB-ORDER-TEST4');
+  expect(fixture.guestUsers).toHaveLength(2);
+  expect(fixture.calls.some(call=>call.query.grant_type==='refresh_token')).toBe(true);
+ }finally{await first.close();await other.close();await returning?.close();}
+});

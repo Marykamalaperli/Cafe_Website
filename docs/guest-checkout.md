@@ -36,3 +36,5 @@ npm run supabase:verify
 The first four commands use isolated databases and browser Auth fixtures; they do not create live users/orders. The last command is read-only and reports whether migration 006 and anonymous sign-ins are active. A public/publishable-key request without a guest JWT still cannot read private orders or write them directly. The baseline migration refuses to overwrite the newer permission functions.
 
 After activation, a full production guest-to-kitchen test should use clearly labelled test order details and an authorised chef/admin account. Passing isolated tests does not mean SQL or Auth settings were changed on Cloud.
+
+Guest checkout checks that the SDK session is saved in browser site storage before submitting an order. If storage is blocked or unavailable, checkout keeps the bag and asks the visitor to enable it; a memory-only session cannot preserve private tracking after navigation. A saved-session loading failure is reported as a retryable error instead of an empty guest history.

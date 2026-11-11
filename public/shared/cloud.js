@@ -128,7 +128,8 @@ export const roleHome = role => rootURL(role === 'admin' ? 'admin/' : role === '
 export async function identity() {
  const client = await cloudClient();
  const { data, error } = await client.auth.getSession();
- if (error || !data.session) return null;
+ if (error) throw new Error('Your saved session could not load. Check your connection and retry.');
+ if (!data.session) return null;
  // The role comes from a protected DB table, never local storage or user_metadata.
  const role = await rpc('my_role');
  return role ? { user: data.session.user, role, guest: data.session.user.is_anonymous === true } : null;
@@ -137,7 +138,10 @@ export async function ensureGuestCustomer() {
  if (guestPromise) return guestPromise;
  const start = async () => {
   const account = await identity();
-  if (account) return account;
+  if (account) {
+   if(account.guest)await requireSavedGuestSession();
+   return account;
+  }
   const client = await cloudClient();
   const { data: current } = await client.auth.getSession();
   if (current.session) throw new Error('Your account access is not ready. Please sign in again.');
@@ -149,6 +153,7 @@ export async function ensureGuestCustomer() {
   }
   // A guest session has no email/password and sends no signup email. Supabase
   // issues a private UUID/JWT so existing owner-scoped order policies apply.
+  checkGuestStorage(await cloudConfig());
   const { error } = await client.auth.signInAnonymously();
   if (error) {
    if (error.status === 429) throw new Error('Guest checkout is busy. Please wait before trying again.');
@@ -157,11 +162,33 @@ export async function ensureGuestCustomer() {
   }
   const guest = await identity();
   if (!guest || guest.role !== 'customer') throw new Error('Guest checkout could not open. Please try again later.');
+  await requireSavedGuestSession();
   return guest;
  };
  // Serialize creation across tabs too, so two checkouts retain one guest owner.
  guestPromise = (navigator.locks ? navigator.locks.request('bitesbro-guest-checkout', start) : start()).finally(() => { guestPromise = undefined; });
  return guestPromise;
+}
+async function requireSavedGuestSession() {
+ // The SDK can fall back to memory when site storage is blocked. Do not place
+ // an order whose private identity would disappear as soon as we redirect.
+ const client=await cloudClient(),{data,error}=await client.auth.getSession();
+ const config=await cloudConfig();
+ try {
+  const key=portalStorageKey(config.url,root,sessionPortal);
+  const saved=JSON.parse(localStorage.getItem(key)||'null');
+  if(error||!data.session||saved?.user?.id!==data.session.user.id||!saved.refresh_token)throw new Error();
+  checkGuestStorage(config);
+ } catch {
+  throw guestStorageError();
+ }
+}
+const guestStorageError=()=>new Error('Enable browser site storage before ordering so your private guest history is available when you return. Your order has not been placed.');
+function checkGuestStorage(config) {
+ try {
+  const probe=portalStorageKey(config.url,root,sessionPortal)+'-storage-check';
+  localStorage.setItem(probe,'1');localStorage.removeItem(probe);
+ } catch {throw guestStorageError();}
 }
 export function loginURL(next = location.href) {
  const url = new URL(rootURL('auth/'));
