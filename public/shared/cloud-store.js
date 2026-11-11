@@ -55,6 +55,7 @@ export async function connectCloudStore(pageRole) {
   async dispatch(action) {
    let result;
    if (action.type === 'order.transition') result = await rpc('transition_order', { p_reference: action.reference, p_status: action.status });
+   else if(action.type==='order.assign')result=await rpc('assign_order_delivery',{p_reference:action.reference,p_partner:'BitesBro restaurant staff',p_rider:action.rider,p_minutes:action.minutes});
    else if(action.type==='order.delivery')result=await rpc('update_order_delivery',{p_reference:action.reference,p_status:action.status});
    else if (action.type === 'menu.availability') await rpc('set_menu_availability', { p_id: action.id, p_value: action.value });
    else if (action.type === 'menu.archive') await rpc('archive_menu_item', { p_id: action.id, p_value: action.value });

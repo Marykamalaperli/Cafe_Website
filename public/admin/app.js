@@ -84,6 +84,15 @@ await startOperations('admin', render, async (connection, redraw) => {
  $('#admin-period').addEventListener('change',event=>{periodKind=event.target.value;redraw();});
  $('#admin-report-date').addEventListener('change',event=>{if(event.target.reportValidity()){reportDate=event.target.value;redraw();}});
  $('#admin-today').addEventListener('click',resetToday);
+ document.addEventListener('submit',async event=>{
+  const form=event.target.closest('[data-assign-delivery]');if(!form)return;
+  event.preventDefault();if(!form.reportValidity()||form.dataset.busy)return;
+  const button=form.querySelector('button');form.dataset.busy='true';button.disabled=true;
+  try{await store.dispatch({type:'order.assign',reference:form.dataset.assignDelivery,rider:form.elements.rider.value.trim(),minutes:Number(form.elements.minutes.value)});announce('Restaurant staff assigned. Confirm pickup when the food is handed over.');}
+  catch(error){form.querySelector('[role=status]').textContent=error.message;}
+  finally{delete form.dataset.busy;button.disabled=false;}
+ });
+
  // Polling and tab visibility refresh recalculate today after Bangalore midnight.
  if(store.live)await wireAdminPayments({refresh:()=>store.refresh()});
  if(store.live){

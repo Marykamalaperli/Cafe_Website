@@ -2,7 +2,7 @@
 
 A food-ordering website for **BitesBro, Bangalore**. South Indian dishes lead the menu, with North Indian, biryani, Indo-Chinese, pizza/burgers/pasta, street bites, desserts and drinks. Both vegetarian and non-vegetarian dishes are included, with plant-based options too.
 
-The sample catalogue has **50 dishes across eight categories, including 16 South Indian choices**. Opening hours supplied by the owner are **10am–3pm and 6pm–11pm**, assumed daily. Street address, business contact details, actual recipes and final prices remain editable inputs.
+The sample catalogue has **50 dishes across eight categories, including 16 South Indian choices**. Opening hours supplied by the owner are **10am–3pm and 6pm–11pm**, assumed daily. The owner supplied the White Rose Layout / Whitefield pickup address in `server/cafe.js`. Business contact details, actual recipes and final prices remain editable inputs.
 
 ## Run
 
@@ -35,6 +35,8 @@ Customer, administrator and kitchen sessions are independent in the same browser
 **Guest checkout:** Customers can order without signup or email confirmation after the owner runs [006_guest_checkout.sql](supabase/migrations/006_guest_checkout.sql) and enables Supabase **Anonymous Sign-Ins**. Their private guest session controls order tracking; admin/kitchen access still requires confirmed staff credentials. Domain and SMTP setup can wait. [Guest setup and verification](docs/guest-checkout.md).
 
 **Order history:** Successful checkout opens tracking immediately. After the owner applies [007_order_history_delivery.sql](supabase/migrations/007_order_history_delivery.sql), guests see their latest three orders plus older orders still in progress; signed-in customers see five per page with older/newer navigation and reference search. Older guest records remain available to staff. Administrators can record delivery dispatch and arrival manually. [Activation and behaviour](docs/order-history.md).
+
+**Restaurant staff delivery:** After manual migration [010](supabase/migrations/010_staff_delivery_tracking.sql), customers follow assignment, pickup, on-the-way and delivered updates. The restaurant handles delivery with its own staff. Journey times are clearly labelled demo estimates; no Google routing or live traffic is connected. [Setup and operation](docs/staff-delivery.md).
 
 **Guest history carry-forward:** After the owner runs [009_guest_account_history.sql](supabase/migrations/009_guest_account_history.sql), customer password sign-in carries the current browser’s guest orders into the confirmed account. Existing, transferred and future orders share private five-order pages, with page/search preserved on refresh. [Activation and limits](docs/order-history.md#carry-guest-history-into-a-customer-account).
 

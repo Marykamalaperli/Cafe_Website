@@ -3,7 +3,7 @@
 export const cafe = {
   name: 'BitesBro',
   city: 'Bangalore',
-  address: null,
+  address: 'White Rose Layout, 2nd Cross Rd, near Narayana School, Pattandur Agrahara, Whitefield, Bengaluru, Karnataka 560066',
   email: null,
   phone: null,
   timezone: 'Asia/Kolkata',

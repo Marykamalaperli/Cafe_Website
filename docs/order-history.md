@@ -28,9 +28,9 @@ Guest tracking stays with the current browser's private customer session. Before
 ## Fulfilment updates
 
 - **Pickup:** Received → Preparing → Ready → Collected.
-- **Delivery:** Received → Preparing → Ready → Out for delivery → Delivered.
+- **Delivery after migration 010:** Received → Preparing → Ready → Delivery partner assigned → Order picked up → Out for delivery → Delivered. See [restaurant staff delivery setup](staff-delivery.md).
 - Customers can cancel their own received orders; existing administrator cancellation rules remain unchanged.
-- Chefs mark food preparing/ready and pickup orders collected. For delivery orders, an administrator opens **Orders → View order**, then uses **Mark out for delivery** and, after actual arrival, **Mark delivered**. Those controls enforce sequence and cannot reopen a terminal delivery. Updates appear when the customer returns to the tab or within the normal eight-second refresh interval.
+- Chefs mark food preparing/ready and pickup orders collected. For delivery orders after migration 010, an administrator opens **Orders → View order**, assigns restaurant staff, confirms pickup, marks departure and confirms actual delivery. With 007 alone, the earlier dispatch/arrival controls remain available. Those controls enforce sequence and cannot reopen a terminal delivery. Updates appear when the customer returns to the tab or within the normal eight-second refresh interval.
 
 Delivery status is recorded manually by authorised restaurant staff. This does not book a courier, collect payment, or send an email. Legacy delivery orders previously labelled Collected are retained as awaiting a delivery update; the migration does not invent an arrival time.
 
@@ -52,3 +52,5 @@ On password sign-in to a confirmed customer account, the browser first verifies 
 The account receives all orders owned by this current guest identity, even older completed orders hidden in the guest three-order window. Its existing and future orders remain in the same five-per-page history, with a page indicator, Older/Newer controls and reference search. The page and search survive refresh through URL parameters. The guest view remains the latest three plus older active tickets.
 
 If preparation/claim fails or 009 is missing, sign-in reports the problem and does not replace the guest session. Retry with the same destination account if a transfer completed before browser-session saving failed. Guest sessions already lost through cleared site storage or previous account switches cannot be recovered through contact email. After successful transfer, account login works on other browsers too.
+
+The restaurant now uses [staff delivery tracking](staff-delivery.md), including the owner-supplied pickup address and explicitly illustrative journey estimates. No Google routing or real traffic is connected.

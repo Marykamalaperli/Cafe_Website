@@ -1,7 +1,7 @@
 // Fictional browser demonstration only. Never an authority for live orders.
 export const DEMO_KEY = 'bitesbro.demo.v1';
 export const STATUSES = ['received', 'preparing', 'ready', 'collected', 'cancelled'];
-export const STATUS_LABELS = { received: 'Received', preparing: 'Preparing', ready: 'Ready', collected: 'Collected', cancelled: 'Cancelled', out_for_delivery: 'Out for delivery', delivered: 'Delivered' };
+export const STATUS_LABELS = { received: 'Received', preparing: 'Preparing', ready: 'Ready', collected: 'Collected', cancelled: 'Cancelled', assigned: 'Delivery partner assigned', picked_up: 'Order picked up', out_for_delivery: 'Out for delivery', delivered: 'Delivered' };
 export const INSTRUCTIONS = { standard: 'Standard preparation', mild: 'Please keep the heat mild', separate: 'Pack chutneys separately', cutlery: 'No cutlery, please' };
 export const DEMO_BUSINESS = { name: 'BitesBro', city: 'Bangalore', timezone: 'Asia/Kolkata', hours: '10am–3pm & 6pm–11pm', deliveryFee: 4000, freeDeliveryFrom: 49900 };
 const clone = value => structuredClone(value);

@@ -72,7 +72,9 @@ export async function startOperations(role, render, setup = () => {}) {
     const state = store.read(); setKitchenIndicator(state); render(state); liveCopy();
     if ($('#order-dialog')?.open && selectedReference) {
      const order = state.orders.find(order => order.reference === selectedReference);
-     if (order) $('#order-dialog-content').innerHTML = detailMarkup(order, role); else $('#order-dialog').close();
+     const editingDelivery=focused?.closest('[data-assign-delivery]');
+     const preserveDeliveryForm=editingDelivery&&!editingDelivery.dataset.busy&&['unassigned','assigned','failed'].includes(order?.delivery?.status);
+     if (order&&!preserveDeliveryForm) $('#order-dialog-content').innerHTML = detailMarkup(order, role); else if(!order) $('#order-dialog').close();
     }
     if(focused&&!focused.isConnected){
      const replacement=reference?$(`[data-reference="${CSS.escape(reference)}"]`):control?$(`[${control}="${CSS.escape(controlValue)}"]`):null;

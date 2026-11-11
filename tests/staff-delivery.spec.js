@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test';
+import {cloudFixture,signIn,SITE} from './helpers/cloud-browser.js';
+import {RESTAURANT_ADDRESS,STAFF_PARTNER} from '../public/shared/delivery-tracking.js';
+const refresh=page=>page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+test('customer follows restaurant staff assignment, pickup, departure and delivery with clearly marked demo time',async({browser})=>{
+ const contexts=await Promise.all([browser.newContext(),browser.newContext(),browser.newContext()]),fixture=cloudFixture();
+ try{
+  for(const context of contexts)await fixture.attach(context);
+  const [customer,chef,admin]=await Promise.all(contexts.map(context=>context.newPage()));
+  const order={...structuredClone(fixture.orders[0]),reference:'BB-STAFF-DELIVERY',owner:fixture.users.find(user=>user.role==='customer').id,fulfilment:'delivery',address:'Isolated delivery fixture address',postcode:'560066',delivery:{version:10,status:'unassigned',timeline:[],partnerName:'',estimatedMinutes:45,estimateDemo:true,restaurantAddress:RESTAURANT_ADDRESS}};fixture.orders.push(order);
+  await signIn(customer,'customer');await expect(customer).toHaveURL(SITE);await customer.goto(SITE+'orders/?order='+order.reference);
+  await expect(customer.locator('.delivery-timeline > li')).toHaveCount(7);await expect(customer.locator('.delivery-route')).toContainText(RESTAURANT_ADDRESS);await expect(customer.locator('.delivery-route')).toContainText(order.address);await expect(customer.locator('.delivery-demo-estimate')).toContainText('Demo delivery estimate');await expect(customer.locator('.delivery-demo-estimate')).toContainText('45 minutes');
+  await signIn(chef,'chef');await expect(chef).toHaveURL(SITE+'kitchen/');const ticket=chef.locator(`[data-ticket="${order.reference}"]`);
+  await ticket.getByRole('button',{name:'Start preparing',exact:true}).click();await ticket.getByRole('button',{name:'Mark ready',exact:true}).click();await refresh(customer);await expect(customer.locator('#tracking-detail')).toContainText('Assigning restaurant staff');
+  await signIn(admin,'admin');await expect(admin).toHaveURL(SITE+'admin/');await admin.locator('[data-panel-link=orders]').click();await admin.getByRole('button',{name:'View '+order.reference,exact:true}).click();
+  const form=admin.locator('[data-assign-delivery]');await form.locator('[name=rider]').fill('Fixture restaurant staff');await form.locator('[name=minutes]').fill('40');const refreshed=admin.waitForResponse(response=>response.url().endsWith('/rest/v1/rpc/get_operations'));await refresh(admin);await refreshed;await expect(form.locator('[name=minutes]')).toHaveValue('40');await expect(form.locator('[name=rider]')).toHaveValue('Fixture restaurant staff');await form.getByRole('button',{name:'Assign restaurant staff',exact:true}).click();
+  await expect(admin.locator('#order-dialog-content .status-chip')).toHaveText('Delivery partner assigned');await refresh(customer);await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Delivery partner assigned');await expect(customer.locator('.delivery-route')).toContainText(STAFF_PARTNER);await expect(customer.locator('.delivery-route')).toContainText('Fixture restaurant staff');
+  await admin.getByRole('button',{name:'Confirm staff pickup',exact:true}).click();await refresh(customer);await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Order picked up');await expect(customer.locator('.delivery-demo-estimate')).toContainText('Illustrative arrival');
+  await admin.getByRole('button',{name:'Mark out for delivery',exact:true}).click();await refresh(customer);await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Out for delivery');await expect(customer.locator('#tracking-detail')).toContainText('on the way to your delivery address');
+  for(const width of [320,360,768,1440]){await customer.setViewportSize({width,height:900});expect(await customer.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);}
+  await customer.screenshot({path:'test-results/staff-delivery-tracking.png',fullPage:true});
+  await admin.getByRole('button',{name:'Mark delivered',exact:true}).click();await refresh(customer);await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Delivered');await expect(customer.locator('.delivery-demo-estimate')).toHaveCount(0);await customer.reload();await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Delivered');
+  expect(order.delivery.timeline.map(event=>event.status)).toEqual(['assigned','picked_up','out_for_delivery','delivered']);
+ }finally{for(const context of contexts)await context.close();}
+});

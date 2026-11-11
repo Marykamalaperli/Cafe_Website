@@ -100,10 +100,20 @@ export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady
       if(order.fulfilment==='delivery')order.delivery={status:'unassigned',timeline:[]};
       orders.push(order);return respond({...publicOrder(order,role),message:'Your food order is saved. No payment is taken.'});
      }
+     if(name==='assign_order_delivery'){
+      if(role!=='admin')return denied();const order=orders.find(order=>order.reference===body.p_reference);
+      if(!order||!['ready','collected'].includes(order.status)||order.delivery?.version!==10||!['unassigned','assigned','failed'].includes(order.delivery.status))return respond({code:'22023',message:'Wait until this delivery is ready.'},400);
+      order.delivery={...order.delivery,status:'assigned',partnerName:body.p_partner,riderName:body.p_rider,estimatedMinutes:body.p_minutes};order.delivery.timeline.push({status:'assigned',at:new Date().toISOString()});return respond(publicOrder(order,role));
+     }
      if(name==='update_order_delivery'){
       if(role!=='admin')return denied();const order=orders.find(order=>order.reference===body.p_reference);
       if(!order||order.fulfilment!=='delivery'||order.status==='cancelled')return respond({code:'22023',message:'Choose an active delivery order.'},400);
       order.delivery ||= {status:'unassigned',timeline:[]};if(order.delivery.status===body.p_status)return respond(publicOrder(order,role));
+      if(order.delivery.version===10){
+       const next={assigned:'picked_up',picked_up:'out_for_delivery',out_for_delivery:'delivered'}[order.delivery.status];if(next!==body.p_status)return respond({code:'22023',message:'Wait for the preceding delivery step.'},400);
+       if(body.p_status==='picked_up'){order.status='collected';order.delivery.pickedUpAt=new Date().toISOString();order.timeline.push({status:'collected',at:order.delivery.pickedUpAt});}
+       order.delivery.status=body.p_status;order.delivery.timeline.push({status:body.p_status,at:new Date().toISOString()});return respond(publicOrder(order,role));
+      }
       if(body.p_status==='out_for_delivery'&&['ready','collected'].includes(order.status)&&['unassigned','assigned','failed'].includes(order.delivery.status)){
        if(order.status==='ready'){order.status='collected';order.timeline.push({status:'collected',at:new Date().toISOString()});}
       }else if(!(body.p_status==='delivered'&&order.delivery.status==='out_for_delivery'))return respond({code:'22023',message:'Wait for the preceding delivery step.'},400);
