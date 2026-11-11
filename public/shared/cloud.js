@@ -105,7 +105,18 @@ export async function signInAccount(email,password) {
   await probe.auth.signOut({scope:'local'}).catch(()=>{});
   throw new Error(roleError||!role?'Your account role is not ready. Confirm your email and check the database setup.':`This account does not have ${portal==='admin'?'administrator':'kitchen'} access. Use its authorised sign-in portal.`);
  }
- const client=await portalClient(portal),saved=await client.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
+ const client=await portalClient(portal);
+ if(portal==='customer'){
+  const {data:current,error:sessionError}=await client.auth.getSession();
+  if(sessionError)throw new Error('Your guest session could not load. Retry before signing in.');
+  if(current.session?.user.is_anonymous){
+   const prepared=await client.rpc('prepare_guest_order_transfer',{p_customer:data.user.id});
+   if(prepared.error)throw new Error(prepared.error.code==='PGRST202'?'Guest history transfer needs database migration 009_guest_account_history.sql. Your guest session is still available.':'Your guest history could not be prepared for this account. Your guest session is still available; retry or use the account it was previously transferred to.');
+   const claimed=await probe.rpc('claim_guest_orders',{p_guest:current.session.user.id});
+   if(claimed.error)throw new Error('Your guest orders could not be carried forward. Your guest session is still available. Retry signing in with the same customer account.');
+  }
+ }
+ const saved=await client.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
  if(saved.error)throw new Error('Your sign-in could not be saved. Please try again.');
  return{user:saved.data.user,role,guest:false,portal};
 }

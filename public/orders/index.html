@@ -32,7 +32,7 @@
     <label class="ops-field history-search" id="history-search-field">Find an order<span><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#search"/></svg><input id="history-search" type="search" maxlength="80" placeholder="Search your order reference"></span></label>
     <ul class="history-list" id="order-history"><li class="ops-skeleton">Loading your orders…</li></ul>
     <p class="ops-muted" id="history-range" role="status"></p>
-    <div class="history-pagination" id="history-pagination" hidden><button class="ops-button ops-button-small" id="history-newer" type="button">Newer orders</button><button class="ops-button ops-button-small" id="history-older" type="button">Older orders</button></div>
+    <div class="history-pagination" id="history-pagination" hidden><button class="ops-button ops-button-small" id="history-newer" type="button">Newer orders</button><span id="history-page-number" role="status"></span><button class="ops-button ops-button-small" id="history-older" type="button">Older orders</button></div>
     <section id="active-history-section" hidden aria-label="Other orders still in progress"><h3>Still in progress</h3><p class="ops-muted">Older orders stay here while preparation, delivery or payment review is unfinished.</p><ul class="history-list" id="active-order-history"></ul></section>
    </aside>
   </div>

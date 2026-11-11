@@ -12,9 +12,9 @@ const users=[['customer','customer@bitesbro.invalid'],['chef','chef@bitesbro.inv
  user_metadata:{display_name:role==='customer'?'Test Customer':'Test Staff',role:'admin'},email_confirmed_at:'2026-01-01T00:00:00Z',aud:'authenticated'
 }));
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'};
-export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady=true,callbackRole='customer'}={}){
+export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady=true,transferReady=true,callbackRole='customer'}={}){
  const roles=new Map(users.map(user=>[user.id,user.role])),tokens=new Map(),uploads=new Map(),linked=new Map(),families=new Map(),tokenFamilies=new Map(),refreshFamilies=new Map();
- const calls=[],orders=[],guestUsers=[];let sequence=1,settings={acceptingOrders:true,prepMinutes:25};
+ const calls=[],orders=[],guestUsers=[],transfers=new Map();let sequence=1,settings={acceptingOrders:true,prepMinutes:25};
  function session(user,family=crypto.randomUUID()){
   const exp=Math.floor(Date.now()/1000)+3600;
   const token=[{alg:'HS256',typ:'JWT'},{sub:user.id,role:'authenticated',exp,aud:'authenticated',session_id:family,jti:crypto.randomUUID()}].map(value=>Buffer.from(JSON.stringify(value)).toString('base64url')).join('.')+'.test-signature';
@@ -67,6 +67,20 @@ export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady
      if(name==='get_slots')return respond({slots:['10:00','10:30','11:30','18:00'].map(time=>({time,available:true,past:false,seatsLeft:24}))});
      if(name==='get_guest_checkout_status')return respond({enabled:guestReady});
      if(!role)return denied();
+     if(['prepare_guest_order_transfer','claim_guest_orders'].includes(name)){
+      if(!transferReady)return respond({code:'PGRST202',message:'Transfer migration missing'},404);
+      if(role!=='customer')return denied();
+      if(name==='prepare_guest_order_transfer'){
+       const target=users.find(item=>item.id===body.p_customer),previous=transfers.get(user.id);
+       if(!user.is_anonymous||!target||target.role!=='customer'||previous?.claimed&&previous.target!==target.id)return denied();
+       transfers.set(user.id,previous?.claimed?previous:{target:target.id,claimed:false});return respond(null);
+      }
+      const grant=transfers.get(body.p_guest);if(user.is_anonymous||grant?.target!==user.id)return denied();
+      if(grant.claimed)return respond(grant.count);
+      const owned=orders.filter(order=>order.owner===body.p_guest);for(const order of owned)order.owner=user.id;
+      grant.claimed=true;grant.count=owned.length;return respond(grant.count);
+     }
+
      if(name==='get_order_history'&&!historyReady)return respond({code:'PGRST202',message:'History migration is not applied.'},404);
      if(name==='get_operations'&&role==='customer'&&!historyReady)return respond({categories:catalogue.categories,menu:menu(),orders:orders.filter(order=>order.owner===user.id).map(order=>publicOrder(order,role)),settings,activity:[]});
      if(name==='get_order_history'||name==='get_operations'&&role==='customer'){

@@ -17,3 +17,8 @@ export function orderHistory(orders, { guest = true, page = 0, search = '', refe
 export function visibleOrders(data) {
  return [...new Map([...(data.history?.items || data.orders || []),...(data.activeOrders || []),...(data.selectedOrder?[data.selectedOrder]:[])].map(order=>[order.reference,order])).values()];
 }
+
+export function historyLocation(href) {
+ const params=new URL(href).searchParams,value=Number(params.get('page')||1);
+ return{page:Number.isInteger(value)&&value>=1&&value<=1000001?value-1:0,search:(params.get('search')||'').slice(0,80),reference:params.get('order')};
+}

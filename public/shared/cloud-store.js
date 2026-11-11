@@ -1,12 +1,13 @@
 import { rpc, resolveMenu, requireRole, cloudClient } from './cloud.js?v=portal-auth-1';
-import { orderHistory, visibleOrders } from './order-history.js';
+import { orderHistory, visibleOrders, historyLocation } from './order-history.js';
 
 // Cloud operational data stays in memory. Never copy real records to the demo/local store.
 export async function connectCloudStore(pageRole) {
  const account = await requireRole(pageRole);
  if (!account || account.demo) throw new Error('An authenticated Supabase account is required.');
  let state, stopped = false, pending, timer, subscription;
- let historyAvailable=true,historyVersion=0,historyRequest={p_page:0,p_search:'',p_reference:new URL(location.href).searchParams.get('order')};
+ const initialHistory=historyLocation(location.href);
+ let historyAvailable=true,historyVersion=0,historyRequest={p_page:account.guest?0:initialHistory.page,p_search:initialHistory.search,p_reference:initialHistory.reference};
  const listeners = new Set();
  const visibility = () => { if (!document.hidden) refresh().catch(() => {}); };
  async function refresh() {

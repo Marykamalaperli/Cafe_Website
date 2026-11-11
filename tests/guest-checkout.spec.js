@@ -12,13 +12,13 @@ test('guest orders without signup/password, tracks and cancels privately, and ca
  const signup=fixture.calls.filter(call=>call.path==='/auth/v1/signup');expect(signup).toHaveLength(1);expect(signup[0].body.email).toBeUndefined();expect(signup[0].body.password).toBeUndefined();expect(signup[0].apikey).toBe('sb_publishable_browser_fixture');expect(fixture.guestUsers).toHaveLength(1);
  const placed=fixture.calls.find(call=>call.path.endsWith('/place_order'));expect(placed.role).toBe('customer');expect(placed.body.p.email).toBe('shared-contact@bitesbro.invalid');
  await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await expect(page.locator('#demo-role-nav')).toHaveCount(0);await expect(page.locator('.site-header #customer-account')).toContainText('Sign in');await expect(page.locator('#history-session-info')).toContainText('Guest history stays in this browser');await expect(page.getByRole('heading',{name:'Recent guest orders',exact:true})).toBeVisible();await expect(page.locator('#order-history')).not.toContainText('BB-ORDER-OTHER');
- await page.goto(SITE);await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'My orders',exact:true}).click();await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await expect(page.locator('#history-session-info')).toContainText('Signing into another customer account');
+ await page.goto(SITE);await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'My orders',exact:true}).click();await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await expect(page.locator('#history-session-info')).toContainText('Sign in to carry');
  await page.reload();await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');await page.getByRole('button',{name:'Cancel order',exact:true}).click();await expect(page.locator('#tracking-detail .status-chip')).toHaveText('Cancelled');
  await page.setViewportSize({width:360,height:800});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await page.screenshot({path:'test-results/guest-tracking-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1000});
  expect(await page.evaluate(()=>localStorage.getItem('bitesbro.demo.v1'))).toBeNull();
  await page.goto(SITE+'admin/');await expect(page).toHaveURL(/\/auth\/\?portal=admin/);await page.goto(SITE+'kitchen/');await expect(page).toHaveURL(/\/auth\/\?portal=kitchen/);await page.goto(SITE);
  await page.getByRole('link',{name:'Sign in',exact:true}).click();await expect(page.locator('#auth-form')).toBeVisible();await expect(page.locator('#auth-description')).toContainText('guest checkout');
- await signIn(page,'customer');await expect(page).toHaveURL(SITE);await page.goto(SITE+'orders/');await expect(page.locator('#order-history')).not.toContainText('BB-ORDER-TEST1');
+ await signIn(page,'customer');await expect(page).toHaveURL(SITE);await page.goto(SITE+'orders/');await expect(page.locator('#order-history')).toContainText('BB-ORDER-TEST1');
 });
 
 for(const options of[{guestReady:false},{guestAuthEnabled:false}])test(`guest setup ${JSON.stringify(options)} fails honestly and keeps the bag`,async({page,context})=>{
@@ -80,4 +80,28 @@ test('returning guests restore only their latest three orders, including after t
   expect(fixture.guestUsers).toHaveLength(2);
   expect(fixture.calls.some(call=>call.query.grant_type==='refresh_token')).toBe(true);
  }finally{await first.close();await other.close();await returning?.close();}
+});
+
+test('guest history joins an account privately and paginates with existing and future account orders',async({page,context})=>{
+ const fixture=cloudFixture();await fixture.attach(context);await guestOrder(page);
+ await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');
+ const guest=fixture.guestUsers[0],customer=fixture.users.find(user=>user.role==='customer'),template=structuredClone(fixture.orders.find(order=>order.owner===guest.id));
+ for(let i=2;i<=6;i++)fixture.orders.push({...structuredClone(template),reference:'BB-PAST-GUEST-'+i,owner:guest.id,status:'collected',createdAt:new Date(Date.now()-i*86400000).toISOString(),requestId:crypto.randomUUID()});
+ for(let i=1;i<=2;i++)fixture.orders.push({...structuredClone(template),reference:'BB-PAST-MEMBER-'+i,owner:customer.id,status:'collected',createdAt:new Date(Date.now()-(i+10)*86400000).toISOString(),requestId:crypto.randomUUID()});
+ await signIn(page,'customer');await expect(page).toHaveURL(SITE);await page.goto(SITE+'orders/');
+ await expect(page.locator('#history-range')).toHaveText('1–5 of 8 orders');await expect(page.locator('#history-page-number')).toHaveText('Page 1 of 2');
+ await page.locator('#history-older').click();await expect(page.locator('#history-range')).toHaveText('6–8 of 8 orders');await expect(page.locator('#history-page-number')).toHaveText('Page 2 of 2');
+ await expect(page).toHaveURL(/page=2/);await page.reload();await expect(page.locator('#history-range')).toHaveText('6–8 of 8 orders');
+ await expect(page.locator('#order-history')).toContainText('BB-PAST-MEMBER-1');await expect(page.locator('#order-history')).not.toContainText('BB-ORDER-OTHER');
+ await page.locator('#history-search').fill('BB-PAST-GUEST-6');await expect(page.locator('#history-range')).toHaveText('1–1 of 1 orders');await page.reload();await expect(page.locator('#history-search')).toHaveValue('BB-PAST-GUEST-6');await expect(page.locator('#order-history')).toContainText('BB-PAST-GUEST-6');
+ await page.evaluate(async()=>{const {cloudRequest}=await import('/Cafe_Website/shared/cloud.js?v=portal-auth-1');await cloudRequest('/api/orders',{body:JSON.stringify({requestId:crypto.randomUUID(),name:'Signed in fixture',email:'customer@bitesbro.invalid',phone:'9000000000',date:'2030-06-01',time:'10:00',consent:true,fulfilment:'pickup',items:[{id:'masala-dosa',quantity:1}]})});});
+ await page.goto(SITE+'orders/');await expect(page.locator('#history-range')).toHaveText('1–5 of 9 orders');
+ expect(fixture.orders.filter(order=>order.owner===guest.id)).toHaveLength(0);expect(fixture.orders.filter(order=>order.owner===customer.id)).toHaveLength(9);
+ expect(await page.evaluate(()=>localStorage.getItem('bitesbro.demo.v1'))).toBeNull();
+});
+
+test('missing transfer migration keeps the guest identity and explains the setup requirement',async({page,context})=>{
+ const fixture=cloudFixture({transferReady:false});await fixture.attach(context);await guestOrder(page);await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');
+ const guest=fixture.guestUsers[0].id;await signIn(page,'customer');await expect(page.locator('#auth-status')).toContainText('009_guest_account_history.sql');
+ await page.goto(SITE+'orders/');await expect(page.locator('#tracking-reference')).toHaveText('BB-ORDER-TEST1');expect(fixture.orders.filter(order=>order.owner===guest)).toHaveLength(1);
 });

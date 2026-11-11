@@ -1,7 +1,7 @@
 import { startOperations } from '../shared/operations.js?v=payments-1';
 import { $, escape, orderBadge, orderStatus, money, localTime, siteURL, orderItems, orderTimeline, orderActions, icon, announce, mountRoleNavigation } from '../shared/ui.js?v=customer-nav-1';
 import { INSTRUCTIONS } from '../shared/demo-model.js?v=portal-auth-1';
-import { orderHistory, visibleOrders } from '../shared/order-history.js';
+import { orderHistory, visibleOrders, historyLocation } from '../shared/order-history.js';
 import { cloudConfig, identity, cloudClient, loginURL } from '../shared/cloud.js?v=portal-auth-1';
 import { wireCustomerNavigation } from '../shared/customer-nav.js?v=customer-nav-1';
 import { wireCustomerBag } from '../shared/customer-bag.js?v=customer-flow-1';
@@ -9,7 +9,8 @@ import { paymentMarkup, wireCustomerPayments } from '../shared/payments.js?v=pay
 import {wireReordering} from '../shared/reorder-ui.js?v=customer-flow-1';
 import {cloudRequest} from '../shared/cloud.js?v=portal-auth-1';
 
-let reference=new URL(location.href).searchParams.get('order'),query='',page=0,store,redraw,busy=false,searchTimer;
+const initialHistory=historyLocation(location.href);
+let reference=initialHistory.reference,query=initialHistory.search,page=initialHistory.page,store,redraw,busy=false,searchTimer;
 const orderDate=value=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'numeric',month:'short',year:'numeric'}).format(new Date(value));
 wireCustomerNavigation();
 wireCustomerBag();
@@ -22,7 +23,7 @@ function configurePage({live,guest=true,visitor=false}) {
  $('#history-session-info').textContent=visitor
   ?'Guest history belongs to the browser that placed the order. Sign in to open your registered account history.'
   :!live?'Fictional demo history stays in this browser. No real orders or payments are involved.'
-  :guest?'Guest history stays in this browser. Signing into another customer account or clearing site data removes access to that guest session. Staff sign-ins stay separate.'
+  :guest?'Guest history stays in this browser. Sign in to carry these guest orders into your customer account. Clearing site data removes access to an untransferred guest session. Staff sign-ins stay separate.'
   :'Your history stays with your account. Open older pages or search a reference to revisit an earlier order.';
  $('#history-refresh-note').textContent=visitor?'Place an order to start tracking':live?'Updates refresh every 8 seconds':'Updates sync between tabs';
  $('#history-session-label').textContent=visitor?'Your guest history · this browser':!live?'Fictional demo history':guest?'Guest history · this browser':'Your account history';
@@ -57,7 +58,7 @@ function emptyDetail({visitor=false,guest=true}={}) {
  const unavailable=!visitor&&Boolean(reference||query);
  const title=visitor?'No orders in this browser yet.':unavailable?'This order is outside your available history.':'Your first bite starts here.';
  const description=visitor?'Place a guest order to start tracking, or sign in to see the orders saved to your account.':unavailable?(guest?'Choose one of your three recent orders or an order still in progress.':'Choose an order from your history or search for its reference.'):'Find something delicious on the menu. Your order and its progress will appear here after checkout.';
- return `<div class="history-empty"><div class="history-empty-art" aria-hidden="true">${icon('bag')}<span>${icon('spark')}</span></div><p class="eyebrow">A LITTLE ROOM FOR GOOD FOOD</p><h2>${title}</h2><p>${description}</p><div class="history-empty-actions"><a class="ops-button ops-button-orange" href="${escape(siteURL(document.body.dataset.live==='true'?'#menu':'?demo=1#menu'))}">Browse the menu ${icon('arrow')}</a>${visitor?`<a class="ops-button" href="${escape(loginURL())}">Sign in to your account</a>`:''}</div>${visitor?'<p class="history-empty-footnote">Already ordered as a guest? Use the same browser and profile. Switching customer accounts or clearing site data removes access to the original guest session. Staff sign-ins stay separate.</p>':''}</div>`;
+ return `<div class="history-empty"><div class="history-empty-art" aria-hidden="true">${icon('bag')}<span>${icon('spark')}</span></div><p class="eyebrow">A LITTLE ROOM FOR GOOD FOOD</p><h2>${title}</h2><p>${description}</p><div class="history-empty-actions"><a class="ops-button ops-button-orange" href="${escape(siteURL(document.body.dataset.live==='true'?'#menu':'?demo=1#menu'))}">Browse the menu ${icon('arrow')}</a>${visitor?`<a class="ops-button" href="${escape(loginURL())}">Sign in to your account</a>`:''}</div>${visitor?'<p class="history-empty-footnote">Already ordered as a guest? Use the same browser and profile. Sign in from that guest session to carry its orders into your account. Clearing site data removes access to an untransferred guest session. Staff sign-ins stay separate.</p>':''}</div>`;
 }
 
 function render(state) {
@@ -69,18 +70,19 @@ function render(state) {
  const available=state.history?state.orders:visibleOrders(data);
  const order=data.selectedOrder?.reference===reference?data.selectedOrder:available.find(order=>order.reference===reference);
  $('#history-title').textContent=history.guest?'Recent guest orders':'Order history';
- $('#history-policy').textContent=history.guest?'Your latest 3 orders appear here. Older active orders remain below until finished.':'Showing 5 orders per page. Search or open older pages to retrieve your earlier orders.';
+ $('#history-policy').textContent=history.guest?'Your latest 3 orders appear here. Sign in to carry all your guest orders into your account.':'Showing 5 orders per page, including guest orders carried into this account. Use Older orders and Newer orders or search a reference.';
  $('#order-history').innerHTML=history.items.length?history.items.map(historyItem).join(''):`<li class="ops-empty">${query?'No matching orders.':'No orders yet.'}</li>`;
  $('#history-range').textContent=history.total?`${history.page*history.pageSize+1}–${Math.min((history.page+1)*history.pageSize,history.total)} of ${history.total} orders`:'';
  $('#history-search-field').hidden=!history.total&&!query&&!(data.activeOrders||[]).length;
  $('#history-pagination').hidden=history.guest||history.total<=history.pageSize;
+ $('#history-page-number').textContent=`Page ${history.page+1} of ${Math.max(1,Math.ceil(history.total/history.pageSize))}`;
  $('#history-newer').disabled=busy||!history.hasNewer;$('#history-older').disabled=busy||!history.hasOlder;
  $('#active-history-section').hidden=!active.length;$('#active-order-history').innerHTML=active.map(historyItem).join('');
  $('#history-active-count').textContent=(data.activeOrders||[]).length;$('#history-active-label').textContent=data.activeOrders?.length===1?'active order':'active orders';
  $('#tracking-detail').innerHTML=order?customerDetail(order,state.live):emptyDetail({guest:history.guest});
  if(state.live&&state.orders.some(order=>order.payment))$('#history-service-note').textContent='Follow payment, kitchen and delivery updates here. UPI receipts are verified by the restaurant. Automatic courier booking and order emails are not connected.';
  $('#history-jump').hidden=!order;
- const url=new URL(location.href);if(reference)url.searchParams.set('order',reference);else url.searchParams.delete('order');window.history.replaceState(null,'',url);
+ const url=new URL(location.href);if(page)url.searchParams.set('page',String(page+1));else url.searchParams.delete('page');if(query)url.searchParams.set('search',query);else url.searchParams.delete('search');if(reference)url.searchParams.set('order',reference);else url.searchParams.delete('order');window.history.replaceState(null,'',url);
 }
 
 async function load(changes={}) {
@@ -106,7 +108,7 @@ async function boot() {
   const config=await cloudConfig();
   if(config.enabled&&!await identity()){await showVisitorHistory();return;}
   await startOperations('customer',render,async(connection,refresh)=>{
-   store=connection;redraw=refresh;configurePage({live:connection.live===true,guest:connection.account?.guest??true});
+   store=connection;redraw=refresh;$('#history-search').value=query;configurePage({live:connection.live===true,guest:connection.account?.guest??true});
    wireCustomerPayments({getOrder:reference=>store.read().orders.find(order=>order.reference===reference),refresh:()=>store.refresh()});
    wireReordering({getOrder:reference=>store.read().orders.find(order=>order.reference===reference),loadMenu:async()=>connection.live?(await cloudRequest('/api/menu')).items:store.read().menu.filter(item=>item.available&&!item.archived),checkoutURL:siteURL(connection.live?'?bag=1':'?demo=1&bag=1'),menuURL:siteURL(connection.live?'#menu':'?demo=1#menu')});
    $('.tracking-history').addEventListener('click',async event=>{

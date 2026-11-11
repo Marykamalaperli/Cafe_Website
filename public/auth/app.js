@@ -88,7 +88,7 @@ try {
  if (!recovery) {
   const account = await identity();
   if (account && !account.guest) location.replace(safeDestination(new URL(location.href).searchParams.get('next'), account.role));
-  else {setMode('signin');if(account?.guest)$('#auth-description').textContent='You are using guest checkout. Signing into a customer account replaces that guest session; guest orders do not move to the other account. Staff portal sign-ins stay separate.';form.hidden=false;}
+  else {setMode('signin');if(account?.guest)$('#auth-description').textContent='You are using guest checkout. Signing into your customer account carries this browser’s guest orders into your account history. Staff portal sign-ins stay separate.';form.hidden=false;}
  }
  else form.hidden=false;
  if(!form.hidden)for(const button of authButtons)button.disabled=false;

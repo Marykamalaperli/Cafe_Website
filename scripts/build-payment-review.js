@@ -13,7 +13,7 @@ mkdirSync(out + '/services');
 for (const name of ['providers.js', 'payments.js', 'youpi.js']) cpSync('supabase/functions/_shared/' + name, out + '/services/' + name);
 writeFileSync(out + '/services/review-youpi.js', readFileSync('review/youpi-simulator.js', 'utf8').replaceAll('../supabase/functions/_shared/', './'));
 cpSync('review/worker.js', out + '/review-worker.js');
-const migrations = paymentMigrations.map(file => readFileSync(file, 'utf8'));
+const migrations = [...paymentMigrations,'supabase/migrations/009_guest_account_history.sql'].map(file => readFileSync(file, 'utf8'));
 const databaseVersion=createHash('sha256').update(migrations.join('\n')).digest('hex').slice(0,12);
 writeFileSync(out+'/review-install.js',readFileSync('review/install.js','utf8').replaceAll('{{REVIEW_VERSION}}',databaseVersion));
 writeFileSync(out+'/review-version.json',JSON.stringify({databaseVersion}));
