@@ -4,6 +4,7 @@ import { resolve, extname } from 'node:path';
 
 const base = '/Cafe_Website/';
 async function pages(context) {
+ await context.pages()[0].clock.install({time:new Date('2026-11-11T08:00:00Z')});
  const root = resolve('_site');
  const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
  await context.route('**/api/**', route => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":"GitHub Pages has no backend"}' }));
@@ -56,23 +57,23 @@ test('GitHub Pages customer, kitchen and admin complete one connected fictional 
  await expect(customer.locator('#connection-note')).toContainText('Demo Mode — No real orders or payments.');
  const kitchen = await context.newPage(), admin = await context.newPage();
  await kitchen.goto(base + 'kitchen/'); await admin.goto(base + 'admin/');
- await expect(admin.locator('[data-metric=total] strong')).toHaveText('6');
+ await expect(admin.locator('#admin-stats [data-metric=total] strong')).toHaveText('4');
  const reference = await placeDemo(customer);
  await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Received');
  const ticket = kitchen.locator(`[data-ticket="${reference}"]`);
  await expect(ticket).toContainText('Ghee-roasted · mild spice · Extra sambar');
  await expect(ticket).toContainText('Please keep the heat mild');
- await expect(admin.locator('[data-metric=total] strong')).toHaveText('7');
+ await expect(admin.locator('#admin-stats [data-metric=total] strong')).toHaveText('5');
  await ticket.getByRole('button', { name: 'Start preparing', exact: true }).click();
  await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Preparing');
- await expect(admin.locator('[data-metric=preparing] strong')).toHaveText('2');
+ await expect(admin.locator('#admin-stats [data-metric=preparing] strong')).toHaveText('2');
  await ticket.getByRole('button', { name: 'Mark ready', exact: true }).click();
  await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Ready');
- await expect(admin.locator('[data-metric=ready] strong')).toHaveText('2');
+ await expect(admin.locator('#admin-stats [data-metric=ready] strong')).toHaveText('2');
  await ticket.getByRole('button', { name: 'Mark collected', exact: true }).click();
  await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Collected');
- await expect(admin.locator('[data-metric=collected] strong')).toHaveText('3');
- await expect(admin.locator('[data-metric=sales] strong')).toHaveText('₹950');
+ await expect(admin.locator('#admin-stats [data-metric=collected] strong')).toHaveText('2');
+ await expect(admin.locator('#admin-stats [data-metric=sales] strong')).toHaveText('₹390');
  await kitchen.getByRole('button', { name: 'Completed history', exact: true }).click();
  await expect(kitchen.locator(`[data-ticket="${reference}"] .status-chip`)).toHaveText('Collected');
  await customer.reload(); await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Collected');
@@ -140,7 +141,7 @@ test('demo kitchen preferences control checkout and customer cancellation stays 
  await expect(customer.locator('#tracking-detail .status-chip')).toHaveText('Cancelled'); await expect(customer.locator('.cancelled-note')).toContainText('No payment or refund occurred');
  await expect(customer.getByRole('button', { name: 'Cancel demo order', exact: true })).toHaveCount(0);
  await admin.goto(base + 'admin/#orders'); await admin.locator('#admin-order-status').selectOption('cancelled');
- await expect(admin.locator('#admin-order-count')).toHaveText('2 demonstration orders');
+ await expect(admin.locator('#admin-order-count')).toHaveText('1 demonstration orders');
 });
 
 test('nested demo pages, shared assets and navigation work at every required viewport', async ({ page, context }) => {
@@ -156,7 +157,7 @@ test('nested demo pages, shared assets and navigation work at every required vie
   else await expect(page.locator('#demo-role-nav')).toContainText('Demo Mode — No real orders or payments.');
   await page.evaluate(() => document.fonts.ready);
   if (path === 'kitchen/') await expect(page.locator('.ticket-card').first()).toBeVisible();
-  if (path === 'admin/') await expect(page.locator('[data-metric=total] strong')).toHaveText('6');
+  if (path === 'admin/') await expect(page.locator('#admin-stats [data-metric=total] strong')).toHaveText('4');
   for (const width of [320, 360, 768, 1024, 1440]) {
    await page.setViewportSize({ width, height: 900 });
    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${path} overflows at ${width}`).toBe(true);
@@ -170,7 +171,7 @@ test('nested demo pages, shared assets and navigation work at every required vie
  await page.setViewportSize({ width: 360, height: 900 });
  await page.goto(base + 'kitchen/'); await expect(page.locator('.ticket-card').first()).toBeVisible();
  await page.screenshot({ path: 'test-results/bitesbro-kitchen-mobile.png', fullPage: true, animations: 'disabled' });
- await page.goto(base + 'admin/'); await expect(page.locator('[data-metric=total] strong')).toHaveText('6');
+ await page.goto(base + 'admin/'); await expect(page.locator('#admin-stats [data-metric=total] strong')).toHaveText('4');
  await page.screenshot({ path: 'test-results/bitesbro-admin-mobile.png', fullPage: true, animations: 'disabled' });
 });
 
@@ -189,7 +190,8 @@ test('dish editor keeps keyboard focus and escapes editable text rather than exe
 
 test('administrator reports calculate status counts, collected sales and popular dishes from the shared tickets', async ({ page, context }) => {
  await pages(context); await page.goto(base + 'admin/#reports');
- await expect(page.locator('#daily-summary tbody tr')).toHaveCount(7);
+ await page.locator('#admin-period').selectOption('all');
+ await expect(page.locator('#daily-summary tbody tr')).not.toHaveCount(0);
  await expect(page.locator('#sales-trend')).toContainText('₹790');
  expect(await page.locator('#daily-summary tbody tr td:nth-child(2)').evaluateAll(cells => cells.reduce((sum, cell) => sum + Number(cell.textContent), 0))).toBe(6);
  await expect(page.locator('#report-popular-items')).toContainText('Bangalore Masala Dosa');
@@ -207,10 +209,10 @@ test('administrator reports calculate status counts, collected sales and popular
 
 test('damaged browser demo data exposes a reset and never a false success screen', async ({ page, context }) => {
  await pages(context); await page.goto(base + 'admin/');
- await expect(page.locator('[data-metric=total] strong')).toHaveText('6');
+ await expect(page.locator('#admin-stats [data-metric=total] strong')).toHaveText('4');
  await page.evaluate(() => localStorage.setItem('bitesbro.demo.v1', '{broken'));
  await page.reload(); await expect(page.getByRole('heading', { name: 'The demo couldn’t open.' })).toBeVisible();
  await expect(page.getByText('Saved demo data could not be read.', { exact: false })).toBeVisible();
  await page.getByRole('button', { name: 'Reset fictional demo data', exact: true }).click();
- await expect(page.locator('[data-metric=total] strong')).toHaveText('6');
+ await expect(page.locator('#admin-stats [data-metric=total] strong')).toHaveText('4');
 });

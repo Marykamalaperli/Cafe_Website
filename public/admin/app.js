@@ -1,14 +1,18 @@
 import { startOperations, statCard, liveCopy } from '../shared/operations.js?v=payments-1';
 import {wireAdminPayments,renderAdminPayments} from '../shared/payments-admin.js?v=payments-1';
 import { $, $$, escape, money, orderBadge, orderStatus, localDate, localTime, siteURL, announce, showDialog, icon } from '../shared/ui.js?v=customer-nav-1';
-import { demoMetrics, STATUSES, STATUS_LABELS } from '../shared/demo-model.js?v=portal-auth-1';
+import { STATUSES, STATUS_LABELS } from '../shared/demo-model.js?v=portal-auth-1';
+import { adminReport, reportPeriod, bangaloreDay } from '../shared/admin-reporting.js';
 import {rpc} from '../shared/cloud.js?v=portal-auth-1';
 import {uploadMenuPhotos} from '../shared/photo-upload.js?v=portal-auth-1';
 
-let store, menuLimit = 12, editingId;
+let store, menuLimit = 12, editingId, redrawPage;
+let periodKind='day', reportDate=null;
+const currentPeriod=()=>reportPeriod(periodKind,reportDate||bangaloreDay(new Date()));
+function resetToday(){periodKind='day';reportDate=null;$('#admin-period').value='day';redrawPage?.();}
 const titles = {
  overview: ['Your daily <em>overview.</em>', 'A live view of the fictional orders, menu and kitchen activity in this browser.'],
- orders: ['Every order. <em>One view.</em>', 'Follow preparation, inspect customisations and manage permitted demonstration status changes.'],
+ orders: ['Your orders. <em>By day.</em>', 'Follow preparation, inspect customisations and manage permitted demonstration status changes.'],
  menu: ['A menu made <em>your way.</em>', 'Shape the full demonstration catalogue. Changes appear in the customer and kitchen views.'],
  reports: ['A little food <em>for thought.</em>', 'Useful summaries, calculated from the same fictional orders as the kitchen and customer views.'],
  settings: ['Keep your kitchen <em>in rhythm.</em>', 'Simple preferences for this demonstration. Real business settings and SQLite stay unchanged.']
@@ -18,6 +22,8 @@ function selectPanel() {
  $$('.admin-panel').forEach(section => { section.hidden = section.id !== 'panel-' + panel; });
  $$('[data-panel-link]').forEach(link => { if (link.dataset.panelLink === panel) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
  $('#admin-page-title').innerHTML = titles[panel][0]; $('#admin-page-description').textContent = titles[panel][1];
+ $('#admin-period-controls').hidden=!['overview','orders','reports'].includes(panel);
+ if(panel==='overview'&&store)resetToday();
  liveCopy();
 }
 
@@ -25,7 +31,7 @@ function renderOrders(state) {
  const query = $('#admin-order-search').value.trim().toLowerCase(), status = $('#admin-order-status').value;
  const orders = state.orders.filter(order => order.reference.toLowerCase().includes(query) && (status === 'all' || orderStatus(order) === status)).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
  $('#admin-order-count').textContent = `${orders.length} demonstration orders`;
- $('#admin-orders').innerHTML = orders.length ? `<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th scope="col">Order</th><th scope="col">Placed</th><th scope="col">Status</th><th scope="col">Demo total</th><th scope="col">Action</th></tr></thead><tbody>${orders.map(order => `<tr data-order-row="${escape(order.reference)}"><td><strong>${escape(order.reference)}</strong><small>${order.origin === 'sample' ? 'Fictional sample' : 'Customer demo'} · ${escape(order.fulfilment)}</small></td><td>${localDate(order.createdAt)}<small>${localTime(order.createdAt)}</small></td><td>${orderBadge(order)}</td><td>${money(order.total)}</td><td><button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}" aria-label="View ${escape(order.reference)}">View order ${icon('arrow')}</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="ops-empty"><h2>No orders in this view.</h2><p>Try another reference or status.</p></div>';
+ $('#admin-orders').innerHTML = orders.length ? `<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th scope="col">Order</th><th scope="col">Placed</th><th scope="col">Status</th><th scope="col">Demo total</th><th scope="col">Action</th></tr></thead><tbody>${orders.map(order => `<tr data-order-row="${escape(order.reference)}"><td><strong>${escape(order.reference)}</strong><small>${order.origin === 'sample' ? 'Fictional sample' : 'Customer demo'} · ${escape(order.fulfilment)}</small></td><td>${localDate(order.createdAt)}<small>${localTime(order.createdAt)}</small></td><td>${orderBadge(order)}</td><td>${money(order.total)}</td><td><button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}" aria-label="View ${escape(order.reference)}">View order ${icon('arrow')}</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="ops-empty"><h2>No orders in this view.</h2><p>Try another date, reference or status.</p></div>';
 }
 function renderMenu(state) {
  const query = $('#admin-menu-search').value.trim().toLowerCase(), filter = $('#admin-menu-status').value;
@@ -40,18 +46,22 @@ function renderReports(metrics) {
   const height = day.sales / max * 125, x = 24 + index * 61;
   return `<rect class="chart-bar" x="${x}" y="${150 - height}" width="29" height="${height}" rx="4"><title>${escape(day.date)}: ${money(day.sales)}</title></rect><text x="${x + 14}" y="176" text-anchor="middle">${escape(localDate(day.date + 'T12:00:00+05:30'))}</text>`;
  }).join('');
- $('#sales-trend').innerHTML = `<p class="report-caption">${money(metrics.days.reduce((sum, day) => sum + day.sales, 0))} simulated sales over these seven days. Exact values are in the daily summary below.</p><svg class="sales-chart" viewBox="0 0 460 190" role="img" aria-label="Seven-day demonstration sales trend"><line class="chart-baseline" x1="12" y1="150" x2="445" y2="150"/>${bars}</svg>`;
+ $('#sales-trend').innerHTML = `<p class="report-caption">${money(metrics.days.reduce((sum, day) => sum + day.sales, 0))} collected order revenue in the selected period. Exact values are in the daily summary below.</p><svg class="sales-chart" viewBox="0 0 ${Math.max(460,metrics.days.length*61+30)} 190" role="img" aria-label="Collected order revenue by Bangalore date"><line class="chart-baseline" x1="12" y1="150" x2="${Math.max(445,metrics.days.length*61+15)}" y2="150"/>${bars}</svg>`;
  $('#status-summary').innerHTML = STATUSES.map(status => `<div><span>${STATUS_LABELS[status]}</span><meter value="${metrics.counts[status]}" max="${Math.max(1, metrics.totalOrders)}" aria-label="${STATUS_LABELS[status]} orders">${metrics.counts[status]}</meter><strong>${metrics.counts[status]}</strong></div>`).join('');
- $('#daily-summary').innerHTML = `<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th scope="col">Bangalore date</th><th scope="col">Orders placed</th><th scope="col">Collected</th><th scope="col">Simulated sales</th></tr></thead><tbody>${[...metrics.days].reverse().map(day => `<tr><td>${escape(localDate(day.date + 'T12:00:00+05:30'))}</td><td>${day.orders}</td><td>${day.collected}</td><td>${money(day.sales)}</td></tr>`).join('')}</tbody></table></div>`;
+ $('#daily-summary').innerHTML = `<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th scope="col">Bangalore date</th><th scope="col">Orders placed</th><th scope="col">Collected</th><th scope="col">Collected order revenue</th></tr></thead><tbody>${[...metrics.days].reverse().map(day => `<tr><td>${escape(localDate(day.date + 'T12:00:00+05:30'))}</td><td>${day.orders}</td><td>${day.collected}</td><td>${money(day.sales)}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function render(state) {
  renderAdminPayments(state);
- const metrics = demoMetrics(state);
- $('#admin-stats').innerHTML = statCard('total', 'Total demo orders', metrics.totalOrders, 'All statuses in this browser', true) + statCard('preparing', 'In preparation', metrics.counts.preparing, 'On the kitchen’s active queue') + statCard('ready', 'Ready for collection', metrics.counts.ready, 'Prepared and waiting') + statCard('collected', 'Collected orders', metrics.counts.collected, `${metrics.counts.cancelled} cancelled · ${metrics.counts.received} received`) + statCard('sales', 'Simulated sales', money(metrics.sales), 'Collected orders only') + statCard('available', 'Available dishes', metrics.available, `${state.menu.filter(item => !item.archived).length} active menu items`);
+ const period=currentPeriod(),report=adminReport(state,period),metrics=report.metrics;
+ $('#admin-report-date').value=period.date;$('#admin-date-field').hidden=period.kind==='all';
+ $('#admin-period-label').textContent=period.kind==='all'?'All time · Bangalore time':period.kind==='day'?`${period.date} · Bangalore time`:`${period.start} to ${metrics.days.at(-1).date} · Bangalore time`;
+ const fullState=state;state=report.state;
+ $('#admin-stats').innerHTML = statCard('total', 'Orders in period', metrics.totalOrders, 'Placed in the selected period', true) + statCard('preparing', 'In preparation', metrics.counts.preparing, 'Selected period’s orders') + statCard('ready', 'Ready for collection', metrics.counts.ready, 'Prepared and waiting') + statCard('collected', 'Collected orders', metrics.counts.collected, `${metrics.counts.cancelled} cancelled · ${metrics.counts.received} received`) + statCard('sales', 'Collected order revenue', money(metrics.sales), 'Collected orders placed in this period') + statCard('available', 'Available dishes', metrics.available, `${state.menu.filter(item => !item.archived).length} active menu items`);
+ $('#report-stats').innerHTML=$('#admin-stats').innerHTML;
  $('#popular-items').innerHTML = metrics.popular.slice(0, 5).map((item, index) => `<li><span class="popular-rank">${index + 1}</span><span>${escape(item.name)}</span><strong>${item.quantity} ordered</strong></li>`).join('') || '<li>No fictional orders yet.</li>';
  $('#report-popular-items').innerHTML = metrics.popular.slice(0, 8).map((item, index) => `<li><span class="popular-rank">${index + 1}</span><span>${escape(item.name)}</span><strong>${item.quantity} ordered</strong></li>`).join('') || '<li>No fictional orders yet.</li>';
  $('#activity-list').innerHTML = state.activity.slice(0, 5).map(event => `<li>${escape(event.text)}<small>${localDate(event.at)} · ${localTime(event.at)} · ${escape(event.role)}</small></li>`).join('') || '<li>No demonstration activity yet.</li>';
- renderOrders(state); renderMenu(state); renderReports(metrics);
+ renderOrders(state); renderMenu(fullState); renderReports(metrics);
  if (!$('#demo-settings-form').contains(document.activeElement)) { $('#demo-accepting').checked = state.settings.acceptingOrders; $('#demo-prep').value = state.settings.prepMinutes; }
  $('#settings-availability').textContent = `${metrics.available} dishes available · ${state.settings.acceptingOrders ? 'Accepting demo orders' : 'New demo orders paused'}`;
 }
@@ -70,7 +80,11 @@ function openEditor(id) {
 }
 
 await startOperations('admin', render, async (connection, redraw) => {
- store = connection; selectPanel(); window.addEventListener('hashchange', selectPanel);
+ store = connection; redrawPage=redraw; selectPanel(); window.addEventListener('hashchange', selectPanel);
+ $('#admin-period').addEventListener('change',event=>{periodKind=event.target.value;redraw();});
+ $('#admin-report-date').addEventListener('change',event=>{if(event.target.reportValidity()){reportDate=event.target.value;redraw();}});
+ $('#admin-today').addEventListener('click',resetToday);
+ // Polling and tab visibility refresh recalculate today after Bangalore midnight.
  if(store.live)await wireAdminPayments({refresh:()=>store.refresh()});
  if(store.live){
   $('.reset-panel').hidden=true;$('#reset-dialog').remove();
