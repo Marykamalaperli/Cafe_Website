@@ -4,14 +4,14 @@ The owner supplied this pickup address: **White Rose Layout, 2nd Cross Rd, near 
 
 ## Activate
 
-Run the complete [010_staff_delivery_tracking.sql](../supabase/migrations/010_staff_delivery_tracking.sql) manually in Supabase SQL Editor after migration 007. It works with optional migrations 008 and 009 already installed and can be rerun safely. Do not rerun the baseline or delete migration markers. It preserves orders, historical delivery events, payment records, prices and ownership. Existing delivered orders remain delivered. Existing dispatched orders can still be marked delivered; earlier pending orders follow the new assignment/pickup sequence. No real delivery events are invented for old orders.
+Run the complete [010_staff_delivery_tracking.sql](../supabase/migrations/010_staff_delivery_tracking.sql) manually in Supabase SQL Editor after migration 007, then run [011_delivery_partner_contact.sql](../supabase/migrations/011_delivery_partner_contact.sql). If 010 is already applied, run only 011 to enable partner contact details. It works with optional migrations 008 and 009 already installed and can be rerun safely. Do not rerun the baseline or delete migration markers. It preserves orders, historical delivery events, payment records, prices and ownership. Existing delivered orders remain delivered. Existing dispatched orders can still be marked delivered; earlier pending orders follow the new assignment/pickup sequence. No real delivery events are invented for old orders.
 
 Deploy the frontend and refresh open staff/customer tabs. GitHub Pages does not apply SQL. Until 010 is applied, the existing 007 dispatch/arrival controls remain available; the demo address/time presentation can still appear.
 
 ## Operation
 
 1. Chef marks food **Preparing**, then **Ready**.
-2. Administrator opens **Orders → View order → Assign delivery partner**. The partner is fixed to BitesBro restaurant staff. Optionally enter the staff member’s name and adjust the demo journey time (default 45 minutes, allowed 10–180). Click **Mark partner assigned** to save the assignment. The customer remains at Ready with a waiting-for-assignment message until this succeeds.
+2. Administrator opens **Orders → View order → Assign delivery partner**. The partner is fixed to BitesBro restaurant staff. Enter the staff member’s name and phone number, then adjust the demo journey time (default 45 minutes, allowed 10–180). Click **Mark partner assigned** to save the assignment. The customer remains at Ready with a waiting-for-assignment message until this succeeds.
 3. After the actual handover, choose **Confirm staff pickup**.
 4. When the staff member departs, choose **Mark out for delivery**.
 5. After actual delivery, choose **Mark delivered**.
@@ -29,3 +29,12 @@ Before pickup, customers see an illustrative journey duration after staff pickup
 ## Verification
 
 Isolated PostgreSQL tests execute 010 on the version-7 and optional payment schemas, including repeat application, protected roles, pickup/dispatch sequencing, idempotent event recording, payment guards, contact projection and terminal delivery. Browser tests follow customer → chef → administrator → customer, check demo labels and addresses, and verify 320–1440px layouts. These tests create no live orders and do not apply Cloud SQL.
+
+
+## Partner contact
+
+Migration 011 requires a name and valid telephone number when the administrator marks a partner assigned. Formatted phone numbers (spaces, parentheses, hyphens) are normalized to 7–15 digits with an optional leading plus for an international country code. The existing owner/admin delivery projection supplies these details; chef views and other customers do not receive them.
+
+The customer sees the assigned name, phone number and **Contact partner** link in the delivery details. The `tel:` link opens the device’s phone dialler or calling app with the number; a desktop needs a calling app configured. The page does not place a call automatically. Missing/invalid numbers produce no dialler link. Administrators can use **Update partner contact** after pickup/departure without changing the delivery stage or demo arrival estimate. Delivered/cancelled deliveries cannot be reassigned or edited using that action.
+
+Tests verify ownership/role restrictions, input validation, contact updates that preserve the on-the-way state, chef projections, and the browser dialler link. No test calls a real phone number.

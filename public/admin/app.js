@@ -87,8 +87,9 @@ await startOperations('admin', render, async (connection, redraw) => {
  document.addEventListener('submit',async event=>{
   const form=event.target.closest('[data-assign-delivery]');if(!form)return;
   event.preventDefault();if(!form.reportValidity()||form.dataset.busy)return;
+  const updating=['picked_up','out_for_delivery'].includes(store.read().orders.find(order=>order.reference===form.dataset.assignDelivery)?.delivery?.status);
   const button=form.querySelector('button');form.dataset.busy='true';button.disabled=true;
-  try{await store.dispatch({type:'order.assign',reference:form.dataset.assignDelivery,rider:form.elements.rider.value.trim(),minutes:Number(form.elements.minutes.value)});announce('Partner assigned. The customer can now see this delivery update. Confirm pickup when the food is handed over.');}
+  try{await store.dispatch({type:'order.assign',reference:form.dataset.assignDelivery,rider:form.elements.rider.value.trim(),phone:form.elements.phone.value.trim(),minutes:Number(form.elements.minutes.value)});announce(updating?'Partner contact updated.':'Partner assigned. The customer can now see this delivery update. Confirm pickup when the food is handed over.');}
   catch(error){form.querySelector('[role=status]').textContent=error.message;}
   finally{delete form.dataset.busy;button.disabled=false;}
  });

@@ -73,7 +73,7 @@ export async function startOperations(role, render, setup = () => {}) {
     if ($('#order-dialog')?.open && selectedReference) {
      const order = state.orders.find(order => order.reference === selectedReference);
      const editingDelivery=focused?.closest('[data-assign-delivery]');
-     const preserveDeliveryForm=editingDelivery&&!editingDelivery.dataset.busy&&['unassigned','assigned','failed'].includes(order?.delivery?.status);
+     const preserveDeliveryForm=editingDelivery&&!editingDelivery.dataset.busy&&['unassigned','assigned','failed','picked_up','out_for_delivery'].includes(order?.delivery?.status);
      if (order&&!preserveDeliveryForm) $('#order-dialog-content').innerHTML = detailMarkup(order, role); else if(!order) $('#order-dialog').close();
     }
     if(focused&&!focused.isConnected){

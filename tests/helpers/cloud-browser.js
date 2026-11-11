@@ -100,10 +100,11 @@ export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady
       if(order.fulfilment==='delivery')order.delivery={status:'unassigned',timeline:[]};
       orders.push(order);return respond({...publicOrder(order,role),message:'Your food order is saved. No payment is taken.'});
      }
-     if(name==='assign_order_delivery'){
+     if(name==='assign_order_delivery'||name==='assign_order_delivery_contact'){
       if(role!=='admin')return denied();const order=orders.find(order=>order.reference===body.p_reference);
+      if(name==='assign_order_delivery_contact'&&order&&['picked_up','out_for_delivery'].includes(order.delivery?.status)){order.delivery.riderName=body.p_rider;order.delivery.riderPhone=(body.p_phone||'').replace(/[\s()-]/g,'');return respond(publicOrder(order,role));}
       if(!order||!['ready','collected'].includes(order.status)||order.delivery?.version!==10||!['unassigned','assigned','failed'].includes(order.delivery.status))return respond({code:'22023',message:'Wait until this delivery is ready.'},400);
-      order.delivery={...order.delivery,status:'assigned',partnerName:body.p_partner,riderName:body.p_rider,estimatedMinutes:body.p_minutes};order.delivery.timeline.push({status:'assigned',at:new Date().toISOString()});return respond(publicOrder(order,role));
+      order.delivery={...order.delivery,status:'assigned',partnerName:body.p_partner||'BitesBro restaurant staff',riderName:body.p_rider,riderPhone:(body.p_phone||'').replace(/[\s()-]/g,''),estimatedMinutes:body.p_minutes};order.delivery.timeline.push({status:'assigned',at:new Date().toISOString()});return respond(publicOrder(order,role));
      }
      if(name==='update_order_delivery'){
       if(role!=='admin')return denied();const order=orders.find(order=>order.reference===body.p_reference);

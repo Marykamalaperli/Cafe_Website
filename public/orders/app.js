@@ -1,4 +1,4 @@
-import {RESTAURANT_ADDRESS,STAFF_PARTNER,demoDeliveryEstimate} from '../shared/delivery-tracking.js';
+import {RESTAURANT_ADDRESS,STAFF_PARTNER,demoDeliveryEstimate,partnerPhone} from '../shared/delivery-tracking.js';
 import { startOperations } from '../shared/operations.js?v=payments-1';
 import { $, escape, orderBadge, orderStatus, money, localTime, siteURL, orderItems, orderTimeline, orderActions, icon, announce, mountRoleNavigation } from '../shared/ui.js?v=customer-nav-1';
 import { INSTRUCTIONS } from '../shared/demo-model.js?v=portal-auth-1';
@@ -40,8 +40,9 @@ function historyItem(order) {
 }
 
 function deliveryDetails(order){
- const estimate=demoDeliveryEstimate(order),partner=order.delivery?.partnerName||STAFF_PARTNER;
- return `<div class="delivery-route"><h4>Restaurant pickup</h4><p>${escape(order.delivery?.restaurantAddress||RESTAURANT_ADDRESS)}</p><h4>Your delivery address</h4><p>${escape(order.address)}<br>${escape(order.postcode)}</p><p><strong>Delivery by ${escape(partner)}</strong>${order.delivery?.riderName?`<br>Staff member: ${escape(order.delivery.riderName)}`:''}</p>${estimate.complete?'':`<div class="delivery-demo-estimate" role="status"><strong>Demo delivery estimate</strong><p>About ${estimate.minutes} minutes of travel after staff pickup.</p>${estimate.arrival?`<p>${estimate.overdue?'The demo arrival estimate has passed. Waiting for a staff update.':`Illustrative arrival: ${orderDate(estimate.arrival)} · ${localTime(estimate.arrival)} · Bangalore time`}</p>`:''}<small>Illustrative time only. Route distance and live traffic are unavailable.</small></div>`}</div>`;
+ const estimate=demoDeliveryEstimate(order),partner=order.delivery?.partnerName||STAFF_PARTNER,phone=partnerPhone(order.delivery?.riderPhone);
+ const contact=order.status!=='cancelled'&&['assigned','picked_up','out_for_delivery','delivered'].includes(order.delivery?.status)&&order.delivery?.riderName&&phone?`<p class="delivery-partner-contact"><strong>${escape(order.delivery.riderName)}</strong><br><span>${escape(phone)}</span><br><a class="ops-button ops-button-primary" href="tel:${escape(phone)}" aria-label="Contact partner ${escape(order.delivery.riderName)}">Contact partner</a></p>`:'';
+ return `<div class="delivery-route"><h4>Restaurant pickup</h4><p>${escape(order.delivery?.restaurantAddress||RESTAURANT_ADDRESS)}</p><h4>Your delivery address</h4><p>${escape(order.address)}<br>${escape(order.postcode)}</p><p><strong>Delivery by ${escape(partner)}</strong>${order.delivery?.riderName&&!contact?`<br>Staff member: ${escape(order.delivery.riderName)}`:''}</p>${contact}${estimate.complete?'':`<div class="delivery-demo-estimate" role="status"><strong>Demo delivery estimate</strong><p>About ${estimate.minutes} minutes of travel after staff pickup.</p>${estimate.arrival?`<p>${estimate.overdue?'The demo arrival estimate has passed. Waiting for a staff update.':`Illustrative arrival: ${orderDate(estimate.arrival)} · ${localTime(estimate.arrival)} · Bangalore time`}</p>`:''}<small>Illustrative time only. Route distance and live traffic are unavailable.</small></div>`}</div>`;
 }
 function customerDetail(order,live) {
  const status=orderStatus(order),delivery=order.fulfilment==='delivery',count=order.items.reduce((sum,item)=>sum+item.quantity,0);
