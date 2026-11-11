@@ -11,12 +11,12 @@ Deploy the frontend and refresh open staff/customer tabs. GitHub Pages does not 
 ## Operation
 
 1. Chef marks food **Preparing**, then **Ready**.
-2. Administrator opens **Orders → View order → Assign restaurant staff**. The partner is fixed to BitesBro restaurant staff. Optionally enter the staff member’s name and adjust the demo journey time (default 45 minutes, allowed 10–180).
+2. Administrator opens **Orders → View order → Assign delivery partner**. The partner is fixed to BitesBro restaurant staff. Optionally enter the staff member’s name and adjust the demo journey time (default 45 minutes, allowed 10–180). Click **Mark partner assigned** to save the assignment. The customer remains at Ready with a waiting-for-assignment message until this succeeds.
 3. After the actual handover, choose **Confirm staff pickup**.
 4. When the staff member departs, choose **Mark out for delivery**.
 5. After actual delivery, choose **Mark delivered**.
 
-Customers see **Ready → Delivery partner assigned → Order picked up → Out for delivery → Delivered**, along with their saved delivery address, the restaurant pickup address, the assigned staff name when provided, and the delivery progress timestamps. Updates appear on returning to the tab or through the existing eight-second refresh. Chef views still omit customer contact/address details and staff member names. Customers cannot change delivery progress. Unpaid UPI orders cannot be assigned or dispatched. Cancellation and terminal-state safeguards remain enforced by SQL.
+Customers see **Ready → Partner assigned → Order picked up → Out for delivery → Delivered**, along with their saved delivery address, the restaurant pickup address, the assigned staff name when provided, and the delivery progress timestamps. Updates appear on returning to the tab or through the existing eight-second refresh. Chef views still omit customer contact/address details and staff member names. Customers cannot change delivery progress. Unpaid UPI orders cannot be assigned or dispatched. Cancellation and terminal-state safeguards remain enforced by SQL.
 
 The internal kitchen status becomes `collected` at staff pickup; the separate delivery status stays active until delivered. Older active guest orders remain trackable. Administrator counts/revenue retain their documented collected-order definition.
 
