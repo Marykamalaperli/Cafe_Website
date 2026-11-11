@@ -11,6 +11,19 @@ $('#customer-header').hidden=sessionPortal!=='customer';
 $('#staff-auth-header').hidden=sessionPortal==='customer';
 if(sessionPortal==='customer'){wireCustomerNavigation();wireCustomerBag();}
 let mode = 'signin', busy = false, recovery = false;
+function maskPasswords(){
+ for(const button of document.querySelectorAll('[data-password-toggle]')){
+  document.getElementById(button.dataset.passwordToggle).type='password';
+  button.textContent='Show';button.setAttribute('aria-pressed','false');
+  button.setAttribute('aria-label',button.dataset.passwordToggle==='auth-password'?'Show password':'Show confirm password');
+ }
+}
+for(const button of document.querySelectorAll('[data-password-toggle]'))button.addEventListener('click',()=>{
+ const input=document.getElementById(button.dataset.passwordToggle),show=input.type==='password';
+ input.type=show?'text':'password';button.textContent=show?'Hide':'Show';button.setAttribute('aria-pressed',String(show));
+ button.setAttribute('aria-label',(show?'Hide ':'Show ')+(input.name==='password'?'password':'confirm password'));
+});
+
 
 export function safeDestination(next, role, portal=sessionPortal) {
  const root = new URL(rootURL('')); let url;
@@ -24,7 +37,7 @@ export function safeDestination(next, role, portal=sessionPortal) {
 function message(text, error = false) { status.textContent = text; status.classList.toggle('error', error); }
 function setMode(value) {
  if(value==='signup'&&sessionPortal!=='customer')return;
- mode = value; form.reset();
+ mode = value; form.reset();maskPasswords();
  const signup = mode === 'signup', reset = mode === 'reset', update = mode === 'update';
  for (const id of ['name-field','confirm-field','signup-consent']) $( '#' + id).hidden = id === 'name-field' || id === 'signup-consent' ? !signup : !(signup || update);
  $('#email-field').hidden = update; form.elements.email.required = !update;

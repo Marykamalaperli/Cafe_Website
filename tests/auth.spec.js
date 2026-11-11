@@ -18,6 +18,7 @@ test('signup requires matching passwords and sends customer display name without
 });
 
 for(const failure of[
+ {code:'email_address_invalid',status:422,message:'Email address invalid',expected:'The account service rejected this email address'},
  {code:'email_address_not_authorized',status:403,message:'Email address not authorized',expected:'BitesBro needs its signup email service configured'},
  {code:'over_email_send_rate_limit',status:429,message:'Email rate limit exceeded',expected:'confirmation email limit has been reached'},
  {code:'weak_password',status:422,message:'Weak password',expected:'Choose a longer, unique password'},
@@ -77,4 +78,20 @@ test('changed database roles override an existing login session on the next page
 
 test('password reset requests use the project auth callback and show an honest email notice',async({page,context})=>{
  const fixture=cloudFixture();await fixture.attach(context);await page.goto(SITE+'auth/');await expect(page.locator('#auth-form')).toBeVisible();await page.getByRole('button',{name:'Forgot your password?',exact:true}).click();await page.locator('[name=email]').fill('customer@bitesbro.invalid');await page.getByRole('button',{name:'Send reset link',exact:true}).click();await expect(page.locator('#auth-status')).toContainText('If this email has an account');expect(fixture.calls.some(call=>call.path.endsWith('/recover'))).toBe(true);
+});
+
+
+test('password visibility toggles independently without submitting and resets when modes change',async({page,context})=>{
+ const fixture=cloudFixture();await fixture.attach(context);await page.goto(SITE+'auth/');
+ const password=page.locator('[name=password]'),confirmation=page.locator('[name=confirmation]');
+ await expect(page.getByRole('button',{name:'Show password',exact:true})).toBeEnabled();
+ await password.fill(PASSWORD);await page.getByRole('button',{name:'Show password',exact:true}).click();
+ await expect(password).toHaveAttribute('type','text');await expect(password).toHaveValue(PASSWORD);await expect(page.getByRole('button',{name:'Hide password',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'Hide password',exact:true}).click();await expect(password).toHaveAttribute('type','password');
+ await page.locator('#show-signup').click();await password.fill(PASSWORD);await confirmation.fill('Another-password-123');
+ await page.getByRole('button',{name:'Show confirm password',exact:true}).click();await expect(confirmation).toHaveAttribute('type','text');await expect(password).toHaveAttribute('type','password');
+ await page.getByRole('button',{name:'Show password',exact:true}).focus();await page.keyboard.press('Space');await expect(password).toHaveAttribute('type','text');
+ await page.locator('#show-signin').click();await expect(password).toHaveAttribute('type','password');await expect(confirmation).toHaveAttribute('type','password');
+ expect(fixture.calls.filter(call=>call.path.endsWith('/signup')||call.path.endsWith('/token'))).toHaveLength(0);
+ for(const width of [320,768,1440]){await page.setViewportSize({width,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);}
 });

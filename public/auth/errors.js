@@ -5,7 +5,7 @@ export function signupErrorMessage(error = {}) {
  const reference = /^[a-z0-9_]{1,64}$/i.test(code) ? ` Reference: ${code}.` : Number.isInteger(error.status) && error.status >= 400 && error.status <= 599 ? ` Reference: HTTP ${error.status}.` : '';
  const messages = {
   email_address_not_authorized: 'Confirmation emails are restricted to approved recipients. BitesBro needs its signup email service configured before this address can be used.',
-  email_address_invalid: 'Enter a valid email address with an inbox you can access.',
+  email_address_invalid: 'The account service rejected this email address. Check its spelling or use another real email address where you can receive the confirmation link.',
   over_email_send_rate_limit: 'The confirmation email limit has been reached. Please wait before trying again.',
   over_request_rate_limit: 'Too many account requests were made. Please wait before trying again.',
   weak_password: 'That password does not meet the account security requirements. Choose a longer, unique password.',
