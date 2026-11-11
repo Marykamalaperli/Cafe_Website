@@ -12,6 +12,7 @@ for(const includePayments of [false,true])test(`guest orders transfer only with 
  const app=await createPaymentReviewDatabase({includePayments});
  try{
   const migration=await readFile('supabase/migrations/009_guest_account_history.sql','utf8');await app.db.exec(migration);await app.db.exec(migration);
+  assert.equal((await app.db.query("select relrowsecurity from pg_class where oid='bitesbro_private.guest_order_transfers'::regclass")).rows[0].relrowsecurity,true);
   const guest=app.users.find(user=>user.role==='customer'&&user.is_anonymous),member=app.users.find(user=>user.role==='customer'&&!user.is_anonymous),other=app.users.find(user=>user.email==='demo.other@bitesbro.invalid'),chef=app.users.find(user=>user.role==='chef');
   const cafe=(await app.rpc('get_cafe')).data,date=new Date(cafe.today+'T12:00:00Z');date.setUTCDate(date.getUTCDate()+1);
   const input={name:'Transfer fixture',email:'same@fixture.invalid',phone:'9000000000',date:date.toISOString().slice(0,10),time:'10:00',consent:true,fulfilment:'pickup',items:[{id:'masala-dosa',quantity:1}]};
@@ -47,5 +48,10 @@ for(const includePayments of [false,true])test(`guest orders transfer only with 
   assert.equal((await app.db.query('select count(*)::int as n from public.orders')).rows[0].n,9);
   if(includePayments)assert.equal((await app.db.query('select count(*)::int as n from public.order_payments')).rows[0].n,9);
   await assert.rejects(app.db.transaction(async tx=>{await tx.exec('set local role authenticated');return tx.query('select * from bitesbro_private.guest_order_transfers');}),/permission denied/);
+  // Isolated test only: RLS remains a second barrier if privileges are widened.
+  await app.db.exec('grant usage on schema bitesbro_private to authenticated; grant select,insert on bitesbro_private.guest_order_transfers to authenticated;');
+  const hidden=await app.db.transaction(async tx=>{await tx.exec('set local role authenticated');return tx.query('select * from bitesbro_private.guest_order_transfers');});
+  assert.equal(hidden.rows.length,0);
+  await assert.rejects(app.db.transaction(async tx=>{await tx.exec('set local role authenticated');return tx.query('insert into bitesbro_private.guest_order_transfers(guest_id,customer_id) values($1,$2)',[guest.id,member.id]);}),/row-level security/);
  }finally{await app.close();}
 });

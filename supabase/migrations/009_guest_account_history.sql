@@ -12,6 +12,9 @@ create table if not exists bitesbro_private.guest_order_transfers(
  order_count integer not null default 0,
  created_at timestamptz not null default now()
 );
+-- No client policies: only the owner-executed, identity-checked functions below
+-- may access transfer authorizations, even if table privileges change later.
+alter table bitesbro_private.guest_order_transfers enable row level security;
 revoke all on bitesbro_private.guest_order_transfers from public,anon,authenticated;
 
 -- Only the guest's JWT can authorize a destination; a supplied guest UUID or
