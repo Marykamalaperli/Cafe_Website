@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -56,6 +57,11 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
+
+      - name: Wait for uploaded artifact metadata
+        run: node scripts/wait-pages-artifact.js
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Deploy frontend
         id: deployment
