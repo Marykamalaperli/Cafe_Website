@@ -33,3 +33,12 @@ The first snapshot, re-renders and ordinary status changes never trigger arrival
 ## Verification
 
 Pure tests cover selection/price validation, bag limits, ID-only favourite storage and arrival detection. Browser checks cover repeat-order previews, changed bags across tabs, missing options, mobile active-order priority, persistent favourites, sticky totals and opt-in sound. Existing history, role/session and checkout suites remain applicable. Tests use isolated fixtures, not Cloud orders.
+
+
+## Tracking and checkout layout
+
+Customer tracking puts partner name, contact number, call action and the explicitly labelled demo journey estimate directly below the current order status. Pickup/delivery addresses expand with a native details control. Preparation, assignment and delivery still require the existing staff updates; changing the layout never advances an order.
+
+The administrator Orders page adds task filters scoped to the selected reporting period: In kitchen, Assign partner, Awaiting pickup, Delivery in progress and Completed. The order table shows the next operational step; on phones, each row becomes a readable card with the same View order action. Clear order filters resets search/status/task filters while retaining the selected reporting period. Same-day defaults and revenue definitions are unchanged.
+
+Checkout groups fulfilment, contact and timing fields into numbered sections, uses one-column contact fields on phones, and highlights native validation failures. The existing sticky total and submit button remain. Public loading cards appear while private history/staff access is checked; order records remain hidden until access is verified. No new SQL or external integration is required for these presentation changes.

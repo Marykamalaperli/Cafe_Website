@@ -20,7 +20,7 @@ test('new food homepage renders local assets, South Indian dishes and full catal
  await page.goto('/');await expect(page).toHaveTitle('BitesBro — Good food. Great moods.');
  await expect(page.locator('.menu-card')).toHaveCount(12);await expect(page.locator('#menu-count')).toContainText('50 dishes');
  await expect(page.locator('#hero-title')).toContainText('Good food.');await expect(page.locator('#hero-title')).toContainText('Great moods.');
- await expect(page.locator('#visit-address')).toContainText('Bangalore');
+ await expect(page.locator('#visit-address')).toContainText('White Rose Layout');await expect(page.locator('#visit-address')).toContainText('560066');
  for(const image of await page.locator('main img').all())await image.scrollIntoViewIfNeeded();
  await expect.poll(()=>page.locator('main img').evaluateAll(images=>images.every(i=>i.complete&&i.naturalWidth>0))).toBe(true);
  for(const el of await page.locator('.reveal').all()){await el.scrollIntoViewIfNeeded();await expect(el).toHaveClass(/is-visible/);}
@@ -157,4 +157,12 @@ test('built GitHub Pages site displays the new food catalogue and honest browse-
  await expect(page).toHaveURL(/\/Cafe_Website\/photo-credits.html$/);
  await expect(page.locator('.credit-card')).toHaveCount(40);
  await expect(page.locator('.credit-card img').first()).toHaveAttribute('src',/^\/Cafe_Website\/assets\/images\/photos\//);
+});
+
+
+test('mobile checkout separates details and highlights invalid fields without losing the sticky action',async({page})=>{
+ await page.setViewportSize({width:360,height:800});await page.goto('/');await addDish(page,'Bangalore Masala Dosa');await page.getByRole('button',{name:'Open bag, 1 item',exact:true}).click();
+ const form=page.locator('#order-form');await expect(form.locator('.checkout-section-title')).toHaveCount(3);await form.getByRole('button',{name:'Place food order',exact:false}).click();await expect(form.locator('[name=name]')).toHaveAttribute('aria-invalid','true');
+ await form.locator('[name=name]').fill('Checkout fixture');await expect(form.locator('[name=name]')).not.toHaveAttribute('aria-invalid','true');await form.locator('[name=instructions]').scrollIntoViewIfNeeded();await expect(form.locator('.checkout-sticky-footer button')).toBeInViewport();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await page.screenshot({path:'test-results/checkout-design-mobile.png',fullPage:true});
 });

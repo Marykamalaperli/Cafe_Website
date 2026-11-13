@@ -1,3 +1,4 @@
+import {ORDER_QUEUES,orderQueue,orderNextStep} from '../shared/admin-queue.js';
 import { startOperations, statCard, liveCopy } from '../shared/operations.js?v=payments-1';
 import {wireAdminPayments,renderAdminPayments} from '../shared/payments-admin.js?v=payments-1';
 import { $, $$, escape, money, orderBadge, orderStatus, localDate, localTime, siteURL, announce, showDialog, icon } from '../shared/ui.js?v=customer-nav-1';
@@ -7,7 +8,7 @@ import {rpc} from '../shared/cloud.js?v=portal-auth-1';
 import {uploadMenuPhotos} from '../shared/photo-upload.js?v=portal-auth-1';
 
 let store, menuLimit = 12, editingId, redrawPage;
-let periodKind='day', reportDate=null;
+let periodKind='day', reportDate=null,orderQueueFilter='all';
 const currentPeriod=()=>reportPeriod(periodKind,reportDate||bangaloreDay(new Date()));
 function resetToday(){periodKind='day';reportDate=null;$('#admin-period').value='day';redrawPage?.();}
 const titles = {
@@ -29,9 +30,10 @@ function selectPanel() {
 
 function renderOrders(state) {
  const query = $('#admin-order-search').value.trim().toLowerCase(), status = $('#admin-order-status').value;
- const orders = state.orders.filter(order => order.reference.toLowerCase().includes(query) && (status === 'all' || orderStatus(order) === status)).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+ $('#admin-order-queues').innerHTML=ORDER_QUEUES.map(([key,label])=>`<button type="button" class="order-queue-button" data-order-queue="${key}" aria-label="${label}" aria-pressed="${key===orderQueueFilter}"><span>${label}</span><strong>${state.orders.filter(order=>key==='all'||orderQueue(order)===key).length}</strong></button>`).join('');
+ const orders = state.orders.filter(order => (orderQueueFilter==='all'||orderQueue(order)===orderQueueFilter)&&order.reference.toLowerCase().includes(query) && (status === 'all' || orderStatus(order) === status)).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
  $('#admin-order-count').textContent = `${orders.length} demonstration orders`;
- $('#admin-orders').innerHTML = orders.length ? `<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th scope="col">Order</th><th scope="col">Placed</th><th scope="col">Status</th><th scope="col">Demo total</th><th scope="col">Action</th></tr></thead><tbody>${orders.map(order => `<tr data-order-row="${escape(order.reference)}"><td><strong>${escape(order.reference)}</strong><small>${order.origin === 'sample' ? 'Fictional sample' : 'Customer demo'} · ${escape(order.fulfilment)}</small></td><td>${localDate(order.createdAt)}<small>${localTime(order.createdAt)}</small></td><td>${orderBadge(order)}</td><td>${money(order.total)}</td><td><button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}" aria-label="View ${escape(order.reference)}">View order ${icon('arrow')}</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="ops-empty"><h2>No orders in this view.</h2><p>Try another date, reference or status.</p></div>';
+ $('#admin-orders').innerHTML = orders.length ? `<div class="ops-table-wrap"><table class="ops-table"><thead><tr><th scope="col">Order</th><th scope="col">Placed</th><th scope="col">Status</th><th scope="col">Demo total</th><th scope="col">Next step</th><th scope="col">Action</th></tr></thead><tbody>${orders.map(order => `<tr data-order-row="${escape(order.reference)}"><td data-label="Order"><strong>${escape(order.reference)}</strong><small>${order.origin === 'sample' ? 'Fictional sample' : 'Customer demo'} · ${escape(order.fulfilment)}</small></td><td data-label="Placed">${localDate(order.createdAt)}<small>${localTime(order.createdAt)}</small></td><td data-label="Status">${orderBadge(order)}</td><td data-label="Total">${money(order.total)}</td><td data-label="Next step"><span class="order-next-step">${escape(orderNextStep(order))}</span></td><td data-label="Action"><button class="ops-button ops-button-small" data-view-order="${escape(order.reference)}" aria-label="View ${escape(order.reference)}">View order ${icon('arrow')}</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="ops-empty"><h2>No orders in this view.</h2><p>Try another date, reference or status.</p><button type="button" class="ops-button" data-clear-order-filters>Clear order filters</button></div>';
 }
 function renderMenu(state) {
  const query = $('#admin-menu-search').value.trim().toLowerCase(), filter = $('#admin-menu-status').value;
@@ -84,6 +86,13 @@ await startOperations('admin', render, async (connection, redraw) => {
  $('#admin-period').addEventListener('change',event=>{periodKind=event.target.value;redraw();});
  $('#admin-report-date').addEventListener('change',event=>{if(event.target.reportValidity()){reportDate=event.target.value;redraw();}});
  $('#admin-today').addEventListener('click',resetToday);
+ $('#admin-order-queues').addEventListener('click',event=>{
+  const button=event.target.closest('[data-order-queue]');if(!button)return;
+  orderQueueFilter=button.dataset.orderQueue;$('#admin-order-status').value='all';redraw();
+  $(`[data-order-queue="${orderQueueFilter}"]`).focus({preventScroll:true});
+ });
+ $('#admin-orders').addEventListener('click',event=>{if(!event.target.closest('[data-clear-order-filters]'))return;orderQueueFilter='all';$('#admin-order-search').value='';$('#admin-order-status').value='all';redraw();$('#admin-order-search').focus();});
+
  document.addEventListener('submit',async event=>{
   const form=event.target.closest('[data-assign-delivery]');if(!form)return;
   event.preventDefault();if(!form.reportValidity()||form.dataset.busy)return;

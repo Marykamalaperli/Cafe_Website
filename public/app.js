@@ -158,6 +158,7 @@ function formValues(form) {
 
 function connectForm(id, path, transform = value => value, onSuccess) {
   const form = document.getElementById(id);
+  form.addEventListener('invalid',event=>{event.target.setAttribute('aria-invalid','true');event.target.classList.add('field-invalid');},true);
   form.addEventListener('input', event => { event.target.removeAttribute('aria-invalid'); event.target.classList.remove('field-invalid'); });
   form.addEventListener('submit', async event => {
     event.preventDefault();

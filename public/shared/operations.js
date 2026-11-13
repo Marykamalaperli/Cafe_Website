@@ -66,7 +66,7 @@ export async function startOperations(role, render, setup = () => {}) {
    try {
     const focused=document.activeElement;
     const reference=focused?.dataset?.reference;
-    const selectors=['data-availability','data-menu-availability','data-archive-dish'];
+    const selectors=['data-availability','data-menu-availability','data-archive-dish','data-order-queue','data-partner-contact','data-tracking-addresses'];
     const control=selectors.find(attribute=>focused?.hasAttribute?.(attribute));
     const controlValue=control?focused.getAttribute(control):null;
     const state = store.read(); setKitchenIndicator(state); render(state); liveCopy();
