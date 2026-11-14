@@ -14,5 +14,5 @@ for(const width of [390,1440])test(`customer and staff screens meet automated WC
  await page.goto(SITE+'auth/');await expect(page.locator('#auth-form')).toBeVisible();await check(page);
  await signIn(page,'customer');await expect(page).toHaveURL(SITE);await page.goto(SITE+'orders/');await expect(page.locator('#tracking-detail .history-empty')).toBeVisible();await check(page);
  await signIn(page,'admin','/Cafe_Website/admin/');await expect(page).toHaveURL(SITE+'admin/');await check(page);await page.locator('[data-panel-link=orders]').click();await check(page);
- await signIn(page,'chef','/Cafe_Website/kitchen/');await expect(page).toHaveURL(SITE+'kitchen/');await check(page);
+ await signIn(page,'chef','/Cafe_Website/kitchen/');await expect(page).toHaveURL(SITE+'kitchen/');await expect(page.locator('.kitchen-sound-toggle')).toBeVisible();await check(page);
 });

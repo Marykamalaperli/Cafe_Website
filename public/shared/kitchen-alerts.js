@@ -14,7 +14,7 @@ export function mountKitchenAlerts({ showReceived, notify, initialOrders }) {
  const button = document.createElement('button'); button.type = 'button'; button.className = 'ops-button ops-button-small kitchen-sound-toggle'; button.setAttribute('aria-pressed', 'false');
  const speaker = '<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>';
  let enabled = false, audio; const pending = new Set();
- const label = () => { button.innerHTML = speaker + (enabled ? 'Sound on' : 'Sound off'); button.setAttribute('aria-pressed', String(enabled)); button.setAttribute('aria-label', enabled ? 'Disable new order sounds' : 'Enable new order sounds'); button.title = 'Sound alerts play while this kitchen display is open.'; };
+ const label = () => { button.innerHTML = speaker + (enabled ? 'Sound on' : 'Sound off'); button.setAttribute('aria-pressed', String(enabled)); button.setAttribute('aria-label', enabled ? 'Sound on — disable new order sounds' : 'Sound off — enable new order sounds'); button.title = 'Sound alerts play while this kitchen display is open.'; };
  label(); document.querySelector('.ops-header-right').prepend(button);
  const notice = document.createElement('div'); notice.id = 'kitchen-arrival-note'; notice.className = 'kitchen-arrival-note'; notice.hidden = true;
  notice.innerHTML = '<p role="status"></p><button class="ops-button ops-button-small" type="button" data-show-received>View received orders</button><button class="icon-button" type="button" data-dismiss-arrivals aria-label="Dismiss new order alert">×</button>';

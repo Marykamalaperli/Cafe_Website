@@ -70,14 +70,14 @@ test('kitchen sound is opt-in, announces only new received tickets and remains s
    createGain() { return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} }; }
   };
  });
- const fixture = cloudFixture(); await fixture.attach(context); await signIn(page, 'chef');await expect(page).toHaveURL(SITE+'kitchen/');await expect(page.getByRole('button',{name:'Enable new order sounds',exact:true})).toBeVisible();
+ const fixture = cloudFixture(); await fixture.attach(context); await signIn(page, 'chef');await expect(page).toHaveURL(SITE+'kitchen/');await expect(page.getByRole('button',{name:'Sound off — enable new order sounds',exact:true})).toBeVisible();
  await expect(page.locator('#kitchen-arrival-note')).toBeHidden(); expect(await page.evaluate(() => window.demoToneCount)).toBe(0);
- await page.getByRole('button', { name: 'Enable new order sounds', exact: true }).click(); expect(await page.evaluate(() => window.demoToneCount)).toBe(2);
+ await page.getByRole('button', { name: 'Sound off — enable new order sounds', exact: true }).click(); expect(await page.evaluate(() => window.demoToneCount)).toBe(2);
  fixture.orders.push({ ...structuredClone(fixture.orders[0]), reference: 'BB-NEW-ALERT' }); await refresh(page);
  await expect(page.locator('#kitchen-arrival-note')).toContainText('1 new order'); expect(await page.evaluate(() => window.demoToneCount)).toBe(4);
  await refresh(page); expect(await page.evaluate(() => window.demoToneCount)).toBe(4);
  await page.getByRole('button', { name: 'View received orders', exact: true }).click(); await expect(page.locator('[data-queue=received]')).toHaveAttribute('aria-pressed', 'true');
- await page.getByRole('button', { name: 'Disable new order sounds', exact: true }).click(); fixture.orders.push({ ...structuredClone(fixture.orders[0]), reference: 'BB-SILENT-ALERT' }); await refresh(page);
+ await page.getByRole('button', { name: 'Sound on — disable new order sounds', exact: true }).click(); fixture.orders.push({ ...structuredClone(fixture.orders[0]), reference: 'BB-SILENT-ALERT' }); await refresh(page);
  await expect(page.locator('#kitchen-arrival-note')).toContainText('2 new orders'); expect(await page.evaluate(() => window.demoToneCount)).toBe(4);
 });
 
