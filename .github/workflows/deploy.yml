@@ -55,9 +55,18 @@ jobs:
           if-no-files-found: ignore
 
       - name: Check accessibility and responsive customer flows
-        run: npm run test:browser -- tests/accessibility.spec.js tests/browser.spec.js tests/customer-flow.spec.js tests/staff-delivery.spec.js tests/admin-queue.spec.js
+        run: npm run test:browser -- tests/accessibility.spec.js tests/browser.spec.js tests/customer-flow.spec.js tests/staff-delivery.spec.js tests/admin-queue.spec.js tests/payments.spec.js --reporter=list,github
         env:
           PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/google-chrome
+
+      - name: Keep browser failure details
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-checks
+          path: test-results
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Prepare food menu frontend
         run: npm run build:pages

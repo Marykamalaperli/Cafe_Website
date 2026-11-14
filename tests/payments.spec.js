@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { startPaymentReview } from '../scripts/serve-payment-review.js';
+// A fresh browser compiles PostgreSQL WASM and applies migrations before readiness.
 let app, base;
 test.beforeAll(async () => { app = await startPaymentReview({ port: 0 }); base = app.base; });
 test.afterAll(async () => { await app.close(); });
@@ -45,7 +46,7 @@ async function reviewCard(page, reference) {
 
 test('isolated GitHub Pages demo runs guest UPI → bank review → chef preparation with independent sessions', async ({ context, page }) => {
  const requests = [], errors = []; context.on('request', request => requests.push(request.url())); page.on('pageerror', error => errors.push(error.message));
- await page.goto(base + 'review.html'); await expect(page.locator('#review-status')).toContainText('Ready.');
+ await page.goto(base + 'review.html'); await expect(page.locator('#review-status')).toContainText('Ready.', { timeout: 30000 });
  await page.evaluate(()=>{localStorage.setItem('bitesbro.food-bag.v2','retained production bag');localStorage.setItem('sb-production-fixture-auth-token','retained production session');});
  const order = await checkout(page), admin = await context.newPage(), chef = await context.newPage();
  await expect(page.locator('.payment-status')).toHaveText('Bank verification pending'); await page.reload(); await expect(page.locator('#tracking-reference')).toHaveText(order);
@@ -70,7 +71,7 @@ test('isolated GitHub Pages demo runs guest UPI → bank review → chef prepara
 });
 
 test('payment failure, corrected bank claim, cancellation/refund and paused-UPI cash checkout remain honest and usable', async ({ context, page }) => {
- await page.goto(base + 'review.html'); await expect(page.locator('#review-status')).toContainText('Ready.');
+ await page.goto(base + 'review.html'); await expect(page.locator('#review-status')).toContainText('Ready.', { timeout: 30000 });
  await signIn(page, 'customer'); const order = await checkout(page, { outcome: 'FAILED' });
  await expect(page.locator('.payment-status')).toHaveText('Gateway reported a failure');
  await page.getByRole('button', { name: 'Already paid? Submit bank reference', exact: true }).click();
