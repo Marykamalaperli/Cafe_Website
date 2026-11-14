@@ -110,6 +110,8 @@ When Supabase is unavailable, the sample catalogue remains browsable and forms a
 
 ## Verification
 
+Website changes must also meet the [quality contract](docs/quality.md): target 100 across Lighthouse categories, with a mobile/desktop deployment gate of Performance 97+ and Accessibility/Best Practices/SEO 100 on indexable pages. Run `npm run audit:quality`; reports are saved locally and in Actions.
+
 ```sh
 npm run check
 npm test               # API, PostgreSQL/RLS, model, photo, recommendation and configuration tests

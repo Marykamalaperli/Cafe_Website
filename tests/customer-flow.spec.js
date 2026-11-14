@@ -50,7 +50,7 @@ test('dish favourites survive reloads, sync between tabs and keep a visible chec
  const fixture = cloudFixture(); await fixture.attach(context); await page.goto(SITE);
  const save = page.locator('#menu-grid').getByRole('button', { name: 'Save Bangalore Masala Dosa to favourites', exact: true }); await save.click();
  await expect(page.locator('#favourites-count')).toHaveText('1'); await expect(page.locator('#menu-grid [data-favourite=masala-dosa]')).toBeFocused();
- await page.reload(); await page.getByRole('button', { name: 'Show favourite dishes', exact: true }).click(); await expect(page.locator('#menu-grid .menu-card')).toHaveCount(1);
+ await page.reload(); await page.getByRole('button', { name: /^Favourites/ }).click(); await expect(page.locator('#menu-grid .menu-card')).toHaveCount(1);
  const other = await context.newPage(); await other.goto(SITE); await other.locator('#menu-grid [data-favourite=masala-dosa]').click(); await expect(page.locator('#favourites-count')).toHaveText('0'); await expect(page.locator('#menu-grid')).toContainText('Tap a heart');
  await page.getByRole('button', { name: 'Show the whole menu', exact: true }).click(); await addDosa(page); await page.getByRole('button', { name: 'Open bag, 1 item', exact: true }).click();
  await page.locator('#fulfilment').selectOption('delivery'); await expect(page.locator('#sticky-cart-total')).toHaveText('₹160');

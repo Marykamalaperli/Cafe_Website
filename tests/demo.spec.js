@@ -6,7 +6,7 @@ const base = '/Cafe_Website/';
 async function pages(context) {
  await context.pages()[0].clock.install({time:new Date('2026-11-11T08:00:00Z')});
  const root = resolve('_site');
- const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
+ const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.avif': 'image/avif', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
  await context.route('**/api/**', route => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":"GitHub Pages has no backend"}' }));
  await context.route('**/Cafe_Website/**', async route => {
   const pathname = new URL(route.request().url()).pathname;
@@ -42,7 +42,7 @@ test('fictional guests retain three recent orders and keep an older active deliv
  await pages(context);let reference;
  for(let i=0;i<4;i++){await customer.goto(base+'?demo=1');const placed=await placeDemo(customer,false,i===0?'delivery':'pickup');reference ||= placed;}
  await expect(customer.locator('#order-history > li')).toHaveCount(3);await expect(customer.locator('#order-history')).not.toContainText(reference);await customer.locator('#active-order-history a').click();await expect(customer.locator('#tracking-reference')).toHaveText(reference);
- const admin=await context.newPage();await admin.goto(base+'admin/#orders');await admin.getByRole('button',{name:'View '+reference,exact:true}).click();
+ const admin=await context.newPage();await admin.goto(base+'admin/#orders');await admin.getByRole('button',{name:'View order '+reference,exact:true}).click();
  for(const name of['Start preparing','Mark ready','Mark out for delivery','Mark delivered'])await admin.getByRole('button',{name,exact:true}).click();
  await expect(admin.locator('#order-dialog-content .status-chip')).toHaveText('Delivered');await expect(customer.locator('#active-history-section')).toBeHidden();await expect(customer.locator('#tracking-detail')).toContainText('outside your available history');await expect(customer.locator('#order-history > li')).toHaveCount(3);
  const saved=await customer.evaluate(()=>JSON.parse(localStorage.getItem('bitesbro.demo.v1')));expect(saved.orders).toHaveLength(10);expect(saved.orders.find(order=>order.reference===reference).delivery.status).toBe('delivered');
@@ -197,7 +197,7 @@ test('administrator reports calculate status counts, collected sales and popular
  await expect(page.locator('#report-popular-items')).toContainText('Bangalore Masala Dosa');
  await expect(page.locator('#status-summary')).toContainText('Cancelled');
  await page.getByRole('link', { name: /Orders/, exact: false }).filter({ has: page.locator('.nav-number') }).click();
- await page.getByRole('button', { name: 'View BB-DEMO-1003', exact: true }).click();
+ await page.getByRole('button', { name: 'View order BB-DEMO-1003', exact: true }).click();
  await page.getByRole('button', { name: 'Mark collected', exact: true }).click();
  await expect(page.locator('#order-dialog .status-chip')).toHaveText('Collected'); await page.keyboard.press('Escape');
  await page.getByRole('link', { name: /Reports/ }).filter({ has: page.locator('.nav-number') }).click();

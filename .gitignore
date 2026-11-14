@@ -18,3 +18,9 @@ _payment_review_site/
 # Generated browser SDK and public runtime configuration (never source credentials).
 public/vendor/
 public/supabase-config.json
+
+# Generated responsive derivatives; source photos and credits remain unchanged.
+public/assets/images/optimized/
+quality-results/
+
+public/assets/site.css

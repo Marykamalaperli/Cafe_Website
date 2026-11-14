@@ -36,6 +36,29 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
+      - name: Check code and isolated tests
+        run: npm run check && npm test
+
+      - name: Audit mobile and desktop quality
+        run: npm run audit:quality
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+          QUALITY_RUNS: '3'
+
+      - name: Keep Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: quality-results
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Check accessibility and responsive customer flows
+        run: npm run test:browser -- tests/accessibility.spec.js tests/browser.spec.js tests/customer-flow.spec.js tests/staff-delivery.spec.js tests/admin-queue.spec.js
+        env:
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/google-chrome
+
       - name: Prepare food menu frontend
         run: npm run build:pages
         env:

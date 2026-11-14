@@ -65,10 +65,10 @@ test('Bangalore delivery checkout requires an address and applies the actual fee
 });
 
 test('South Indian signature opens a real customiser with ingredient and allergen information',async({page})=>{
- await page.goto('/');await page.getByRole('button',{name:'Customise Bangalore Masala Dosa',exact:true}).click();
+ await page.goto('/');await page.getByRole('button',{name:'Make it my way — customise Bangalore Masala Dosa',exact:true}).click();
  await expect(page.locator('#dish-title')).toHaveText('Bangalore Masala Dosa');await expect(page.locator('#dish-detail')).toContainText('Mustard');await expect(page.locator('#dish-detail')).toContainText('Rice, urad dal, potato');
  await page.locator('#dish-variant').selectOption('ghee-roast');await expect(page.locator('#dish-add')).toContainText('₹145');await page.keyboard.press('Escape');
- await expect(page.getByRole('button',{name:'Customise Bangalore Masala Dosa',exact:true})).toBeFocused();
+ await expect(page.getByRole('button',{name:'Make it my way — customise Bangalore Masala Dosa',exact:true})).toBeFocused();
 });
 
 test('dining reservation continues to reduce real seat availability',async({page})=>{
@@ -142,7 +142,7 @@ test('food photo credits remain visible and their locally served images decode',
 });
 
 test('built GitHub Pages site displays the new food catalogue and honest browse-only checkout',async({page})=>{
- const root=resolve('_site');const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'};
+ const root=resolve('_site');const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.avif':'image/avif','.webp':'image/webp','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'};
  await page.route('**/api/**',r=>r.fulfill({status:404,contentType:'text/plain',body:'GitHub Pages has no backend'}));
  await page.route('**/Cafe_Website/**',async route=>{const pathname=new URL(route.request().url()).pathname;const relative=decodeURIComponent(pathname.slice('/Cafe_Website/'.length))||'index.html';if(relative==='supabase-config.json')return route.fulfill({json:{enabled:false,demoEnabled:false}});const file=resolve(root,relative);if(!file.startsWith(root+'/'))return route.fulfill({status:404});try{await route.fulfill({status:200,contentType:mime[extname(file)]||'application/octet-stream',body:await readFile(file)});}catch{await route.fulfill({status:404});}});
  const assetRequests=[];page.on('request',r=>{if(r.url().includes('/assets/'))assetRequests.push(new URL(r.url()).pathname);});

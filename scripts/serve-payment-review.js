@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 
 export async function startPaymentReview({ port = 3211, host = '127.0.0.1', prefix = '/Cafe_Website/review/' } = {}) {
  const root = await realpath('_payment_review_site');
- const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
+ const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.avif': 'image/avif', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
  const server = createServer(async (req, res) => {
   try {
    const path = new URL(req.url, 'http://review').pathname; if (!path.startsWith(prefix)) throw new Error();

@@ -12,6 +12,7 @@ if(process.env.REQUIRE_SUPABASE==='true'&&!config.enabled)throw new Error('Add V
 for(const name of readdirSync('_site',{recursive:true}).filter(name=>/\.(html|css)$/.test(name)||['robots.txt','sitemap.xml'].includes(name))){
  let content=readFileSync('_site/'+name,'utf8').replaceAll('{{SITE_URL}}',origin);
  if(name.endsWith('.css')) content=content.replaceAll('/assets/',base+'/assets/');
+ if(name.endsWith('.html')) content=content.replace(/srcset="([^"]*)"/g,(_,value)=>'srcset="'+value.replaceAll('/assets/',base+'/assets/')+'"');
  if(name.endsWith('.html')) content=content.replace(/(href|src)="\/(?!\/)([^\"]*)"/g,(_,attribute,path)=>attribute+'="'+base+'/'+path+'"');
  writeFileSync('_site/'+name,content);
 }

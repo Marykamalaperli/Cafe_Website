@@ -26,13 +26,18 @@
     "supabase:prepare": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/prepare-supabase.js",
     "supabase:verify": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --use-env-proxy scripts/verify-supabase.js",
     "supabase:photos": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --use-env-proxy scripts/upload-menu-photos.js",
-    "build:pages": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/build-pages.js"
+    "build:pages": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/build-pages.js",
+    "audit:quality": "node scripts/build-quality.js && node scripts/audit-quality.js"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.15",
-    "@playwright/test": "^1.64.1"
+    "@playwright/test": "^1.64.1",
+    "lighthouse": "13.6.0",
+    "axe-core": "4.14.0",
+    "chrome-launcher": "1.2.3"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.118.0"
+    "@supabase/supabase-js": "^2.118.0",
+    "sharp": "0.35.5"
   }
 }

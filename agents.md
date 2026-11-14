@@ -43,6 +43,10 @@
 - Bag storage holds only dish IDs, quantities and selected option IDs/spice. The separate demo namespace holds fictional order snapshots, demo menu/preferences and activity, never customer contact information or delivery addresses. Server-side totals must include validated portion/add-on prices and delivery fees.
 - Read `docs/customer-ordering.md` for repeat ordering, favourites and kitchen arrivals. Fetch the current menu before repeat-order previews; never silently substitute retired options, reuse old prices, copy contact/payment/schedule data, or place an order from the repeat button. Preserve merge/replace review and bag limits. Browser favourites hold folder-scoped dish IDs only and must not claim account sync. Kitchen audio is opt-in and must not replay the initial queue or expose data outside the existing role guards.
 
+## Lighthouse quality requirement (all current and future changes)
+
+The owner requires scores at or near 100 across device sizes. Target 100; the enforced minimum is Performance 97 and Accessibility, Best Practices and SEO 100 on indexable public pages. The pinned Lighthouse Agentic Browsing preview must also pass both scored checks. Run `npm run audit:quality` after UI, asset, build or performance changes and `npm run test:browser -- tests/accessibility.spec.js` for customer/staff accessibility. Audit three clean mobile and desktop runs per page, retain the reports and use median category scores. Preserve protected/utility pages' intentional `noindex`; do not make them indexable to raise SEO. Fix findings rather than lowering thresholds, hiding content or disabling accessibility rules. Scores vary with real hardware, network, backend latency and browser state; report the measured setup and never guarantee an exact score on every physical device. See `docs/quality.md`. The deployment workflow runs the gates before publishing.
+
 ## Verify changes
 
 - `npm run check` and `npm test` for server or database work.

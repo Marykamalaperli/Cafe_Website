@@ -11,7 +11,7 @@ const users=[['customer','customer@bitesbro.invalid'],['chef','chef@bitesbro.inv
  id:`b17e0000-0000-4000-8000-00000000000${index+1}`,role,email,
  user_metadata:{display_name:role==='customer'?'Test Customer':'Test Staff',role:'admin'},email_confirmed_at:'2026-01-01T00:00:00Z',aud:'authenticated'
 }));
-const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'};
+const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.avif':'image/avif','.webp':'image/webp','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'};
 export function cloudFixture({guestReady=true,guestAuthEnabled=true,historyReady=true,transferReady=true,callbackRole='customer'}={}){
  const roles=new Map(users.map(user=>[user.id,user.role])),tokens=new Map(),uploads=new Map(),linked=new Map(),families=new Map(),tokenFamilies=new Map(),refreshFamilies=new Map();
  const calls=[],orders=[],guestUsers=[],transfers=new Map();let sequence=1,settings={acceptingOrders:true,prepMinutes:25};

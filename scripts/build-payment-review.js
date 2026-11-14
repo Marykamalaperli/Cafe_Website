@@ -30,6 +30,7 @@ for (const entry of ['app.js', 'auth/app.js', 'admin/app.js', 'kitchen/app.js', 
 }
 for (const file of readdirSync(out, { recursive: true }).filter(name => /\.(html|css)$/.test(name))) {
  let content = readFileSync(out + '/' + file, 'utf8').replaceAll('{{SITE_URL}}', site.href.replace(/\/$/, ''));
+ if(file.endsWith('.html'))content=content.replace(/srcset="([^"]*)"/g,(_,value)=>'srcset="'+value.replaceAll('/assets/',site.pathname+'assets/')+'"');
  if (file.endsWith('.html')) content = content.replace('<head>', '<head><meta name="robots" content="noindex,nofollow">').replace(/(href|src)="\/(?!\/)([^"]*)"/g, (_, attribute, path) => `${attribute}="${site.pathname}${path}"`);
  if (file.endsWith('.css')) content = content.replaceAll('/assets/', site.pathname + 'assets/');
  writeFileSync(out + '/' + file, content);
